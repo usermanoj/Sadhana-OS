@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Sadhana OS — Design System Foundation
+ * Based on docs/06-design-system.md
+ *
+ * Philosophy: Calm. Premium. Spiritual. Uncluttered.
+ */
+
+:root {
+  --bg-primary: #FDFAF6;
+  --bg-surface: #FFFFFF;
+  --bg-muted: #F5F0EB;
+  --text-primary: #1A1A1A;
+  --text-secondary: #6B6B6B;
+  --accent-primary: #7C3AED;
+  --accent-secondary: #F59E0B;
+  --accent-success: #10B981;
+  --accent-warning: #F59E0B;
+  --accent-danger: #EF4444;
+  --border: #E5E0DB;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Smooth transitions globally */
+button, a {
+  transition: opacity 100ms ease, transform 100ms ease;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* Scrollbar styling — subtle and calm */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
