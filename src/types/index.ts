@@ -4,10 +4,10 @@
  */
 
 // ---------------------------------------------------------------------------
-// Category & SubComponent
+// Category & Habit/SubComponent
 // ---------------------------------------------------------------------------
 
-export interface SubComponent {
+export interface Habit {
   id: string;               // UUID v4
   categoryId: string;       // FK → Category.id
   name: string;             // e.g., "Yama"
@@ -16,6 +16,8 @@ export interface SubComponent {
   createdAt: string;        // ISO 8601
   updatedAt: string;        // ISO 8601
 }
+
+export type SubComponent = Habit;
 
 export interface Category {
   id: string;               // UUID v4
@@ -26,7 +28,7 @@ export interface Category {
   isArchived: boolean;      // true = hidden from tracker
   createdAt: string;        // ISO 8601
   updatedAt: string;        // ISO 8601
-  subComponents: SubComponent[];
+  subComponents: Habit[];
 }
 
 // ---------------------------------------------------------------------------
@@ -82,7 +84,9 @@ export interface AuditLogEntry {
   description: string;      // Human-readable summary
 }
 
-// ---------------------------------------------------------------------------
+export type AuditLog = AuditLogEntry[];
+
+
 // Export / Import
 // ---------------------------------------------------------------------------
 
