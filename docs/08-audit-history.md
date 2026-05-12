@@ -19,6 +19,12 @@ Every configuration change is recorded in an immutable audit log. Users never lo
 | `data_imported` | User imports a JSON backup |
 | `data_exported` | User exports data (JSON or CSV) |
 
+## Export Audit Timing
+
+- JSON export must create the `data_exported` audit entry before the export payload is gathered, so the downloaded JSON includes the export event.
+- CSV export must also create a `data_exported` audit entry before download, but the CSV file remains limited to daily-entry rows.
+- If a browser download is cancelled after payload generation, keep the audit entry; the user initiated the export action.
+
 ## What Does NOT Get Logged
 
 - Daily toggle actions (too noisy; these are stored in `DailyEntry`).

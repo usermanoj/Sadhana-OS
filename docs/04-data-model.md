@@ -113,6 +113,12 @@ interface ExportPayload {
 
 ---
 
+## MVP Scope Note: SMART Goals
+
+SMART goal metadata is deferred to v1.1. The v1.0 data model intentionally tracks daily completion only; do not add SMART target fields or goal-progress workflows until a dedicated future task defines their schema, UI, scoring impact, and migration rules.
+
+---
+
 ## Seed Data
 
 On first launch (when `sadhana:version` is absent), the app seeds the 9 default categories with their sub-components as defined in `01-product-vision.md`, writes `sadhana:version = "1.0"`, and logs a `data_imported` audit entry with description `"Initial seed data"`.

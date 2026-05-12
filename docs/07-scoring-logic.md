@@ -10,6 +10,7 @@ categoryScore(categoryId, date) =
 - `completedSubComponents` = count of sub-components where `completions[subId] === true`.
 - `totalActiveSubComponents` = count of sub-components in this category where `isArchived === false`.
 - If a category has 0 active sub-components → score = 0 (not NaN).
+- A sub-component only counts as completed when its value is `true`; missing keys and explicit `false` values both count as incomplete.
 
 ## Overall Daily Score
 
@@ -36,7 +37,8 @@ streak = count of consecutive days (ending today or yesterday)
          where a DailyEntry exists with overallScore > 0
 ```
 
-- A day "counts" if at least 1 sub-component was toggled.
+- A day "counts" only if at least 1 sub-component has `completions[subId] === true`.
+- If a user toggles a sub-component on and later toggles it back off, that sub-component no longer counts. If all completions are false, the day does not count toward the streak even if a `DailyEntry` remains in storage.
 - Streak resets to 0 if there's a gap day with no entry.
 - If today has no entry yet, streak is counted from yesterday backward.
 

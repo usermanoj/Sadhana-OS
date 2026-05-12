@@ -64,3 +64,4 @@ Modern habit trackers focus on productivity and fitness but ignore the holistic,
 - Multi-user / auth.
 - Push notifications.
 - Native mobile app.
+- Detailed SMART target fields and goal-progress workflows (planned for v1.1).

@@ -43,6 +43,11 @@
 ### FR-08  Export / Import
 - **JSON Export**: full data dump (categories, sub-components, daily entries, journal, audit log).
 - **JSON Import**: merge or overwrite with conflict detection dialog.
+- Import files must be schema-validated before any localStorage writes.
+- Conflict detection must compare stable IDs for categories, sub-components, daily entries, journal entries, and audit entries.
+- Merge mode preserves existing local records when IDs conflict, adds non-conflicting incoming records, and reports skipped conflicts in the dialog.
+- Overwrite mode replaces categories, entries, journal, and imported audit history, then appends a new `data_imported` audit entry describing the overwrite.
+- Invalid or partial import files must fail without changing existing local data.
 - **CSV Export**: daily entries as flat CSV (date, category, sub-component, completed).
 
 ### FR-09  Persistence
