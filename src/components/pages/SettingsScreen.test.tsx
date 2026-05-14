@@ -53,4 +53,14 @@ describe('SettingsScreen', () => {
     expect(screen.getByRole('heading', { name: 'Audit Log' })).toBeInTheDocument();
     expect(screen.getByText('Created Practice')).toBeInTheDocument();
   });
+
+  it('shows data export and import controls from Settings', () => {
+    render(<SettingsScreen />);
+    fireEvent.click(screen.getByRole('button', { name: 'Data' }));
+
+    expect(screen.getByRole('heading', { name: 'Data' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Export JSON' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Export CSV' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Import JSON file')).toBeInTheDocument();
+  });
 });

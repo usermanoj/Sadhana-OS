@@ -4,9 +4,10 @@ import { useCategories } from '../../hooks/useCategories';
 import AuditLogScreen from '../settings/AuditLogScreen';
 import CategoryForm from '../settings/CategoryForm';
 import CategoryListScreen from '../settings/CategoryListScreen';
+import DataScreen from '../settings/DataScreen';
 
 type SettingsMode = 'list' | 'add' | 'edit';
-type SettingsSection = 'categories' | 'audit';
+type SettingsSection = 'categories' | 'audit' | 'data';
 
 export default function SettingsScreen() {
   const {
@@ -50,7 +51,7 @@ export default function SettingsScreen() {
           </div>
         </div>
 
-        <div className="flex gap-2" aria-label="Settings sections">
+        <div className="flex flex-wrap gap-2" aria-label="Settings sections">
           <button
             type="button"
             onClick={() => {
@@ -81,10 +82,27 @@ export default function SettingsScreen() {
           >
             Audit Log
           </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSection('data');
+              showList();
+            }}
+            className={`min-h-[44px] rounded-md px-4 py-2 text-body font-medium shadow-sm ${
+              section === 'data'
+                ? 'bg-accent-primary text-white'
+                : 'border border-border bg-surface text-text-secondary'
+            }`}
+            aria-current={section === 'data' ? 'page' : undefined}
+          >
+            Data
+          </button>
         </div>
       </header>
 
-      {section === 'audit' ? (
+      {section === 'data' ? (
+        <DataScreen />
+      ) : section === 'audit' ? (
         <AuditLogScreen />
       ) : mode === 'list' ? (
         <CategoryListScreen

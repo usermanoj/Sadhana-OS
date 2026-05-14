@@ -122,10 +122,20 @@ export type AuditLog = AuditLogEntry[];
 // Export / Import
 // ---------------------------------------------------------------------------
 
+export interface AppSettings {
+  schemaVersion: string;
+}
+
 export interface ExportPayload {
   version: string;
   exportedAt: string;       // ISO 8601
   categories: Category[];
+  habits: Habit[];
+  dailyEntries: Record<DateKey, DailyEntry>;
+  journalEntries: Record<DateKey, JournalEntry>;
+  auditLogs: AuditLogEntry[];
+  settings: AppSettings;
+  // Legacy aliases kept for compatibility with earlier docs/tasks.
   entries: Record<DateKey, DailyEntry>;
   journal: Record<DateKey, JournalEntry>;
   audit: AuditLogEntry[];
