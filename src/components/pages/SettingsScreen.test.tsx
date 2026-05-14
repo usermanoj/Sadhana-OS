@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { seedIfNeeded } from '../../lib/seed';
+import { recordAuditEntry } from '../../lib/auditService';
 import SettingsScreen from './SettingsScreen';
 
 describe('SettingsScreen', () => {
@@ -34,5 +35,22 @@ describe('SettingsScreen', () => {
 
     expect(within(activeSection).queryByText('Family')).not.toBeInTheDocument();
     expect(within(archivedSection).getByText('Family')).toBeInTheDocument();
+  });
+
+  it('shows the audit log section from Settings', () => {
+    recordAuditEntry({
+      actionType: 'category_created',
+      entityType: 'category',
+      entityId: 'category-1',
+      oldValue: null,
+      newValue: { name: 'Practice' },
+      note: 'Created Practice',
+    });
+
+    render(<SettingsScreen />);
+    fireEvent.click(screen.getByRole('button', { name: 'Audit Log' }));
+
+    expect(screen.getByRole('heading', { name: 'Audit Log' })).toBeInTheDocument();
+    expect(screen.getByText('Created Practice')).toBeInTheDocument();
   });
 });

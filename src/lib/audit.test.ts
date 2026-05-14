@@ -19,12 +19,12 @@ describe('Audit Logger', () => {
     expect(typeof entry.id).toBe('string');
     expect(entry.timestamp).toBeDefined();
     expect(typeof entry.timestamp).toBe('string');
-    expect(entry.action).toBe('data_imported');
+    expect(entry.actionType).toBe('data_imported');
     expect(entry.entityType).toBe('system');
     expect(entry.entityId).toBe('system');
-    expect(entry.before).toBeNull();
-    expect(entry.after).toBeNull();
-    expect(entry.description).toBe('Test description');
+    expect(entry.oldValue).toBeNull();
+    expect(entry.newValue).toBeNull();
+    expect(entry.note).toBe('Test description');
   });
 
   it('appends to existing log', () => {
@@ -33,8 +33,8 @@ describe('Audit Logger', () => {
 
     const auditLog = getItem<AuditLogEntry[]>('audit', []);
     expect(auditLog).toHaveLength(2);
-    expect(auditLog[0]!.action).toBe('category_created');
-    expect(auditLog[1]!.action).toBe('category_updated');
+    expect(auditLog[0]!.actionType).toBe('category_created');
+    expect(auditLog[1]!.actionType).toBe('category_updated');
   });
 
   it('IDs are unique', () => {

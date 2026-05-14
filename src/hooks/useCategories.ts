@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { Category, SubComponent, TrackingType } from '../types';
-import { addAuditEntry } from '../lib/audit';
+import { recordAuditEntry } from '../lib/auditService';
 import { getItem, setItem } from '../lib/storage';
 
 const DEFAULT_CATEGORY_ICON = 'sparkles';
@@ -102,14 +102,14 @@ export function useCategories() {
       const nextCategories = [...categories, category];
 
       persist(nextCategories);
-      addAuditEntry(
-        'category_created',
-        'category',
-        category.id,
-        null,
-        category,
-        `Created category "${category.name}"`,
-      );
+      recordAuditEntry({
+        actionType: 'category_created',
+        entityType: 'category',
+        entityId: category.id,
+        oldValue: null,
+        newValue: category,
+        note: `Created category "${category.name}"`,
+      });
 
       return category;
     },
@@ -134,14 +134,14 @@ export function useCategories() {
       );
 
       persist(nextCategories);
-      addAuditEntry(
-        'category_updated',
-        'category',
-        categoryId,
-        before,
-        after,
-        `Updated category "${before.name}"`,
-      );
+      recordAuditEntry({
+        actionType: 'category_updated',
+        entityType: 'category',
+        entityId: categoryId,
+        oldValue: before,
+        newValue: after,
+        note: `Updated category "${before.name}"`,
+      });
 
       return after;
     },
@@ -164,14 +164,14 @@ export function useCategories() {
       );
 
       persist(nextCategories);
-      addAuditEntry(
-        'category_archived',
-        'category',
-        categoryId,
-        before,
-        after,
-        `Archived category "${before.name}"`,
-      );
+      recordAuditEntry({
+        actionType: 'category_archived',
+        entityType: 'category',
+        entityId: categoryId,
+        oldValue: before,
+        newValue: after,
+        note: `Archived category "${before.name}"`,
+      });
 
       return after;
     },
@@ -194,14 +194,14 @@ export function useCategories() {
       );
 
       persist(nextCategories);
-      addAuditEntry(
-        'category_restored',
-        'category',
-        categoryId,
-        before,
-        after,
-        `Restored category "${before.name}"`,
-      );
+      recordAuditEntry({
+        actionType: 'category_restored',
+        entityType: 'category',
+        entityId: categoryId,
+        oldValue: before,
+        newValue: after,
+        note: `Restored category "${before.name}"`,
+      });
 
       return after;
     },
@@ -230,14 +230,14 @@ export function useCategories() {
       );
 
       persist(nextCategories);
-      addAuditEntry(
-        'subcomponent_created',
-        'subComponent',
-        created.id,
-        null,
-        created,
-        `Created practice "${created.name}"`,
-      );
+      recordAuditEntry({
+        actionType: 'habit_created',
+        entityType: 'habit',
+        entityId: created.id,
+        oldValue: null,
+        newValue: created,
+        note: `Created habit "${created.name}"`,
+      });
 
       return created;
     },
@@ -277,14 +277,25 @@ export function useCategories() {
       );
 
       persist(nextCategories);
-      addAuditEntry(
-        'subcomponent_updated',
-        'subComponent',
-        subComponentId,
-        before,
-        after,
-        `Updated practice "${before.name}"`,
-      );
+      recordAuditEntry({
+        actionType: 'habit_updated',
+        entityType: 'habit',
+        entityId: subComponentId,
+        oldValue: before,
+        newValue: after,
+        note: `Updated habit "${before.name}"`,
+      });
+
+      if (before.trackingType !== after.trackingType) {
+        recordAuditEntry({
+          actionType: 'tracking_type_changed',
+          entityType: 'habit',
+          entityId: subComponentId,
+          oldValue: before.trackingType,
+          newValue: after.trackingType,
+          note: `Changed tracking type for "${after.name}"`,
+        });
+      }
 
       return after;
     },
@@ -320,14 +331,14 @@ export function useCategories() {
       );
 
       persist(nextCategories);
-      addAuditEntry(
-        'subcomponent_archived',
-        'subComponent',
-        subComponentId,
-        before,
-        after,
-        `Archived practice "${before.name}"`,
-      );
+      recordAuditEntry({
+        actionType: 'habit_archived',
+        entityType: 'habit',
+        entityId: subComponentId,
+        oldValue: before,
+        newValue: after,
+        note: `Archived habit "${before.name}"`,
+      });
 
       return after;
     },
@@ -363,14 +374,14 @@ export function useCategories() {
       );
 
       persist(nextCategories);
-      addAuditEntry(
-        'subcomponent_restored',
-        'subComponent',
-        subComponentId,
-        before,
-        after,
-        `Restored practice "${before.name}"`,
-      );
+      recordAuditEntry({
+        actionType: 'habit_restored',
+        entityType: 'habit',
+        entityId: subComponentId,
+        oldValue: before,
+        newValue: after,
+        note: `Restored habit "${before.name}"`,
+      });
 
       return after;
     },
@@ -400,14 +411,14 @@ export function useCategories() {
 
       persist(nextCategories);
       changed.forEach(({ before, after }) => {
-        addAuditEntry(
-          'category_updated',
-          'category',
-          after.id,
-          before,
-          after,
-          `Reordered category "${after.name}"`,
-        );
+        recordAuditEntry({
+          actionType: 'category_updated',
+          entityType: 'category',
+          entityId: after.id,
+          oldValue: before,
+          newValue: after,
+          note: `Reordered category "${after.name}"`,
+        });
       });
     },
     [categories, persist],
@@ -441,14 +452,14 @@ export function useCategories() {
 
       persist(nextCategories);
       changed.forEach(({ before, after }) => {
-        addAuditEntry(
-          'subcomponent_updated',
-          'subComponent',
-          after.id,
-          before,
-          after,
-          `Reordered practice "${after.name}"`,
-        );
+        recordAuditEntry({
+          actionType: 'habit_updated',
+          entityType: 'habit',
+          entityId: after.id,
+          oldValue: before,
+          newValue: after,
+          note: `Reordered habit "${after.name}"`,
+        });
       });
     },
     [categories, persist],

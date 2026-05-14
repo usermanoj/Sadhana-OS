@@ -1,27 +1,53 @@
+import type { AuditActionType, AuditEntityType } from '../types';
+import { recordAuditEntry } from './auditService';
 
-import type { AuditAction, AuditLogEntry } from '../types';
-import { getItem, setItem } from './storage';
+type LegacyAuditAction =
+  | AuditActionType
+  | 'subcomponent_created'
+  | 'subcomponent_updated'
+  | 'subcomponent_archived'
+  | 'subcomponent_restored';
+
+const legacyActionMap: Record<LegacyAuditAction, AuditActionType> = {
+  category_created: 'category_created',
+  category_updated: 'category_updated',
+  category_archived: 'category_archived',
+  category_restored: 'category_restored',
+  subcomponent_created: 'habit_created',
+  subcomponent_updated: 'habit_updated',
+  subcomponent_archived: 'habit_archived',
+  subcomponent_restored: 'habit_restored',
+  habit_created: 'habit_created',
+  habit_updated: 'habit_updated',
+  habit_archived: 'habit_archived',
+  habit_restored: 'habit_restored',
+  tracking_type_changed: 'tracking_type_changed',
+  smart_goal_changed: 'smart_goal_changed',
+  target_value_changed: 'target_value_changed',
+  frequency_changed: 'frequency_changed',
+  weight_changed: 'weight_changed',
+  data_imported: 'data_imported',
+  data_exported: 'data_exported',
+};
+
+const normalizeEntityType = (
+  entityType: 'category' | 'subComponent' | 'habit' | 'system',
+): AuditEntityType => (entityType === 'subComponent' ? 'habit' : entityType);
 
 export function addAuditEntry(
-  action: AuditAction,
-  entityType: 'category' | 'subComponent' | 'system',
+  action: LegacyAuditAction,
+  entityType: 'category' | 'subComponent' | 'habit' | 'system',
   entityId: string,
   before: unknown | null,
   after: unknown | null,
   description: string,
 ): void {
-  const newEntry: AuditLogEntry = {
-    id: crypto.randomUUID(),
-    timestamp: new Date().toISOString(),
-    action,
-    entityType,
+  recordAuditEntry({
+    actionType: legacyActionMap[action],
+    entityType: normalizeEntityType(entityType),
     entityId,
-    before,
-    after,
-    description,
-  };
-
-  const auditLog = getItem<AuditLogEntry[]>('audit', []);
-  auditLog.push(newEntry);
-  setItem('audit', auditLog);
+    oldValue: before,
+    newValue: after,
+    note: description,
+  });
 }

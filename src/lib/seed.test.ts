@@ -26,8 +26,8 @@ describe('seed data', () => {
 
     const audit = getItem<AuditLogEntry[]>('audit', []);
     expect(audit).toHaveLength(1);
-    expect(audit[0]!.action).toBe('data_imported');
-    expect(audit[0]!.description).toBe('Initial seed data');
+    expect(audit[0]!.actionType).toBe('data_imported');
+    expect(audit[0]!.note).toBe('Initial seed data');
   });
 
   it('does not re-seed on subsequent launches', () => {
@@ -49,4 +49,3 @@ describe('seed data', () => {
     expect(categories2).toEqual(categories1);
   });
 });
-

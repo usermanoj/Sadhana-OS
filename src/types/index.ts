@@ -79,27 +79,36 @@ export interface JournalEntry {
 // Audit Log
 // ---------------------------------------------------------------------------
 
-export type AuditAction =
+export type AuditActionType =
   | 'category_created'
   | 'category_updated'
   | 'category_archived'
   | 'category_restored'
-  | 'subcomponent_created'
-  | 'subcomponent_updated'
-  | 'subcomponent_archived'
-  | 'subcomponent_restored'
+  | 'habit_created'
+  | 'habit_updated'
+  | 'habit_archived'
+  | 'habit_restored'
+  | 'tracking_type_changed'
+  | 'smart_goal_changed'
+  | 'target_value_changed'
+  | 'frequency_changed'
+  | 'weight_changed'
   | 'data_imported'
   | 'data_exported';
+
+export type AuditAction = AuditActionType;
+
+export type AuditEntityType = 'category' | 'habit' | 'system';
 
 export interface AuditLogEntry {
   id: string;               // UUID v4
   timestamp: string;        // ISO 8601
-  action: AuditAction;
-  entityType: 'category' | 'subComponent' | 'system';
+  actionType: AuditActionType;
+  entityType: AuditEntityType;
   entityId: string;         // ID of affected entity (or "system")
-  before: unknown | null;   // Snapshot before change
-  after: unknown | null;    // Snapshot after change
-  description: string;      // Human-readable summary
+  oldValue: unknown | null; // Snapshot/value before change
+  newValue: unknown | null; // Snapshot/value after change
+  note?: string;            // Optional human-readable context
 }
 
 export type AuditLog = AuditLogEntry[];

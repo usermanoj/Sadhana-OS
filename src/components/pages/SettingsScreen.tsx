@@ -1,10 +1,12 @@
 import { Settings } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useCategories } from '../../hooks/useCategories';
+import AuditLogScreen from '../settings/AuditLogScreen';
 import CategoryForm from '../settings/CategoryForm';
 import CategoryListScreen from '../settings/CategoryListScreen';
 
 type SettingsMode = 'list' | 'add' | 'edit';
+type SettingsSection = 'categories' | 'audit';
 
 export default function SettingsScreen() {
   const {
@@ -22,6 +24,7 @@ export default function SettingsScreen() {
   } = useCategories();
 
   const [mode, setMode] = useState<SettingsMode>('list');
+  const [section, setSection] = useState<SettingsSection>('categories');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
   const selectedCategory = useMemo(
@@ -50,16 +53,40 @@ export default function SettingsScreen() {
         <div className="flex gap-2" aria-label="Settings sections">
           <button
             type="button"
-            className="min-h-[44px] rounded-md bg-accent-primary px-4 py-2 text-body
-                       font-medium text-white shadow-sm"
-            aria-current="page"
+            onClick={() => {
+              setSection('categories');
+              showList();
+            }}
+            className={`min-h-[44px] rounded-md px-4 py-2 text-body font-medium shadow-sm ${
+              section === 'categories'
+                ? 'bg-accent-primary text-white'
+                : 'border border-border bg-surface text-text-secondary'
+            }`}
+            aria-current={section === 'categories' ? 'page' : undefined}
           >
             Categories
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSection('audit');
+              showList();
+            }}
+            className={`min-h-[44px] rounded-md px-4 py-2 text-body font-medium shadow-sm ${
+              section === 'audit'
+                ? 'bg-accent-primary text-white'
+                : 'border border-border bg-surface text-text-secondary'
+            }`}
+            aria-current={section === 'audit' ? 'page' : undefined}
+          >
+            Audit Log
           </button>
         </div>
       </header>
 
-      {mode === 'list' ? (
+      {section === 'audit' ? (
+        <AuditLogScreen />
+      ) : mode === 'list' ? (
         <CategoryListScreen
           activeCategories={activeCategories}
           archivedCategories={archivedCategories}

@@ -32,10 +32,10 @@ describe('useCategories', () => {
 
     const audit = getItem<AuditLogEntry[]>('audit', []);
     const entry = audit[audit.length - 1]!;
-    expect(entry.action).toBe('category_created');
+    expect(entry.actionType).toBe('category_created');
     expect(entry.entityId).toBe(created.id);
-    expect(entry.before).toBeNull();
-    expect((entry.after as Category).name).toBe('Creative Sadhana');
+    expect(entry.oldValue).toBeNull();
+    expect((entry.newValue as Category).name).toBe('Creative Sadhana');
   });
 
   it('edits a category and writes before and after snapshots', () => {
@@ -57,9 +57,9 @@ describe('useCategories', () => {
 
     const audit = getItem<AuditLogEntry[]>('audit', []);
     const entry = audit[audit.length - 1]!;
-    expect(entry.action).toBe('category_updated');
-    expect((entry.before as Category).name).toBe(category.name);
-    expect((entry.after as Category).name).toBe('Yoga Practice');
+    expect(entry.actionType).toBe('category_updated');
+    expect((entry.oldValue as Category).name).toBe(category.name);
+    expect((entry.newValue as Category).name).toBe('Yoga Practice');
   });
 
   it('archives a category without removing daily entry history', () => {
@@ -85,9 +85,9 @@ describe('useCategories', () => {
 
     const audit = getItem<AuditLogEntry[]>('audit', []);
     const auditEntry = audit[audit.length - 1]!;
-    expect(auditEntry.action).toBe('category_archived');
-    expect((auditEntry.before as Category).isArchived).toBe(false);
-    expect((auditEntry.after as Category).isArchived).toBe(true);
+    expect(auditEntry.actionType).toBe('category_archived');
+    expect((auditEntry.oldValue as Category).isArchived).toBe(false);
+    expect((auditEntry.newValue as Category).isArchived).toBe(true);
   });
 
   it('restores an archived category', () => {
@@ -106,9 +106,9 @@ describe('useCategories', () => {
 
     const audit = getItem<AuditLogEntry[]>('audit', []);
     const entry = audit[audit.length - 1]!;
-    expect(entry.action).toBe('category_restored');
-    expect((entry.before as Category).isArchived).toBe(true);
-    expect((entry.after as Category).isArchived).toBe(false);
+    expect(entry.actionType).toBe('category_restored');
+    expect((entry.oldValue as Category).isArchived).toBe(true);
+    expect((entry.newValue as Category).isArchived).toBe(false);
   });
 
   it('adds a habit/sub-component to a category', () => {
@@ -130,7 +130,7 @@ describe('useCategories', () => {
 
     const audit = getItem<AuditLogEntry[]>('audit', []);
     const entry = audit[audit.length - 1]!;
-    expect(entry.action).toBe('subcomponent_created');
+    expect(entry.actionType).toBe('habit_created');
     expect(entry.entityId).toBe(created.id);
   });
 
@@ -153,9 +153,10 @@ describe('useCategories', () => {
 
     const audit = getItem<AuditLogEntry[]>('audit', []);
     const entry = audit[audit.length - 1]!;
-    expect(entry.action).toBe('subcomponent_updated');
-    expect((entry.before as SubComponent).name).toBe(subComponent.name);
-    expect((entry.after as SubComponent).name).toBe('Mindful Yama');
+    expect(entry.actionType).toBe('tracking_type_changed');
+    expect(entry.oldValue).toBe(subComponent.trackingType);
+    expect(entry.newValue).toBe('scale5');
+    expect(audit[audit.length - 2]!.actionType).toBe('habit_updated');
   });
 
   it('archives a habit/sub-component without deleting it', () => {
@@ -174,9 +175,9 @@ describe('useCategories', () => {
 
     const audit = getItem<AuditLogEntry[]>('audit', []);
     const entry = audit[audit.length - 1]!;
-    expect(entry.action).toBe('subcomponent_archived');
-    expect((entry.before as SubComponent).isArchived).toBe(false);
-    expect((entry.after as SubComponent).isArchived).toBe(true);
+    expect(entry.actionType).toBe('habit_archived');
+    expect((entry.oldValue as SubComponent).isArchived).toBe(false);
+    expect((entry.newValue as SubComponent).isArchived).toBe(true);
   });
 
   it('restores a habit/sub-component', () => {
@@ -197,9 +198,9 @@ describe('useCategories', () => {
 
     const audit = getItem<AuditLogEntry[]>('audit', []);
     const entry = audit[audit.length - 1]!;
-    expect(entry.action).toBe('subcomponent_restored');
-    expect((entry.before as SubComponent).isArchived).toBe(true);
-    expect((entry.after as SubComponent).isArchived).toBe(false);
+    expect(entry.actionType).toBe('habit_restored');
+    expect((entry.oldValue as SubComponent).isArchived).toBe(true);
+    expect((entry.newValue as SubComponent).isArchived).toBe(false);
   });
 
   it('active category view excludes archived items', () => {
