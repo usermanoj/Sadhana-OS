@@ -4,6 +4,23 @@
  */
 
 // ---------------------------------------------------------------------------
+// Tracking Types
+// ---------------------------------------------------------------------------
+
+/** The kind of input widget rendered for a habit */
+export type TrackingType =
+  | 'boolean'   // yes/no toggle
+  | 'scale5'    // 1–5 rating
+  | 'scale10'   // 0–10 rating
+  | 'duration'  // minutes (numeric)
+  | 'count'     // repetitions / quantity
+  | 'numeric'   // generic number (e.g., hours of sleep)
+  | 'text';     // free-text reflection
+
+/** The runtime value stored for a single habit entry */
+export type TrackingValue = boolean | number | string;
+
+// ---------------------------------------------------------------------------
 // Category & Habit/SubComponent
 // ---------------------------------------------------------------------------
 
@@ -11,6 +28,7 @@ export interface Habit {
   id: string;               // UUID v4
   categoryId: string;       // FK → Category.id
   name: string;             // e.g., "Yama"
+  trackingType: TrackingType; // determines input widget & completion check
   displayOrder: number;
   isArchived: boolean;
   createdAt: string;        // ISO 8601
@@ -40,10 +58,10 @@ export type DateKey = string;
 
 export interface DailyEntry {
   date: DateKey;
-  completions: Record<string, boolean>;   // subComponentId → done
-  categoryScores: Record<string, number>; // categoryId → 0–100
-  overallScore: number;                   // 0–100
-  updatedAt: string;                      // ISO 8601
+  completions: Record<string, TrackingValue>; // subComponentId -> value
+  categoryScores: Record<string, number>;     // categoryId -> 0-100
+  overallScore: number;                       // 0-100
+  updatedAt: string;                          // ISO 8601
 }
 
 // ---------------------------------------------------------------------------
@@ -86,7 +104,7 @@ export interface AuditLogEntry {
 
 export type AuditLog = AuditLogEntry[];
 
-
+// ---------------------------------------------------------------------------
 // Export / Import
 // ---------------------------------------------------------------------------
 

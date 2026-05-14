@@ -1,11 +1,17 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import App from './App';
+import { seedIfNeeded } from './lib/seed';
 
 const tabLabels = ['Today', 'Dashboard', 'Journal', 'History', 'Settings'] as const;
 
 describe('App', () => {
-  it('renders the app shell with the five Task 001 navigation tabs', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    seedIfNeeded();
+  });
+
+  it('renders the app shell with the five navigation tabs', () => {
     render(<App />);
 
     expect(screen.getAllByRole('navigation', { name: 'Main navigation' })).toHaveLength(2);
@@ -17,14 +23,30 @@ describe('App', () => {
     expect(screen.queryByRole('button', { name: 'Tracker' })).not.toBeInTheDocument();
   });
 
-  it('renders the Today placeholder page by default', () => {
+  it('renders the TodayScreen with daily score by default', () => {
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: 'Today' })).toBeInTheDocument();
-    expect(screen.getByText(/daily practice/i)).toBeInTheDocument();
+    // TodayScreen shows "Daily Score" heading
+    expect(screen.getByText('Daily Score')).toBeInTheDocument();
+    // Date navigator is present
+    expect(screen.getByLabelText('Previous day')).toBeInTheDocument();
   });
 
-  it('switches between placeholder tabs', () => {
+  it('renders all 9 default categories', () => {
+    render(<App />);
+
+    expect(screen.getByText('8 Limbs of Yoga')).toBeInTheDocument();
+    expect(screen.getByText('Speech / Vaani Control')).toBeInTheDocument();
+    expect(screen.getByText('Six Senses Control')).toBeInTheDocument();
+    expect(screen.getByText('Spiritual')).toBeInTheDocument();
+    expect(screen.getByText('Physical')).toBeInTheDocument();
+    expect(screen.getByText('Mental')).toBeInTheDocument();
+    expect(screen.getByText('Society')).toBeInTheDocument();
+    expect(screen.getByText('Professional')).toBeInTheDocument();
+    expect(screen.getByText('Family')).toBeInTheDocument();
+  });
+
+  it('switches to placeholder tabs', () => {
     render(<App />);
 
     const [journalButton] = screen.getAllByRole('button', { name: 'Journal' });
@@ -35,10 +57,20 @@ describe('App', () => {
     fireEvent.click(journalButton);
 
     expect(screen.getByRole('heading', { name: 'Journal' })).toBeInTheDocument();
+    expect(screen.getByText('Coming soon')).toBeInTheDocument();
   });
 
-  it('shows "Coming soon" badge', () => {
+  it('switches back to TodayScreen from other tabs', () => {
     render(<App />);
+
+    // Go to Dashboard
+    const [dashboardButton] = screen.getAllByRole('button', { name: 'Dashboard' });
+    fireEvent.click(dashboardButton!);
     expect(screen.getByText('Coming soon')).toBeInTheDocument();
+
+    // Go back to Today
+    const [todayButton] = screen.getAllByRole('button', { name: 'Today' });
+    fireEvent.click(todayButton!);
+    expect(screen.getByText('Daily Score')).toBeInTheDocument();
   });
 });

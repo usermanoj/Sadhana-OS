@@ -18,9 +18,9 @@ export default function AppShell({ activeTab, onTabChange, children }: AppShellP
       {/* Main content */}
       <main
         id="main-content"
-        className="pb-16 lg:pb-0 lg:pl-60 min-h-screen min-h-dvh"
+        className="pb-16 lg:pb-0 lg:pl-60 min-h-screen min-h-dvh flex justify-center"
       >
-        <div className="mx-auto max-w-2xl px-4 py-6">
+        <div className="w-full max-w-3xl px-4 md:px-8 py-6 md:py-10">
           {children}
         </div>
       </main>

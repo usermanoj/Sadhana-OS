@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Category, DailyEntry } from '../types';
 import {
+  isCompleted,
   computeCategoryScore,
   computeOverallScore,
   computeAllScores,
@@ -19,9 +20,9 @@ describe('scoring engine', () => {
       createdAt: '',
       updatedAt: '',
       subComponents: [
-        { id: 'sub-1', categoryId: 'cat-1', name: 'Sub 1', displayOrder: 0, isArchived: false, createdAt: '', updatedAt: '' },
-        { id: 'sub-2', categoryId: 'cat-1', name: 'Sub 2', displayOrder: 1, isArchived: false, createdAt: '', updatedAt: '' },
-        { id: 'sub-3', categoryId: 'cat-1', name: 'Sub 3', displayOrder: 2, isArchived: true, createdAt: '', updatedAt: '' }, // Archived sub should be ignored
+        { id: 'sub-1', categoryId: 'cat-1', name: 'Sub 1', trackingType: 'boolean', displayOrder: 0, isArchived: false, createdAt: '', updatedAt: '' },
+        { id: 'sub-2', categoryId: 'cat-1', name: 'Sub 2', trackingType: 'boolean', displayOrder: 1, isArchived: false, createdAt: '', updatedAt: '' },
+        { id: 'sub-3', categoryId: 'cat-1', name: 'Sub 3', trackingType: 'boolean', displayOrder: 2, isArchived: true, createdAt: '', updatedAt: '' }, // Archived sub should be ignored
       ],
     },
     {
@@ -34,7 +35,7 @@ describe('scoring engine', () => {
       createdAt: '',
       updatedAt: '',
       subComponents: [
-        { id: 'sub-4', categoryId: 'cat-2', name: 'Sub 4', displayOrder: 0, isArchived: false, createdAt: '', updatedAt: '' },
+        { id: 'sub-4', categoryId: 'cat-2', name: 'Sub 4', trackingType: 'boolean', displayOrder: 0, isArchived: false, createdAt: '', updatedAt: '' },
       ],
     },
     {
@@ -47,7 +48,7 @@ describe('scoring engine', () => {
       createdAt: '',
       updatedAt: '',
       subComponents: [
-        { id: 'sub-5', categoryId: 'cat-archived', name: 'Sub 5', displayOrder: 0, isArchived: false, createdAt: '', updatedAt: '' },
+        { id: 'sub-5', categoryId: 'cat-archived', name: 'Sub 5', trackingType: 'boolean', displayOrder: 0, isArchived: false, createdAt: '', updatedAt: '' },
       ],
     },
     {
@@ -60,10 +61,62 @@ describe('scoring engine', () => {
       createdAt: '',
       updatedAt: '',
       subComponents: [
-        { id: 'sub-6', categoryId: 'cat-empty', name: 'Sub 6', displayOrder: 0, isArchived: true, createdAt: '', updatedAt: '' },
+        { id: 'sub-6', categoryId: 'cat-empty', name: 'Sub 6', trackingType: 'boolean', displayOrder: 0, isArchived: true, createdAt: '', updatedAt: '' },
       ],
     }
   ];
+
+  // ---- isCompleted ----
+
+  describe('isCompleted', () => {
+    it('boolean: true → completed, false → not', () => {
+      expect(isCompleted(true, 'boolean')).toBe(true);
+      expect(isCompleted(false, 'boolean')).toBe(false);
+    });
+
+    it('boolean: undefined / null → not completed', () => {
+      expect(isCompleted(undefined, 'boolean')).toBe(false);
+    });
+
+    it('scale5: 0 → not completed, 1-5 → completed', () => {
+      expect(isCompleted(0, 'scale5')).toBe(false);
+      expect(isCompleted(1, 'scale5')).toBe(true);
+      expect(isCompleted(5, 'scale5')).toBe(true);
+    });
+
+    it('scale10: 0 → not completed, 1-10 → completed', () => {
+      expect(isCompleted(0, 'scale10')).toBe(false);
+      expect(isCompleted(7, 'scale10')).toBe(true);
+    });
+
+    it('duration: 0 → not completed, >0 → completed', () => {
+      expect(isCompleted(0, 'duration')).toBe(false);
+      expect(isCompleted(15, 'duration')).toBe(true);
+    });
+
+    it('count: 0 → not completed, >0 → completed', () => {
+      expect(isCompleted(0, 'count')).toBe(false);
+      expect(isCompleted(3, 'count')).toBe(true);
+    });
+
+    it('numeric: 0 → not completed, >0 → completed', () => {
+      expect(isCompleted(0, 'numeric')).toBe(false);
+      expect(isCompleted(7.5, 'numeric')).toBe(true);
+    });
+
+    it('text: empty → not completed, non-empty → completed', () => {
+      expect(isCompleted('', 'text')).toBe(false);
+      expect(isCompleted('   ', 'text')).toBe(false);
+      expect(isCompleted('done', 'text')).toBe(true);
+    });
+
+    it('wrong value type for tracking type → not completed', () => {
+      expect(isCompleted('hello', 'boolean')).toBe(false);
+      expect(isCompleted(true, 'duration')).toBe(false);
+    });
+  });
+
+  // ---- computeCategoryScore ----
 
   describe('computeCategoryScore', () => {
     it('returns 100% when all active sub-components are done', () => {
@@ -90,11 +143,57 @@ describe('scoring engine', () => {
       expect(computeCategoryScore('cat-archived', completions, mockCategories)).toBe(0);
     });
     
-    it('treats missing values as false', () => {
+    it('treats missing values as not completed', () => {
       const completions = { 'sub-1': true }; // sub-2 is missing
       expect(computeCategoryScore('cat-1', completions, mockCategories)).toBe(50);
     });
   });
+
+  // ---- Mixed tracking types in category score ----
+
+  describe('computeCategoryScore with mixed tracking types', () => {
+    const mixedCategories: Category[] = [
+      {
+        id: 'cat-mixed',
+        name: 'Mixed',
+        icon: 'icon',
+        color: '#fff',
+        displayOrder: 0,
+        isArchived: false,
+        createdAt: '',
+        updatedAt: '',
+        subComponents: [
+          { id: 'mix-bool', categoryId: 'cat-mixed', name: 'Toggle', trackingType: 'boolean', displayOrder: 0, isArchived: false, createdAt: '', updatedAt: '' },
+          { id: 'mix-dur', categoryId: 'cat-mixed', name: 'Duration', trackingType: 'duration', displayOrder: 1, isArchived: false, createdAt: '', updatedAt: '' },
+          { id: 'mix-text', categoryId: 'cat-mixed', name: 'Text', trackingType: 'text', displayOrder: 2, isArchived: false, createdAt: '', updatedAt: '' },
+          { id: 'mix-scale', categoryId: 'cat-mixed', name: 'Scale', trackingType: 'scale5', displayOrder: 3, isArchived: false, createdAt: '', updatedAt: '' },
+        ],
+      },
+    ];
+
+    it('counts mixed types correctly', () => {
+      const completions = {
+        'mix-bool': true,
+        'mix-dur': 30,        // > 0 → completed
+        'mix-text': '',       // empty → not completed
+        'mix-scale': 0,       // 0 → not completed
+      };
+      // 2 / 4 = 50%
+      expect(computeCategoryScore('cat-mixed', completions, mixedCategories)).toBe(50);
+    });
+
+    it('100% when all mixed types filled', () => {
+      const completions = {
+        'mix-bool': true,
+        'mix-dur': 15,
+        'mix-text': 'reflected',
+        'mix-scale': 4,
+      };
+      expect(computeCategoryScore('cat-mixed', completions, mixedCategories)).toBe(100);
+    });
+  });
+
+  // ---- computeOverallScore ----
 
   describe('computeOverallScore', () => {
     it('averages active categories correctly', () => {
@@ -114,6 +213,8 @@ describe('scoring engine', () => {
     });
   });
 
+  // ---- computeAllScores ----
+
   describe('computeAllScores', () => {
     it('computes category and overall scores simultaneously', () => {
       const completions = {
@@ -131,6 +232,8 @@ describe('scoring engine', () => {
       expect(overallScore).toBe(50); // (50 + 100 + 0) / 3
     });
   });
+
+  // ---- computeStreak ----
 
   describe('computeStreak', () => {
     const formatDate = (date: Date): string => {
@@ -205,6 +308,14 @@ describe('scoring engine', () => {
       };
       // Streak breaks at yesterday
       expect(computeStreak(entries)).toBe(1);
+    });
+
+    it('counts numeric completion values for streak', () => {
+      const entries: Record<string, DailyEntry> = {
+        [today]: { date: today, completions: { 'sub-1': 30 }, categoryScores: {}, overallScore: 100, updatedAt: '' },
+        [yesterday]: { date: yesterday, completions: { 'sub-1': 'reflected today' }, categoryScores: {}, overallScore: 100, updatedAt: '' },
+      };
+      expect(computeStreak(entries)).toBe(2);
     });
   });
 });

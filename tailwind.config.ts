@@ -23,9 +23,9 @@ export default {
         },
       },
       borderRadius: {
-        sm: '6px',
-        md: '12px',
-        lg: '16px',
+        sm: '8px',
+        md: '16px',
+        lg: '24px',
       },
       boxShadow: {
         sm: '0 1px 2px rgba(0,0,0,0.05)',
@@ -33,10 +33,10 @@ export default {
         lg: '0 8px 24px rgba(0,0,0,0.12)',
       },
       fontSize: {
-        heading: ['20px', { lineHeight: '28px', fontWeight: '600' }],
-        subheading: ['16px', { lineHeight: '24px', fontWeight: '500' }],
-        body: ['14px', { lineHeight: '20px', fontWeight: '400' }],
-        caption: ['12px', { lineHeight: '16px', fontWeight: '400' }],
+        heading: ['1.75rem', { lineHeight: '1.3', fontWeight: '600' }],
+        subheading: ['1.25rem', { lineHeight: '1.4', fontWeight: '500' }],
+        body: ['1.125rem', { lineHeight: '1.5', fontWeight: '400' }],
+        caption: ['0.9375rem', { lineHeight: '1.5', fontWeight: '400' }],
       },
     },
   },
