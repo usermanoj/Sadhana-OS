@@ -73,4 +73,34 @@ describe('App', () => {
     fireEvent.click(todayButton!);
     expect(screen.getByText('Daily Score')).toBeInTheDocument();
   });
+
+  it('shows category management on the Settings tab', () => {
+    render(<App />);
+
+    const [settingsButton] = screen.getAllByRole('button', { name: 'Settings' });
+    fireEvent.click(settingsButton!);
+
+    expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Categories' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add Category' })).toBeInTheDocument();
+  });
+
+  it('adds a category from Settings and shows it on Today', () => {
+    render(<App />);
+
+    const [settingsButton] = screen.getAllByRole('button', { name: 'Settings' });
+    fireEvent.click(settingsButton!);
+    fireEvent.click(screen.getByRole('button', { name: 'Add Category' }));
+    fireEvent.change(screen.getByLabelText('Category name'), {
+      target: { value: 'Devotion' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Category' }));
+
+    expect(screen.getByText('Devotion')).toBeInTheDocument();
+
+    const [todayButton] = screen.getAllByRole('button', { name: 'Today' });
+    fireEvent.click(todayButton!);
+
+    expect(screen.getByText('Devotion')).toBeInTheDocument();
+  });
 });
