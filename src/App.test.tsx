@@ -60,6 +60,16 @@ describe('App', () => {
     expect(screen.getByText('Daily Reflection')).toBeInTheDocument();
   });
 
+  it('switches to History tab', () => {
+    render(<App />);
+
+    const [historyButton] = screen.getAllByRole('button', { name: 'History' });
+    fireEvent.click(historyButton!);
+
+    expect(screen.getByRole('heading', { name: 'History' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Practice History' })).toBeInTheDocument();
+  });
+
   it('switches back to TodayScreen from other tabs', () => {
     render(<App />);
 

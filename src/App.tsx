@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { TabId } from './types';
 import AppShell from './components/layout/AppShell';
 import DashboardScreen from './components/pages/DashboardScreen';
+import HistoryScreen from './components/pages/HistoryScreen';
 import JournalScreen from './components/pages/JournalScreen';
 import PlaceholderPage from './components/pages/PlaceholderPage';
 import SettingsScreen from './components/pages/SettingsScreen';
@@ -18,6 +19,8 @@ export default function App() {
         <DashboardScreen />
       ) : activeTab === 'journal' ? (
         <JournalScreen />
+      ) : activeTab === 'history' ? (
+        <HistoryScreen />
       ) : activeTab === 'settings' ? (
         <SettingsScreen />
       ) : (
