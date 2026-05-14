@@ -70,6 +70,11 @@ export interface DailyEntry {
 
 export interface JournalEntry {
   date: DateKey;
+  mood?: string;
+  gratitude?: string;
+  spiritualInsight?: string;
+  triggerObserved?: string;
+  lessonLearned?: string;
   content: string;          // Free-text (plain or markdown)
   createdAt: string;
   updatedAt: string;

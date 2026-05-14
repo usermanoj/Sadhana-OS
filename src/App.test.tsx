@@ -46,7 +46,7 @@ describe('App', () => {
     expect(screen.getByText('Family')).toBeInTheDocument();
   });
 
-  it('switches to placeholder tabs', () => {
+  it('switches to Journal tab', () => {
     render(<App />);
 
     const [journalButton] = screen.getAllByRole('button', { name: 'Journal' });
@@ -57,7 +57,7 @@ describe('App', () => {
     fireEvent.click(journalButton);
 
     expect(screen.getByRole('heading', { name: 'Journal' })).toBeInTheDocument();
-    expect(screen.getByText('Coming soon')).toBeInTheDocument();
+    expect(screen.getByText('Daily Reflection')).toBeInTheDocument();
   });
 
   it('switches back to TodayScreen from other tabs', () => {
