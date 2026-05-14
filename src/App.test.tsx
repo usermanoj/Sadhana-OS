@@ -66,7 +66,7 @@ describe('App', () => {
     // Go to Dashboard
     const [dashboardButton] = screen.getAllByRole('button', { name: 'Dashboard' });
     fireEvent.click(dashboardButton!);
-    expect(screen.getByText('Coming soon')).toBeInTheDocument();
+    expect(screen.getByText('Analytics')).toBeInTheDocument();
 
     // Go back to Today
     const [todayButton] = screen.getAllByRole('button', { name: 'Today' });

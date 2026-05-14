@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { TabId } from './types';
 import AppShell from './components/layout/AppShell';
+import DashboardScreen from './components/pages/DashboardScreen';
 import PlaceholderPage from './components/pages/PlaceholderPage';
 import SettingsScreen from './components/pages/SettingsScreen';
 import TodayScreen from './components/pages/TodayScreen';
@@ -12,6 +13,8 @@ export default function App() {
     <AppShell activeTab={activeTab} onTabChange={setActiveTab}>
       {activeTab === 'today' ? (
         <TodayScreen />
+      ) : activeTab === 'dashboard' ? (
+        <DashboardScreen />
       ) : activeTab === 'settings' ? (
         <SettingsScreen />
       ) : (
