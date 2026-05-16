@@ -16,7 +16,7 @@ export default function SubComponentToggle({
   const stacksOnMobile = habit.trackingType !== 'boolean';
 
   return (
-    <div className="py-3 first:pt-0 last:pb-0">
+    <div className="py-3 first:pt-0 last:pb-0 lg:py-3.5">
       <div
         className={
           stacksOnMobile
@@ -25,7 +25,7 @@ export default function SubComponentToggle({
         }
       >
         <span
-          className={`min-w-0 flex-1 text-body text-text-primary ${
+          className={`min-w-0 flex-1 text-body font-medium text-text-primary ${
             stacksOnMobile ? 'break-words' : 'truncate'
           }`}
         >
@@ -151,16 +151,22 @@ function BooleanToggle({
       aria-checked={checked}
       aria-label={label}
       onClick={() => onToggle(id)}
-      className={`relative h-[24px] w-[44px] flex-shrink-0 rounded-full
+      className="relative flex h-11 w-14 flex-shrink-0 items-center justify-center rounded-full
                   transition-colors duration-200 ease-in-out focus:outline-none
                   focus-visible:ring-2 focus-visible:ring-accent-primary/50
-                  ${checked ? 'bg-accent-primary' : 'bg-border'}`}
+                  touch-manipulation"
     >
       <span
-        className={`absolute left-[2px] top-[2px] h-[20px] w-[20px] rounded-full bg-white
-                    shadow-sm transition-transform duration-200 ease-in-out
-                    ${checked ? 'translate-x-[20px]' : 'translate-x-0'}`}
-      />
+        className={`relative h-6 w-11 rounded-full transition-colors duration-200 ease-in-out ${
+          checked ? 'bg-accent-primary' : 'bg-border'
+        }`}
+      >
+        <span
+          className={`absolute left-[2px] top-[2px] h-5 w-5 rounded-full bg-white shadow-sm
+                      transition-transform duration-200 ease-in-out
+                      ${checked ? 'translate-x-[20px]' : 'translate-x-0'}`}
+        />
+      </span>
     </button>
   );
 }

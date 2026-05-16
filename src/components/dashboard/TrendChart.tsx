@@ -9,14 +9,14 @@ interface TrendChartProps {
 export default function TrendChart({ data, color = '#7C3AED' }: TrendChartProps) {
   if (!data || data.length === 0 || !hasChartScores(data)) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-md border border-border bg-muted/50 px-4 text-center text-body text-text-secondary">
+      <div className="flex h-80 items-center justify-center rounded-md border border-border bg-muted/50 px-4 text-center text-body text-text-secondary lg:h-[360px] 2xl:h-[420px]">
         No entries in this range
       </div>
     );
   }
 
   return (
-    <div className="h-64 w-full rounded-md bg-surface">
+    <div className="h-80 w-full rounded-md bg-surface lg:h-[360px] 2xl:h-[420px]">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
@@ -24,14 +24,14 @@ export default function TrendChart({ data, color = '#7C3AED' }: TrendChartProps)
             dataKey="date" 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} 
+            tick={{ fontSize: 14, fill: 'var(--text-secondary)' }} 
             dy={10}
           />
           <YAxis 
             domain={[0, 100]} 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fontSize: 12, fill: 'var(--text-secondary)' }}
+            tick={{ fontSize: 14, fill: 'var(--text-secondary)' }}
           />
           <Tooltip 
             contentStyle={{ 

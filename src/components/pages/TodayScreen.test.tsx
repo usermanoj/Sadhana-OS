@@ -47,6 +47,13 @@ describe('TodayScreen', () => {
     expect(screen.getByLabelText('Next day')).toBeInTheDocument();
   });
 
+  it('keeps practice lists collapsed by default', () => {
+    render(<TodayScreen />);
+
+    expect(screen.getByRole('button', { name: 'Expand 8 Limbs of Yoga' })).toBeInTheDocument();
+    expect(screen.queryByText('Yama')).not.toBeInTheDocument();
+  });
+
   it('next day button is disabled when viewing today', () => {
     render(<TodayScreen />);
 
@@ -57,7 +64,8 @@ describe('TodayScreen', () => {
   it('toggles a boolean sub-component and updates scores', () => {
     render(<TodayScreen />);
 
-    // The first category (8 Limbs of Yoga) is expanded by default
+    fireEvent.click(screen.getByRole('button', { name: 'Expand 8 Limbs of Yoga' }));
+
     // Find the first toggle (Yama) by its specific ID
     const yamaToggle = document.getElementById('toggle-00000000-0000-4000-8000-000000000101');
     expect(yamaToggle).toBeInTheDocument();
@@ -103,6 +111,8 @@ describe('TodayScreen', () => {
 
     render(<TodayScreen />);
 
+    fireEvent.click(screen.getByRole('button', { name: 'Expand 8 Limbs of Yoga' }));
+
     expect(screen.queryByText('Yama')).not.toBeInTheDocument();
     expect(screen.getByText('0/7')).toBeInTheDocument();
   });
@@ -110,7 +120,7 @@ describe('TodayScreen', () => {
   it('renders numeric tracking controls and persists their values', () => {
     render(<TodayScreen />);
 
-    fireEvent.click(screen.getByText('Physical'));
+    fireEvent.click(screen.getByRole('button', { name: 'Expand Physical' }));
     fireEvent.click(screen.getByRole('button', { name: 'Increase Exercise' }));
 
     expect(screen.getByRole('spinbutton', { name: 'Exercise value' })).toHaveValue(1);

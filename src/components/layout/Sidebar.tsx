@@ -25,18 +25,18 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     <aside
       id="sidebar"
       className="hidden lg:flex fixed left-0 top-0 bottom-0 z-50
-                 w-60 flex-col border-r border-border bg-surface"
+                 w-72 flex-col border-r border-border bg-surface/95 shadow-sm"
     >
       {/* Brand */}
-      <div className="flex items-center gap-3 px-5 py-6">
-        <div className="w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center">
+      <div className="flex items-center gap-3 px-6 py-7">
+        <div className="w-9 h-9 rounded-md bg-accent-primary flex items-center justify-center shadow-sm">
           <span className="text-white text-sm font-semibold">SO</span>
         </div>
         <h1 className="text-heading text-text-primary">Sadhana OS</h1>
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 flex flex-col gap-1 px-3" aria-label="Main navigation">
+      <nav className="flex-1 flex flex-col gap-1.5 px-4" aria-label="Main navigation">
         {tabs.map(({ id, label, icon: Icon }) => {
           const isActive = activeTab === id;
           return (
@@ -44,7 +44,8 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
               key={id}
               id={`sidebar-${id}`}
               onClick={() => onTabChange(id)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-left
+              aria-label={label}
+              className={`flex items-center gap-3 px-3.5 py-3 rounded-md text-left
                           min-h-[44px] transition-colors duration-150
                           ${isActive
                             ? 'bg-accent-primary/10 text-accent-primary font-medium'

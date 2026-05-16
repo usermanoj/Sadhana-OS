@@ -17,20 +17,20 @@ interface BalanceWheelChartProps {
 export default function BalanceWheelChart({ data, hasScores }: BalanceWheelChartProps) {
   if (!hasScores) {
     return (
-      <div className="flex h-72 items-center justify-center rounded-md border border-border bg-muted/50 px-4 text-center text-body text-text-secondary">
+      <div className="flex h-80 items-center justify-center rounded-md border border-border bg-muted/50 px-4 text-center text-body text-text-secondary lg:h-[380px] 2xl:h-[440px]">
         Complete a few daily entries to reveal the balance wheel.
       </div>
     );
   }
 
   return (
-    <div className="h-72 w-full rounded-md bg-surface sm:h-80">
+    <div className="h-80 w-full rounded-md bg-surface lg:h-[380px] 2xl:h-[440px]">
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart data={data} outerRadius="68%">
           <PolarGrid stroke="var(--border)" />
           <PolarAngleAxis
             dataKey="category"
-            tick={{ fontSize: 10, fill: 'var(--text-secondary)' }}
+            tick={{ fontSize: 12, fill: 'var(--text-secondary)' }}
           />
           <PolarRadiusAxis
             angle={90}

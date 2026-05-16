@@ -39,11 +39,11 @@ export default function SettingsScreen() {
   };
 
   return (
-    <div id="page-settings" className="flex flex-col gap-5 pb-4">
+    <div id="page-settings" className="flex w-full flex-col gap-5 pb-4 lg:gap-7">
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary">
-            <Settings size={20} />
+          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-11 lg:w-11">
+            <Settings size={22} />
           </span>
           <div>
             <h1 className="text-heading text-text-primary">Settings</h1>
@@ -54,6 +54,7 @@ export default function SettingsScreen() {
         <div className="flex flex-wrap gap-2" aria-label="Settings sections">
           <button
             type="button"
+            aria-label="Categories"
             onClick={() => {
               setSection('categories');
               showList();
@@ -69,6 +70,7 @@ export default function SettingsScreen() {
           </button>
           <button
             type="button"
+            aria-label="Audit Log"
             onClick={() => {
               setSection('audit');
               showList();
@@ -84,6 +86,7 @@ export default function SettingsScreen() {
           </button>
           <button
             type="button"
+            aria-label="Data"
             onClick={() => {
               setSection('data');
               showList();

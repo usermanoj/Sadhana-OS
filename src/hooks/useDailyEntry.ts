@@ -14,7 +14,7 @@ export const formatDateKey = (date: Date): DateKey => {
 const addCalendarDays = (date: Date, days: number): Date =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
 
-/** Friendly label for a date:  "Today — May 13, 2026" */
+/** Friendly label for a date: "Today - May 13, 2026" */
 export const formatDisplayDate = (date: Date): string => {
   const todayKey = formatDateKey(new Date());
   const dateKey = formatDateKey(date);
@@ -24,7 +24,7 @@ export const formatDisplayDate = (date: Date): string => {
     day: 'numeric',
     year: 'numeric',
   });
-  if (dateKey === todayKey) return `Today — ${formatted}`;
+  if (dateKey === todayKey) return `Today - ${formatted}`;
   return formatted;
 };
 

@@ -100,7 +100,7 @@ export default function DataScreen() {
         </div>
       ) : null}
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-3 2xl:gap-5">
         <DataAction
           title="Export JSON"
           description="Download a complete local backup."
@@ -113,11 +113,14 @@ export default function DataScreen() {
           icon={Download}
           onClick={handleExportCSV}
         />
-        <label
-          className="flex min-h-[132px] cursor-pointer flex-col justify-between rounded-md border border-border bg-surface p-4 shadow-sm transition-colors duration-150 hover:bg-muted/40"
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          aria-label="Import JSON"
+          className="flex min-h-[132px] flex-col justify-between rounded-md border border-border bg-surface p-4 text-left shadow-sm transition-colors duration-150 hover:bg-muted/40 lg:min-h-[170px] lg:p-6"
         >
           <span className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary">
+            <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-12 lg:w-12">
               <Upload size={20} />
             </span>
             <span>
@@ -125,17 +128,17 @@ export default function DataScreen() {
               <span className="block text-caption text-text-secondary">Restore from a backup file.</span>
             </span>
           </span>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/json,.json"
-            aria-label="Import JSON file"
-            className="sr-only"
-            onChange={(event) => {
-              void handleImportFile(event.target.files?.[0]);
-            }}
-          />
-        </label>
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/json,.json"
+          aria-label="Import JSON file"
+          className="sr-only"
+          onChange={(event) => {
+            void handleImportFile(event.target.files?.[0]);
+          }}
+        />
       </div>
 
       {pendingPayload && conflictSummary ? (
@@ -165,10 +168,10 @@ function DataAction({ title, description, icon: Icon, onClick }: DataActionProps
       type="button"
       onClick={onClick}
       aria-label={title}
-      className="flex min-h-[132px] flex-col justify-between rounded-md border border-border bg-surface p-4 text-left shadow-sm transition-colors duration-150 hover:bg-muted/40"
+      className="flex min-h-[132px] flex-col justify-between rounded-md border border-border bg-surface p-4 text-left shadow-sm transition-colors duration-150 hover:bg-muted/40 lg:min-h-[170px] lg:p-6"
     >
       <span className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary">
+        <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-12 lg:w-12">
           <Icon size={20} />
         </span>
         <span>

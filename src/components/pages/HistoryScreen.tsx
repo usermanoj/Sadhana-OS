@@ -67,11 +67,11 @@ export default function HistoryScreen() {
   );
 
   return (
-    <div id="page-history" className="flex flex-col gap-5 pb-4">
+    <div id="page-history" className="flex w-full flex-col gap-5 pb-4 lg:gap-7">
       <header className="flex flex-col gap-4">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary">
-            <CalendarDays size={20} />
+          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-11 lg:w-11">
+            <CalendarDays size={22} />
           </span>
           <div>
             <h1 className="text-heading text-text-primary">History</h1>
@@ -186,7 +186,7 @@ function PracticeHistorySection({ rows }: { rows: PracticeHistoryRow[] }) {
       {rows.length === 0 ? (
         <EmptyState message="No practice history matches these filters." />
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="grid gap-3 xl:grid-cols-2">
           {rows.map((row) => (
             <PracticeHistoryCard key={row.id} row={row} />
           ))}
@@ -198,7 +198,7 @@ function PracticeHistorySection({ rows }: { rows: PracticeHistoryRow[] }) {
 
 function PracticeHistoryCard({ row }: { row: PracticeHistoryRow }) {
   return (
-    <article className="rounded-md border border-border bg-surface p-4 shadow-sm">
+    <article className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-caption font-medium text-text-secondary">{row.date}</p>
@@ -224,9 +224,9 @@ function JournalHistorySection({ entries }: { entries: JournalEntry[] }) {
       {entries.length === 0 ? (
         <EmptyState message="No journal history matches these filters." />
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="grid gap-3 xl:grid-cols-2">
           {entries.map((entry) => (
-            <article key={entry.date} className="rounded-md border border-border bg-surface p-4 shadow-sm">
+            <article key={entry.date} className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-5">
               <p className="text-caption font-medium text-text-secondary">{entry.date}</p>
               <p className="mt-2 whitespace-pre-wrap text-body text-text-primary">{entry.content}</p>
               <JournalMeta entry={entry} />
@@ -270,13 +270,13 @@ function AuditHistorySection({ entries }: { entries: AuditLogEntry[] }) {
       ) : (
         <div className="flex flex-col gap-3">
           {entries.map((entry) => (
-            <article key={entry.id} className="rounded-md border border-border bg-surface p-4 shadow-sm">
+            <article key={entry.id} className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-caption font-medium text-text-secondary">{formatTimestamp(entry.timestamp)}</p>
                   <h3 className="text-subheading text-text-primary">{formatActionLabel(entry.actionType)}</h3>
                   <p className="text-caption text-text-secondary">
-                    {entry.entityType} · {entry.entityId}
+                    {entry.entityType} - {entry.entityId}
                   </p>
                 </div>
               </div>
@@ -312,15 +312,15 @@ function ArchivedItemsSection({
       {items.length === 0 ? (
         <EmptyState message="No archived categories or habits match these filters." />
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="grid gap-3 xl:grid-cols-2">
           {items.map((item) => (
-            <article key={item.id} className="rounded-md border border-border bg-surface p-4 shadow-sm">
+            <article key={item.id} className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <p className="text-caption font-medium capitalize text-text-secondary">{item.type}</p>
                   <h3 className="truncate text-subheading text-text-primary">{item.name}</h3>
                   <p className="text-caption text-text-secondary">
-                    Category: {item.categoryName} · Archived {formatTimestamp(item.updatedAt)}
+                    Category: {item.categoryName} - Archived {formatTimestamp(item.updatedAt)}
                   </p>
                 </div>
                 <button

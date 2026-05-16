@@ -39,21 +39,10 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
-@media (min-width: 1024px) {
-  html {
-    font-size: 18px;
-  }
-}
-
-@media (min-width: 1536px) {
-  html {
-    font-size: 20px;
-  }
-}
-
 body {
   min-height: 100vh;
   min-height: 100dvh;
+  overflow-x: hidden;
 }
 
 #root {
@@ -70,6 +59,22 @@ button:active {
   transform: scale(0.97);
 }
 
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent-primary) 70%, white);
+  outline-offset: 2px;
+}
+
 /* Scrollbar styling — subtle and calm */
 ::-webkit-scrollbar {
   width: 6px;
@@ -82,4 +87,82 @@ button:active {
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 9999px;
+}
+
+/*
+ * Desktop reading scale.
+ * Mobile keeps the compact design-system tokens from docs/06. On laptop
+ * screens, the same tokens need a slightly larger optical size so wide
+ * cards do not feel zoomed out.
+ */
+@media (min-width: 1024px) {
+  #main-content .text-heading {
+    font-size: 1.875rem;
+    line-height: 2.375rem;
+  }
+
+  #main-content .text-subheading {
+    font-size: 1.3125rem;
+    line-height: 1.875rem;
+  }
+
+  #main-content .text-body,
+  #sidebar .text-body {
+    font-size: 1.0625rem;
+    line-height: 1.65rem;
+  }
+
+  #main-content .text-caption,
+  #sidebar .text-caption {
+    font-size: 0.9375rem;
+    line-height: 1.35rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  #main-content .text-heading {
+    font-size: 2.125rem;
+    line-height: 2.625rem;
+  }
+
+  #main-content .text-subheading {
+    font-size: 1.5rem;
+    line-height: 2.125rem;
+  }
+
+  #main-content .text-body,
+  #sidebar .text-body {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+
+  #main-content .text-caption,
+  #sidebar .text-caption {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+
+@media (min-width: 1800px) {
+  #main-content .text-heading {
+    font-size: 2.25rem;
+    line-height: 2.75rem;
+  }
+
+  #main-content .text-subheading {
+    font-size: 1.625rem;
+    line-height: 2.25rem;
+  }
+
+  #main-content .text-body,
+  #sidebar .text-body {
+    font-size: 1.1875rem;
+    line-height: 1.85rem;
+  }
+
+  #main-content .text-caption,
+  #sidebar .text-caption {
+    font-size: 1.0625rem;
+    line-height: 1.55rem;
+  }
 }

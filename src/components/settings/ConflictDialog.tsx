@@ -1,4 +1,5 @@
 import type { ConflictSummary, ImportMode } from '../../lib/import';
+import { useEffect } from 'react';
 
 interface ConflictDialogProps {
   summary: ConflictSummary;
@@ -7,6 +8,17 @@ interface ConflictDialogProps {
 }
 
 export default function ConflictDialog({ summary, onApply, onCancel }: ConflictDialogProps) {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onCancel();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onCancel]);
+
   return (
     <div
       role="dialog"
@@ -40,6 +52,7 @@ export default function ConflictDialog({ summary, onApply, onCancel }: ConflictD
         <div className="mt-5 grid gap-2 sm:grid-cols-3">
           <button
             type="button"
+            aria-label="Merge"
             onClick={() => onApply('merge')}
             className="min-h-[44px] rounded-md border border-border px-4 py-2 text-body font-medium text-text-primary transition-colors duration-150 hover:bg-muted"
           >
@@ -47,6 +60,7 @@ export default function ConflictDialog({ summary, onApply, onCancel }: ConflictD
           </button>
           <button
             type="button"
+            aria-label="Overwrite"
             onClick={() => onApply('overwrite')}
             className="min-h-[44px] rounded-md bg-accent-primary px-4 py-2 text-body font-medium text-white shadow-sm"
           >
@@ -54,6 +68,7 @@ export default function ConflictDialog({ summary, onApply, onCancel }: ConflictD
           </button>
           <button
             type="button"
+            aria-label="Cancel"
             onClick={onCancel}
             className="min-h-[44px] rounded-md border border-border px-4 py-2 text-body font-medium text-text-secondary transition-colors duration-150 hover:bg-muted"
           >

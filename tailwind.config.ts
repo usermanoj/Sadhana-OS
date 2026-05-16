@@ -23,9 +23,9 @@ export default {
         },
       },
       borderRadius: {
-        sm: '8px',
-        md: '16px',
-        lg: '24px',
+        sm: '6px',
+        md: '12px',
+        lg: '16px',
       },
       boxShadow: {
         sm: '0 1px 2px rgba(0,0,0,0.05)',
@@ -33,10 +33,19 @@ export default {
         lg: '0 8px 24px rgba(0,0,0,0.12)',
       },
       fontSize: {
-        heading: ['1.75rem', { lineHeight: '1.3', fontWeight: '600' }],
-        subheading: ['1.25rem', { lineHeight: '1.4', fontWeight: '500' }],
-        body: ['1.125rem', { lineHeight: '1.5', fontWeight: '400' }],
-        caption: ['0.9375rem', { lineHeight: '1.5', fontWeight: '400' }],
+        heading: ['1.25rem', { lineHeight: '1.4', fontWeight: '600' }],
+        subheading: ['1rem', { lineHeight: '1.5', fontWeight: '500' }],
+        body: ['0.875rem', { lineHeight: '1.43', fontWeight: '400' }],
+        caption: ['0.75rem', { lineHeight: '1.33', fontWeight: '400' }],
+      },
+      keyframes: {
+        pageFade: {
+          '0%': { opacity: '0', transform: 'translateY(4px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        pageFade: 'pageFade 150ms ease-out',
       },
     },
   },

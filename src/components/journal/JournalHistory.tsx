@@ -20,8 +20,8 @@ function dateKeyToLocalDate(dateKey: string): Date {
 export default function JournalHistory({ history, onSelectDate, currentDateKey }: JournalHistoryProps) {
   if (history.length === 0) {
     return (
-      <div className="bg-surface rounded-2xl p-6 shadow-sm border border-border text-center">
-        <div className="w-12 h-12 rounded-full bg-accent-primary/10 flex items-center justify-center mx-auto mb-3">
+      <div className="rounded-md border border-border bg-surface p-5 text-center shadow-sm">
+        <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-md bg-accent-primary/10">
           <Calendar className="text-accent-primary" size={24} />
         </div>
         <h3 className="text-body font-medium text-text-primary mb-1">No History Yet</h3>
@@ -31,15 +31,15 @@ export default function JournalHistory({ history, onSelectDate, currentDateKey }
   }
 
   return (
-    <div className="bg-surface rounded-2xl shadow-sm border border-border overflow-hidden flex flex-col max-h-[600px]">
-      <div className="p-4 border-b border-border bg-ivory">
+    <div className="flex max-h-[600px] flex-col overflow-hidden rounded-md border border-border bg-surface shadow-sm">
+      <div className="border-b border-border bg-ivory p-4 lg:p-5">
         <h3 className="text-body font-medium text-text-primary flex items-center gap-2">
           <Calendar size={18} className="text-accent-primary" />
           Recent Entries
         </h3>
       </div>
       
-      <div className="overflow-y-auto flex-1 p-2 space-y-1">
+      <div className="flex-1 space-y-2 overflow-y-auto p-2 lg:p-3">
         {history.map((entry) => {
           const isSelected = entry.date === currentDateKey;
           const dateObj = dateKeyToLocalDate(entry.date);
@@ -54,17 +54,17 @@ export default function JournalHistory({ history, onSelectDate, currentDateKey }
               key={entry.date}
               onClick={() => onSelectDate(dateObj)}
               aria-current={isSelected ? 'date' : undefined}
-              className={`w-full text-left p-3 rounded-xl flex items-center justify-between transition-colors ${
+              className={`flex min-h-[56px] w-full items-center justify-between gap-3 rounded-md p-3 text-left transition-colors lg:min-h-[64px] ${
                 isSelected 
                   ? 'bg-accent-primary/10 border border-accent-primary/20' 
                   : 'hover:bg-muted border border-transparent'
               }`}
             >
-              <div>
-                <div className={`font-medium ${isSelected ? 'text-accent-primary' : 'text-text-primary'}`}>
+              <div className="min-w-0">
+                <div className={`text-body font-medium ${isSelected ? 'text-accent-primary' : 'text-text-primary'}`}>
                   {displayDate}
                 </div>
-                <div className="text-caption text-text-secondary mt-1 truncate max-w-[200px]">
+                <div className="mt-1 max-w-full truncate text-caption text-text-secondary">
                   {entry.mood ? `Mood: ${entry.mood}` : entry.content ? entry.content.substring(0, 30) + '...' : 'Empty entry'}
                 </div>
               </div>

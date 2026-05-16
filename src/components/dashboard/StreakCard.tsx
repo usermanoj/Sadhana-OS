@@ -9,7 +9,7 @@ export default function StreakCard({ streak }: StreakCardProps) {
 
   return (
     <section
-      className={`flex items-center justify-between rounded-md border p-5 shadow-sm ${
+      className={`flex min-h-[148px] items-center justify-between rounded-md border p-5 shadow-sm lg:p-6 2xl:min-h-[170px] ${
         isActive ? 'border-accent-primary/20 bg-accent-primary/10' : 'border-border bg-surface'
       }`}
       aria-label="Current streak"

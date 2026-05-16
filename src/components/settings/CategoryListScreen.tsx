@@ -21,7 +21,7 @@ export default function CategoryListScreen({
 }: CategoryListScreenProps) {
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-heading text-text-primary">Categories</h2>
           <p className="text-caption text-text-secondary">Tracker structure</p>
@@ -29,8 +29,8 @@ export default function CategoryListScreen({
         <button
           type="button"
           onClick={onAddCategory}
-          className="flex min-h-[44px] items-center gap-2 rounded-md bg-accent-primary px-4
-                     py-2 text-body font-medium text-white shadow-sm transition-colors duration-150"
+          className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-accent-primary px-4
+                     py-2 text-body font-medium text-white shadow-sm transition-colors duration-150 sm:w-auto"
         >
           <Plus size={18} />
           Add Category
@@ -87,7 +87,7 @@ function CategorySection({
           No {title.toLowerCase()} categories
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="grid gap-3 xl:grid-cols-2 2xl:gap-4">
           {categories.map((category) => (
             <CategoryRow
               key={category.id}
@@ -123,7 +123,7 @@ function CategoryRow({
   const totalPracticeCount = category.subComponents.length;
 
   return (
-    <div className="rounded-md border border-border bg-surface p-3 shadow-sm">
+    <div className="rounded-md border border-border bg-surface p-3 shadow-sm lg:p-4">
       <div className="flex items-center gap-3">
         <button
           type="button"

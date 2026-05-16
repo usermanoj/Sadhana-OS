@@ -24,28 +24,28 @@ export default function CategoryBarChart({ data }: CategoryBarChartProps) {
   }
 
   return (
-    <div className="w-full rounded-md bg-surface" style={{ height: Math.max(260, data.length * 38) }}>
+    <div className="w-full rounded-md bg-surface" style={{ height: Math.max(360, data.length * 52) }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
           layout="vertical"
-          margin={{ top: 8, right: 16, left: 0, bottom: 8 }}
-          barCategoryGap={12}
+          margin={{ top: 12, right: 24, left: 8, bottom: 12 }}
+          barCategoryGap={16}
         >
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
           <XAxis
             type="number"
             domain={[0, 100]}
             tickFormatter={(value) => `${value}%`}
-            tick={{ fontSize: 11, fill: 'var(--text-secondary)' }}
+            tick={{ fontSize: 13, fill: 'var(--text-secondary)' }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             type="category"
             dataKey="shortName"
-            width={118}
-            tick={{ fontSize: 11, fill: 'var(--text-secondary)' }}
+            width={150}
+            tick={{ fontSize: 13, fill: 'var(--text-secondary)' }}
             axisLine={false}
             tickLine={false}
           />
@@ -58,7 +58,7 @@ export default function CategoryBarChart({ data }: CategoryBarChartProps) {
             }}
             formatter={(value) => [`${Math.round(Number(value))}%`, 'Average']}
           />
-          <Bar dataKey="score" radius={[0, 8, 8, 0]} barSize={16}>
+          <Bar dataKey="score" radius={[0, 8, 8, 0]} barSize={20}>
             {data.map((point) => (
               <Cell key={point.categoryId} fill={point.color} />
             ))}

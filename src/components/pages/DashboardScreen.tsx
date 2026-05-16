@@ -70,15 +70,20 @@ export default function DashboardScreen() {
   const hasCategoryAverageScores = hasCategoryScores(analytics.categoryAverages);
 
   return (
-    <div id="page-dashboard" className="flex flex-col gap-5 pb-4">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-heading text-text-primary">Analytics</h1>
-        <p className="text-body text-text-secondary">
-          Good Life score, balance, and practice patterns.
-        </p>
+    <div id="page-dashboard" className="flex flex-col gap-5 pb-4 lg:gap-7">
+      <header className="flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-11 lg:w-11">
+          <Activity size={22} aria-hidden="true" />
+        </span>
+        <div>
+          <h1 className="text-heading text-text-primary">Analytics</h1>
+          <p className="text-caption text-text-secondary">
+            Good Life score, balance, and practice patterns
+          </p>
+        </div>
       </header>
 
-      <section className="grid gap-3 sm:grid-cols-2">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:gap-5">
         <MetricCard
           title="Today Good Life Score"
           value={formatPercent(analytics.todayScore)}
@@ -103,7 +108,7 @@ export default function DashboardScreen() {
         <StreakCard streak={analytics.currentStreak} />
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:gap-5">
         <MetricCard
           title="Best Performing Category"
           value={analytics.bestCategory?.name ?? '--'}
@@ -142,8 +147,8 @@ export default function DashboardScreen() {
         />
       </section>
 
-      <section className="rounded-md border border-border bg-surface p-4 shadow-sm">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <section className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-6 2xl:p-7">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-subheading text-text-primary">Good Life Score Over Time</h2>
             <p className="text-caption text-text-secondary">Overall or category trend.</p>
@@ -192,17 +197,17 @@ export default function DashboardScreen() {
         <TrendChart data={chartData} />
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-md border border-border bg-surface p-4 shadow-sm">
-          <div className="mb-4">
+      <section className="grid gap-4 lg:grid-cols-2 2xl:gap-5">
+        <div className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-6 2xl:p-7">
+          <div className="mb-5">
             <h2 className="text-subheading text-text-primary">9-Category Balance Wheel</h2>
             <p className="text-caption text-text-secondary">Average category balance for this range.</p>
           </div>
           <BalanceWheelChart data={balanceWheelData} hasScores={hasCategoryAverageScores} />
         </div>
 
-        <div className="rounded-md border border-border bg-surface p-4 shadow-sm">
-          <div className="mb-4">
+        <div className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-6 2xl:p-7">
+          <div className="mb-5">
             <h2 className="text-subheading text-text-primary">Category Scores</h2>
             <p className="text-caption text-text-secondary">Average score by active category.</p>
           </div>
@@ -210,19 +215,19 @@ export default function DashboardScreen() {
         </div>
       </section>
 
-      <section className="rounded-md border border-border bg-surface p-4 shadow-sm">
-        <div className="mb-4 flex items-center gap-2">
+      <section className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-6 2xl:p-7">
+        <div className="mb-5 flex items-center gap-2">
           <TrendingUp size={20} className="text-accent-primary" aria-hidden="true" />
           <h2 className="text-subheading text-text-primary">Category Average Scores</h2>
         </div>
 
         {hasCategoryAverageScores ? (
-          <div className="flex flex-col gap-3">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:gap-4">
             {analytics.categoryAverages.map((category) => {
               const score = category.averageScore ?? 0;
 
               return (
-                <div key={category.categoryId} className="flex flex-col gap-1">
+                <div key={category.categoryId} className="flex flex-col gap-2 rounded-md bg-muted/45 p-3 lg:p-4">
                   <div className="flex items-center justify-between gap-3 text-body">
                     <span className="min-w-0 truncate text-text-primary">{category.name}</span>
                     <span className="shrink-0 tabular-nums text-text-secondary">

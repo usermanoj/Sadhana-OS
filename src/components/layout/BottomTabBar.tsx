@@ -25,8 +25,8 @@ export default function BottomTabBar({ activeTab, onTabChange }: BottomTabBarPro
     <nav
       id="bottom-tab-bar"
       className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around
-                 border-t border-border bg-surface/95 backdrop-blur-sm
-                 h-14 px-1 lg:hidden"
+                 border-t border-border bg-surface/95 px-1 shadow-lg backdrop-blur-md
+                 h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] lg:hidden"
       aria-label="Main navigation"
     >
       {tabs.map(({ id, label, icon: Icon }) => {
@@ -37,9 +37,10 @@ export default function BottomTabBar({ activeTab, onTabChange }: BottomTabBarPro
             id={`tab-${id}`}
             onClick={() => onTabChange(id)}
             className={`flex flex-col items-center justify-center gap-0.5 flex-1
-                        min-w-[44px] min-h-[44px] rounded-lg transition-colors duration-150
+                        min-w-[44px] min-h-[44px] rounded-md transition-colors duration-150
+                        touch-manipulation
                         ${isActive
-                          ? 'text-accent-primary'
+                          ? 'bg-accent-primary/10 text-accent-primary'
                           : 'text-text-secondary hover:text-text-primary'
                         }`}
             aria-current={isActive ? 'page' : undefined}

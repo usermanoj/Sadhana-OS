@@ -74,11 +74,10 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
   };
 
   return (
-    <div className="bg-surface rounded-2xl shadow-sm border border-border p-4 md:p-6 space-y-6">
-      
-      <div className="flex justify-between items-center gap-3 pb-2 border-b border-border">
-        <h2 className="text-xl font-semibold text-text-primary">Daily Reflection</h2>
-        <div className="flex min-h-5 items-center text-sm" aria-live="polite" aria-atomic="true">
+    <div className="space-y-5 rounded-md border border-border bg-surface p-4 shadow-sm md:p-5 lg:p-6 2xl:p-7">
+      <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+        <h2 className="text-subheading text-text-primary">Daily Reflection</h2>
+        <div className="flex min-h-5 items-center text-caption" aria-live="polite" aria-atomic="true">
           {saveStatus === 'saving' && (
             <span className="text-text-secondary flex items-center gap-1">
               <Save size={14} className="animate-pulse" /> Saving...
@@ -92,7 +91,7 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-5">
         <div className="space-y-2">
           <label className="block text-body font-medium text-text-secondary" htmlFor="journal-mood">
             Mood & Energy
@@ -101,7 +100,7 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
             id="journal-mood"
             type="text" 
             placeholder="How are you feeling today?"
-            className="w-full bg-ivory border border-border rounded-lg px-4 py-2 text-text-primary focus:ring-2 focus:ring-accent-primary outline-none"
+            className="min-h-[44px] w-full rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
             value={localEntry.mood || ''}
             onChange={(e) => handleChange('mood', e.target.value)}
             onBlur={handleBlur}
@@ -116,7 +115,7 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
             id="journal-gratitude"
             type="text" 
             placeholder="What are you grateful for?"
-            className="w-full bg-ivory border border-border rounded-lg px-4 py-2 text-text-primary focus:ring-2 focus:ring-accent-primary outline-none"
+            className="min-h-[44px] w-full rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
             value={localEntry.gratitude || ''}
             onChange={(e) => handleChange('gratitude', e.target.value)}
             onBlur={handleBlur}
@@ -131,7 +130,7 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
             id="journal-spiritual-insight"
             type="text" 
             placeholder="Any profound thoughts or realizations?"
-            className="w-full bg-ivory border border-border rounded-lg px-4 py-2 text-text-primary focus:ring-2 focus:ring-accent-primary outline-none"
+            className="min-h-[44px] w-full rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
             value={localEntry.spiritualInsight || ''}
             onChange={(e) => handleChange('spiritualInsight', e.target.value)}
             onBlur={handleBlur}
@@ -146,7 +145,7 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
             id="journal-lesson-learned"
             type="text" 
             placeholder="What did you learn today?"
-            className="w-full bg-ivory border border-border rounded-lg px-4 py-2 text-text-primary focus:ring-2 focus:ring-accent-primary outline-none"
+            className="min-h-[44px] w-full rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
             value={localEntry.lessonLearned || ''}
             onChange={(e) => handleChange('lessonLearned', e.target.value)}
             onBlur={handleBlur}
@@ -162,7 +161,7 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
           id="journal-trigger-observed"
           type="text" 
           placeholder="Any mental or emotional triggers you noticed?"
-          className="w-full bg-ivory border border-border rounded-lg px-4 py-2 text-text-primary focus:ring-2 focus:ring-accent-primary outline-none"
+          className="min-h-[44px] w-full rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
           value={localEntry.triggerObserved || ''}
           onChange={(e) => handleChange('triggerObserved', e.target.value)}
           onBlur={handleBlur}
@@ -176,7 +175,7 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
         <textarea 
           id="journal-content"
           placeholder="Write your thoughts here..."
-          className="w-full min-h-[300px] bg-ivory border border-border rounded-lg px-4 py-3 text-text-primary focus:ring-2 focus:ring-accent-primary outline-none resize-y leading-relaxed"
+          className="min-h-[300px] w-full resize-y rounded-md border border-border bg-ivory px-3 py-3 text-body leading-relaxed text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30 lg:min-h-[340px]"
           value={localEntry.content || ''}
           onChange={(e) => handleChange('content', e.target.value)}
           onBlur={handleBlur}

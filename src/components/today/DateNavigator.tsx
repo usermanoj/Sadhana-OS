@@ -11,7 +11,7 @@ export default function DateNavigator({ selectedDate, onPrev, onNext }: DateNavi
   const atToday = isToday(selectedDate);
 
   return (
-    <div id="date-navigator" className="flex items-center justify-between gap-2">
+    <div id="date-navigator" className="flex w-full items-center justify-between gap-2">
       <button
         id="date-prev"
         onClick={onPrev}
@@ -23,8 +23,8 @@ export default function DateNavigator({ selectedDate, onPrev, onNext }: DateNavi
         <ChevronLeft size={20} />
       </button>
 
-      <div className="flex flex-col items-center min-w-0">
-        <span className="text-subheading text-text-primary truncate">
+      <div className="flex min-w-0 flex-1 flex-col items-center px-1">
+        <span className="max-w-full truncate text-center text-body font-semibold text-text-primary sm:text-subheading">
           {formatDisplayDate(selectedDate)}
         </span>
       </div>

@@ -38,19 +38,20 @@ export default function CategoryAccordion({
       <button
         id={`category-header-${category.id}`}
         onClick={() => setIsOpen((o) => !o)}
-        className="w-full flex items-center gap-3 px-4 py-3 min-h-[52px]
+        className="w-full flex items-center gap-3 px-4 py-3 min-h-[56px] lg:min-h-[70px] lg:px-6
                    text-left transition-colors duration-150 hover:bg-muted/30"
         aria-expanded={isOpen}
+        aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${category.name}`}
       >
         {/* Category icon */}
         <span
-          className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0"
+          className="flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0 lg:h-11 lg:w-11"
           style={{ backgroundColor: `${category.color}15` }}
         >
           <DynamicCategoryIcon
             iconName={category.icon}
             color={category.color}
-            size={18}
+            size={20}
           />
         </span>
 
@@ -73,27 +74,30 @@ export default function CategoryAccordion({
       </button>
 
       {/* Score bar (always visible) */}
-      <div className="px-4 pb-2">
-        <ScoreBar score={stats.score} />
+      <div className="px-4 pb-3 lg:px-6">
+        <ScoreBar score={stats.score} height={5} />
       </div>
 
       {/* Body — sub-components */}
-      <div
-        className={`overflow-hidden transition-all duration-200 ease-in-out
-                    ${isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}
-      >
-        <div className="px-4 pb-3 divide-y divide-border/50">
-          {activeSubs.map((sub) => (
-            <SubComponentToggle
-              key={sub.id}
-              habit={sub}
-              value={completions[sub.id]}
-              onToggle={onToggle}
-              onValueChange={onValueChange}
-            />
-          ))}
+      {isOpen ? (
+        <div className="overflow-hidden transition-all duration-200 ease-in-out">
+          <div className="px-4 pb-3 divide-y divide-border/50 lg:px-6 lg:pb-5">
+            {activeSubs.length === 0 ? (
+              <p className="py-3 text-body text-text-secondary">No active practices</p>
+            ) : (
+              activeSubs.map((sub) => (
+                <SubComponentToggle
+                  key={sub.id}
+                  habit={sub}
+                  value={completions[sub.id]}
+                  onToggle={onToggle}
+                  onValueChange={onValueChange}
+                />
+              ))
+            )}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
