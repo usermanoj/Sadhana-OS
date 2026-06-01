@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { getItem, setItem } from './storage';
 
 describe('Storage Utilities', () => {
@@ -18,7 +18,13 @@ describe('Storage Utilities', () => {
   });
 
   it('handles invalid JSON gracefully', () => {
-    localStorage.setItem('sadhana:invalid_json', '{ bad json');
-    expect(getItem('invalid_json', 'fallback')).toBe('fallback');
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      localStorage.setItem('sadhana:invalid_json', '{ bad json');
+      expect(getItem('invalid_json', 'fallback')).toBe('fallback');
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
   });
 });
