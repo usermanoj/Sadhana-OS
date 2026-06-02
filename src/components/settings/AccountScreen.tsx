@@ -1,0 +1,229 @@
+import { useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, CloudOff, LogOut, Mail, ShieldCheck, UserRound } from 'lucide-react';
+import { useAuth } from '../../auth/AuthProvider';
+import { getAuthCooldownRemainingSeconds, startAuthCooldown } from '../../lib/authCooldown';
+import { getFriendlyAuthError } from '../../lib/authErrors';
+import LocalMigrationPanel from './LocalMigrationPanel';
+
+type StatusMessage = {
+  tone: 'success' | 'error';
+  text: string;
+} | null;
+
+export default function AccountScreen() {
+  const auth = useAuth();
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<StatusMessage>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const trimmedEmail = email.trim();
+  const magicLinkCooldown = useMemo(
+    () => getAuthCooldownRemainingSeconds('magic-link', trimmedEmail, now),
+    [trimmedEmail, now],
+  );
+
+  const sendMagicLink = async () => {
+    if (!trimmedEmail) {
+      setStatus({ tone: 'error', text: 'Enter your email address.' });
+      return;
+    }
+
+    const remaining = getAuthCooldownRemainingSeconds('magic-link', trimmedEmail);
+    if (remaining > 0) {
+      setStatus({
+        tone: 'error',
+        text: `Please wait ${remaining} seconds before requesting another email.`,
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await auth.sendMagicLink(trimmedEmail);
+      startAuthCooldown('magic-link', trimmedEmail);
+      setNow(Date.now());
+      setStatus({ tone: 'success', text: 'Check your email for the sign-in link.' });
+    } catch (error) {
+      console.warn('Account magic-link sign-in failed', error);
+      setStatus({
+        tone: 'error',
+        text: getFriendlyAuthError(error),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!auth.isCloudConfigured) {
+    return (
+      <section className="flex flex-col gap-4" aria-label="Account">
+        <SectionHeader
+          icon={CloudOff}
+          title="Account"
+          subtitle="Local-only mode"
+        />
+        <div className="max-w-3xl rounded-md border border-border bg-surface p-4 text-body text-text-secondary shadow-sm lg:p-5">
+          Cloud accounts are not configured in this environment. Your MVP data remains on this device and export/import stays available.
+        </div>
+        <div className="max-w-3xl rounded-md border border-border bg-muted/50 p-4 text-caption text-text-secondary">
+          Missing: {auth.missingConfigKeys.join(', ')}
+        </div>
+      </section>
+    );
+  }
+
+  if (auth.status === 'signedIn' && auth.user) {
+    return (
+      <section className="flex flex-col gap-4" aria-label="Account">
+        <SectionHeader
+          icon={ShieldCheck}
+          title="Account"
+          subtitle="Cloud identity"
+        />
+
+        <div className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary">
+                <UserRound size={20} aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <h2 className="truncate text-subheading text-text-primary">
+                  {auth.profile?.displayName || auth.user.email || 'Signed in'}
+                </h2>
+                <p className="truncate text-caption text-text-secondary">{auth.user.email}</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                void auth.signOut().catch((error: unknown) => {
+                  setStatus({
+                    tone: 'error',
+                    text: error instanceof Error ? error.message : 'Sign out failed.',
+                  });
+                });
+              }}
+              className="flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-body font-medium text-text-primary shadow-sm"
+            >
+              <LogOut size={18} aria-hidden="true" />
+              Sign Out
+            </button>
+          </div>
+
+          <dl className="mt-5 grid gap-3 sm:grid-cols-2">
+            <AccountField label="Sync Status" value={auth.status === 'signedIn' ? 'Signed in' : auth.status} />
+            <AccountField label="Timezone" value={auth.profile?.timezone ?? 'UTC'} />
+            <AccountField label="Week Starts On" value={formatWeekStart(auth.profile?.weekStartsOn ?? 1)} />
+            <AccountField
+              label="Onboarding"
+              value={auth.profile?.onboardingCompletedAt ? 'Complete' : 'Pending'}
+            />
+          </dl>
+        </div>
+
+        <LocalMigrationPanel />
+
+        {status ? <StatusBanner status={status} /> : null}
+      </section>
+    );
+  }
+
+  return (
+    <section className="flex flex-col gap-4" aria-label="Account">
+      <SectionHeader
+        icon={Mail}
+        title="Account"
+        subtitle="Sign in to enable cloud sync"
+      />
+
+      <div className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-5">
+        <label className="flex flex-col gap-1 text-caption font-medium text-text-secondary" htmlFor="account-email">
+          Email
+          <input
+            id="account-email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            className="min-h-[44px] rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
+          />
+        </label>
+
+        <button
+          type="button"
+          onClick={() => {
+            void sendMagicLink();
+          }}
+          disabled={isSubmitting || magicLinkCooldown > 0}
+          className="mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-accent-primary px-4 py-2 text-body font-medium text-white shadow-sm disabled:opacity-60 sm:w-auto"
+        >
+          <Mail size={18} aria-hidden="true" />
+          {isSubmitting ? 'Sending Link' : magicLinkCooldown > 0 ? `Wait ${magicLinkCooldown}s` : 'Send Sign-In Link'}
+        </button>
+      </div>
+
+      {status ? <StatusBanner status={status} /> : null}
+    </section>
+  );
+}
+
+interface SectionHeaderProps {
+  icon: typeof ShieldCheck;
+  title: string;
+  subtitle: string;
+}
+
+function SectionHeader({ icon: Icon, title, subtitle }: SectionHeaderProps) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-11 lg:w-11">
+        <Icon size={21} aria-hidden="true" />
+      </span>
+      <div>
+        <h2 className="text-heading text-text-primary">{title}</h2>
+        <p className="text-caption text-text-secondary">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
+function AccountField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md bg-muted/50 px-3 py-2">
+      <dt className="text-caption font-medium text-text-secondary">{label}</dt>
+      <dd className="mt-1 flex items-center gap-2 text-body text-text-primary">
+        <CheckCircle2 size={16} className="text-accent-success" aria-hidden="true" />
+        {value}
+      </dd>
+    </div>
+  );
+}
+
+function StatusBanner({ status }: { status: NonNullable<StatusMessage> }) {
+  return (
+    <p
+      role="status"
+      className={`rounded-md border px-4 py-3 text-body shadow-sm ${
+        status.tone === 'success'
+          ? 'border-accent-success/20 bg-accent-success/10 text-green-700'
+          : 'border-accent-danger/20 bg-accent-danger/10 text-red-700'
+      }`}
+    >
+      {status.text}
+    </p>
+  );
+}
+
+function formatWeekStart(value: number): string {
+  if (value === 0) return 'Sunday';
+  if (value === 6) return 'Saturday';
+  return 'Monday';
+}

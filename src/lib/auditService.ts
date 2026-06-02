@@ -1,5 +1,5 @@
 import type { AuditActionType, AuditEntityType, AuditLogEntry } from '../types';
-import { getItem, setItem } from './storage';
+import { appRepository } from './repository';
 
 interface RecordAuditEntryInput {
   actionType: AuditActionType;
@@ -69,7 +69,9 @@ const normalizeAuditEntry = (entry: LegacyAuditLogEntry): AuditLogEntry => ({
 });
 
 export function getAuditLogs(options: GetAuditLogsOptions = {}): AuditLogEntry[] {
-  const logs = getItem<LegacyAuditLogEntry[]>('audit', []).map(normalizeAuditEntry);
+  const logs = appRepository.getAuditLogs().map((entry) =>
+    normalizeAuditEntry(entry as LegacyAuditLogEntry),
+  );
 
   if (!options.newestFirst) {
     return logs;
@@ -98,7 +100,7 @@ export function recordAuditEntry(input: RecordAuditEntryInput): AuditLogEntry {
 
   const auditLog = getAuditLogs();
   auditLog.push(entry);
-  setItem('audit', auditLog);
+  appRepository.setAuditLogs(auditLog);
 
   return entry;
 }

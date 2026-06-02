@@ -1,11 +1,11 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+globalThis.ResizeObserver = class ResizeObserver {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+} as unknown as typeof ResizeObserver;
 
 Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
   configurable: true,

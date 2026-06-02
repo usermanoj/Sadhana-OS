@@ -9,3 +9,8 @@ playwright-report/
 test-results/
 
 .vite/
+
+# Local private auth/config notes
+SadhanaOS-Supabase.txt
+SadhanaOS-Supabase.local.txt
+*.local.txt

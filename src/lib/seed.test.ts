@@ -1,6 +1,12 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import type { Category, AuditLogEntry } from '../types';
-import { APP_SCHEMA_VERSION, seedIfNeeded } from './seed';
+import {
+  APP_SCHEMA_VERSION,
+  STARTER_TEMPLATE_VERSION,
+  createStarterTemplateSnapshot,
+  seedIfNeeded,
+  shouldApplyStarterTemplate,
+} from './seed';
 import { getItem } from './storage';
 
 describe('seed data', () => {
@@ -47,5 +53,52 @@ describe('seed data', () => {
     // Verify categories didn't change
     const categories2 = getItem<Category[]>('categories', []);
     expect(categories2).toEqual(categories1);
+  });
+
+  it('creates a cloud starter template snapshot with user-unique ids and an audit entry', () => {
+    const snapshot = createStarterTemplateSnapshot({
+      timestamp: '2026-06-02T00:00:00.000Z',
+      auditIdFactory: () => '00000000-0000-4000-8000-999999999999',
+    });
+
+    expect(snapshot.version).toBe('0.2');
+    expect(snapshot.categories).toHaveLength(9);
+    expect(snapshot.categories[0]!.name).toBe('8 Limbs of Yoga');
+    expect(snapshot.categories[0]!.id).not.toBe('00000000-0000-4000-8000-000000000001');
+    expect(snapshot.categories[0]!.subComponents[0]!.categoryId).toBe(snapshot.categories[0]!.id);
+    expect(snapshot.auditLogs).toEqual([
+      expect.objectContaining({
+        id: '00000000-0000-4000-8000-999999999999',
+        actionType: 'data_imported',
+        entityType: 'system',
+        note: `Applied starter template ${STARTER_TEMPLATE_VERSION}`,
+      }),
+    ]);
+  });
+
+  it('applies the starter template only to completely empty snapshots', () => {
+    expect(shouldApplyStarterTemplate({
+      version: '0.2',
+      categories: [],
+      dailyEntries: {},
+      journalEntries: {},
+      auditLogs: [],
+    })).toBe(true);
+
+    expect(shouldApplyStarterTemplate({
+      version: '0.2',
+      categories: [],
+      dailyEntries: {},
+      journalEntries: {},
+      auditLogs: [{
+        id: 'audit-1',
+        timestamp: '2026-06-02T00:00:00.000Z',
+        actionType: 'data_imported',
+        entityType: 'system',
+        entityId: 'system',
+        oldValue: null,
+        newValue: null,
+      }],
+    })).toBe(false);
   });
 });

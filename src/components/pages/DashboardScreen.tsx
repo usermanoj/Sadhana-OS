@@ -17,8 +17,7 @@ import {
   hasCategoryScores,
 } from '../../lib/chartData';
 import { buildDashboardAnalytics } from '../../lib/analytics';
-import { getItem } from '../../lib/storage';
-import type { Category, DailyEntry, DateKey } from '../../types';
+import { appRepository } from '../../lib/repository';
 import BalanceWheelChart from '../dashboard/BalanceWheelChart';
 import CategoryBarChart from '../dashboard/CategoryBarChart';
 import MetricCard from '../dashboard/MetricCard';
@@ -44,9 +43,9 @@ export default function DashboardScreen() {
   const [range, setRange] = useState<number>(7);
   const [categoryFilter, setCategoryFilter] = useState<string>('overall');
 
-  const entries = useMemo(() => getItem<Record<DateKey, DailyEntry>>('entries', {}), []);
+  const entries = useMemo(() => appRepository.getDailyEntries(), []);
   const categories = useMemo(
-    () => getItem<Category[]>('categories', []).filter((category) => !category.isArchived),
+    () => appRepository.getCategories().filter((category) => !category.isArchived),
     [],
   );
 

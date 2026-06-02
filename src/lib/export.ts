@@ -1,17 +1,18 @@
 import type { AuditLogEntry, Category, DailyEntry, DateKey, ExportPayload, Habit, JournalEntry } from '../types';
 import { recordAuditEntry } from './auditService';
-import { getItem } from './storage';
+import { appRepository } from './repository';
 
 const CSV_HEADERS = ['date', 'categoryName', 'subComponentName', 'completed'];
 
-const getSchemaVersion = (): string => getItem<string>('version', '1.1');
+const getSchemaVersion = (): string => appRepository.getVersion('1.1');
 
-const loadCategories = (): Category[] => getItem<Category[]>('categories', []);
+const loadCategories = (): Category[] => appRepository.getCategories();
 const loadDailyEntries = (): Record<DateKey, DailyEntry> =>
-  getItem<Record<DateKey, DailyEntry>>('entries', {});
+  appRepository.getDailyEntries();
 const loadJournalEntries = (): Record<DateKey, JournalEntry> =>
-  getItem<Record<DateKey, JournalEntry>>('journal', {});
-const loadAuditLogs = (): AuditLogEntry[] => getItem<AuditLogEntry[]>('audit', []);
+  appRepository.getJournalEntries();
+const loadAuditLogs = (): AuditLogEntry[] =>
+  appRepository.getAuditLogs().map((entry) => entry as AuditLogEntry);
 
 const flattenHabits = (categories: Category[]): Habit[] =>
   categories.flatMap((category) => category.subComponents);

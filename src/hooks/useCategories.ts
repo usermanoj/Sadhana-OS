@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { Category, SubComponent, TrackingType } from '../types';
 import { recordAuditEntry } from '../lib/auditService';
-import { getItem, setItem } from '../lib/storage';
+import { appRepository } from '../lib/repository';
 
 const DEFAULT_CATEGORY_ICON = 'sparkles';
 const DEFAULT_CATEGORY_COLOR = '#7C3AED';
@@ -21,10 +21,10 @@ export interface SubComponentInput {
 const sortByDisplayOrder = <T extends { displayOrder: number }>(items: T[]): T[] =>
   [...items].sort((a, b) => a.displayOrder - b.displayOrder);
 
-const loadCategories = (): Category[] => getItem<Category[]>('categories', []);
+const loadCategories = (): Category[] => appRepository.getCategories();
 
 const saveCategories = (categories: Category[]): void => {
-  setItem('categories', categories);
+  appRepository.setCategories(categories);
 };
 
 const requireName = (name: string, entity: string): string => {

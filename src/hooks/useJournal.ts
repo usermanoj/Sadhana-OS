@@ -1,14 +1,14 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { JournalEntry, DateKey } from '../types';
-import { getItem, setItem } from '../lib/storage';
+import { appRepository } from '../lib/repository';
 import { formatDateKey } from './useDailyEntry';
 
 function loadJournalEntries(): Record<DateKey, JournalEntry> {
-  return getItem<Record<DateKey, JournalEntry>>('journal', {});
+  return appRepository.getJournalEntries();
 }
 
 function saveJournalEntries(entries: Record<DateKey, JournalEntry>): void {
-  setItem('journal', entries);
+  appRepository.setJournalEntries(entries);
 }
 
 function createEmptyEntry(date: DateKey): JournalEntry {

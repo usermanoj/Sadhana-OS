@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { Category, DailyEntry, DateKey, TrackingValue } from '../types';
-import { getItem, setItem } from '../lib/storage';
+import { appRepository } from '../lib/repository';
 import { computeAllScores, isCompleted } from '../lib/scoring';
 
 /** Format a Date to YYYY-MM-DD using local timezone */
@@ -35,15 +35,15 @@ export const isToday = (date: Date): boolean =>
 // ---------------------------------------------------------------------------
 
 function loadCategories(): Category[] {
-  return getItem<Category[]>('categories', []);
+  return appRepository.getCategories();
 }
 
 function loadEntries(): Record<DateKey, DailyEntry> {
-  return getItem<Record<DateKey, DailyEntry>>('entries', {});
+  return appRepository.getDailyEntries();
 }
 
 function saveEntries(entries: Record<DateKey, DailyEntry>): void {
-  setItem('entries', entries);
+  appRepository.setDailyEntries(entries);
 }
 
 function createEmptyEntry(dateKey: DateKey): DailyEntry {

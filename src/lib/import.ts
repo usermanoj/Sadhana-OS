@@ -1,6 +1,6 @@
 import type { AuditLogEntry, Category, DailyEntry, DateKey, ExportPayload, JournalEntry } from '../types';
 import { recordAuditEntry } from './auditService';
-import { getItem, setItem } from './storage';
+import { appRepository } from './repository';
 
 export type ImportMode = 'merge' | 'overwrite';
 
@@ -82,22 +82,26 @@ export function applyImport(payload: ExportPayload, mode: ImportMode): void {
   const before = summarizeState(existingState);
 
   if (mode === 'overwrite') {
-    setItem('version', validated.settings.schemaVersion);
-    setItem('categories', validated.categories);
-    setItem('entries', validated.dailyEntries);
-    setItem('journal', validated.journalEntries);
-    setItem('audit', validated.auditLogs);
+    appRepository.replaceSnapshot({
+      version: validated.settings.schemaVersion,
+      categories: validated.categories,
+      dailyEntries: validated.dailyEntries,
+      journalEntries: validated.journalEntries,
+      auditLogs: validated.auditLogs,
+    });
   } else {
     const nextCategories = mergeCategories(existingState.categories, validated.categories);
     const nextDailyEntries = mergeRecords(existingState.dailyEntries, validated.dailyEntries);
     const nextJournalEntries = mergeRecords(existingState.journalEntries, validated.journalEntries);
     const nextAuditLogs = mergeAuditLogs(existingState.auditLogs, validated.auditLogs);
 
-    setItem('version', existingState.version || validated.settings.schemaVersion);
-    setItem('categories', nextCategories);
-    setItem('entries', nextDailyEntries);
-    setItem('journal', nextJournalEntries);
-    setItem('audit', nextAuditLogs);
+    appRepository.replaceSnapshot({
+      version: existingState.version || validated.settings.schemaVersion,
+      categories: nextCategories,
+      dailyEntries: nextDailyEntries,
+      journalEntries: nextJournalEntries,
+      auditLogs: nextAuditLogs,
+    });
   }
 
   recordAuditEntry({
@@ -284,11 +288,11 @@ function validateAuditEntry(value: unknown): AuditLogEntry {
 
 function loadExistingState(): ExistingState {
   return {
-    version: getItem<string>('version', '1.1'),
-    categories: getItem<Category[]>('categories', []),
-    dailyEntries: getItem<Record<DateKey, DailyEntry>>('entries', {}),
-    journalEntries: getItem<Record<DateKey, JournalEntry>>('journal', {}),
-    auditLogs: getItem<AuditLogEntry[]>('audit', []),
+    version: appRepository.getVersion('1.1'),
+    categories: appRepository.getCategories(),
+    dailyEntries: appRepository.getDailyEntries(),
+    journalEntries: appRepository.getJournalEntries(),
+    auditLogs: appRepository.getAuditLogs().map((entry) => entry as AuditLogEntry),
   };
 }
 

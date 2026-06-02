@@ -63,4 +63,16 @@ describe('SettingsScreen', () => {
     expect(screen.getByRole('button', { name: 'Export CSV' })).toBeInTheDocument();
     expect(screen.getByLabelText('Import JSON file')).toBeInTheDocument();
   });
+
+  it('shows account and privacy sections from Settings', () => {
+    render(<SettingsScreen />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Account' }));
+    expect(screen.getByRole('heading', { name: 'Account' })).toBeInTheDocument();
+    expect(screen.getByText('Local-only mode')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Privacy' }));
+    expect(screen.getByRole('heading', { name: 'Privacy' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Export JSON Backup' })).toBeInTheDocument();
+  });
 });

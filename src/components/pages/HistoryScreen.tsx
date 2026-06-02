@@ -10,7 +10,7 @@ import {
   type HistoryFilters,
   type PracticeHistoryRow,
 } from '../../lib/history';
-import { getItem } from '../../lib/storage';
+import { appRepository } from '../../lib/repository';
 import { useCategories } from '../../hooks/useCategories';
 
 type HistorySection = 'practice' | 'journal' | 'audit' | 'archived';
@@ -27,10 +27,10 @@ const sectionTabs: Array<{
 ];
 
 const loadEntries = (): Record<DateKey, DailyEntry> =>
-  getItem<Record<DateKey, DailyEntry>>('entries', {});
+  appRepository.getDailyEntries();
 
 const loadJournal = (): Record<DateKey, JournalEntry> =>
-  getItem<Record<DateKey, JournalEntry>>('journal', {});
+  appRepository.getJournalEntries();
 
 export default function HistoryScreen() {
   const {

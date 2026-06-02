@@ -1,0 +1,25 @@
+{
+  "name": "Sadhana OS",
+  "short_name": "Sadhana",
+  "description": "Premium spiritual wellness habit tracker for daily practice.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FDFAF6",
+  "theme_color": "#7C3AED",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

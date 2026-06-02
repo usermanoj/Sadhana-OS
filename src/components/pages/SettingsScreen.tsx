@@ -2,12 +2,22 @@ import { Settings } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useCategories } from '../../hooks/useCategories';
 import AuditLogScreen from '../settings/AuditLogScreen';
+import AccountScreen from '../settings/AccountScreen';
 import CategoryForm from '../settings/CategoryForm';
 import CategoryListScreen from '../settings/CategoryListScreen';
 import DataScreen from '../settings/DataScreen';
+import PrivacyScreen from '../settings/PrivacyScreen';
 
 type SettingsMode = 'list' | 'add' | 'edit';
-type SettingsSection = 'categories' | 'audit' | 'data';
+type SettingsSection = 'categories' | 'audit' | 'data' | 'account' | 'privacy';
+
+const settingsSections: Array<{ id: SettingsSection; label: string }> = [
+  { id: 'categories', label: 'Categories' },
+  { id: 'audit', label: 'Audit Log' },
+  { id: 'data', label: 'Data' },
+  { id: 'account', label: 'Account' },
+  { id: 'privacy', label: 'Privacy' },
+];
 
 export default function SettingsScreen() {
   const {
@@ -43,7 +53,7 @@ export default function SettingsScreen() {
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-11 lg:w-11">
-            <Settings size={22} />
+            <Settings size={22} aria-hidden="true" />
           </span>
           <div>
             <h1 className="text-heading text-text-primary">Settings</h1>
@@ -51,59 +61,37 @@ export default function SettingsScreen() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2" aria-label="Settings sections">
-          <button
-            type="button"
-            aria-label="Categories"
-            onClick={() => {
-              setSection('categories');
-              showList();
-            }}
-            className={`min-h-[44px] rounded-md px-4 py-2 text-body font-medium shadow-sm ${
-              section === 'categories'
-                ? 'bg-accent-primary text-white'
-                : 'border border-border bg-surface text-text-secondary'
-            }`}
-            aria-current={section === 'categories' ? 'page' : undefined}
-          >
-            Categories
-          </button>
-          <button
-            type="button"
-            aria-label="Audit Log"
-            onClick={() => {
-              setSection('audit');
-              showList();
-            }}
-            className={`min-h-[44px] rounded-md px-4 py-2 text-body font-medium shadow-sm ${
-              section === 'audit'
-                ? 'bg-accent-primary text-white'
-                : 'border border-border bg-surface text-text-secondary'
-            }`}
-            aria-current={section === 'audit' ? 'page' : undefined}
-          >
-            Audit Log
-          </button>
-          <button
-            type="button"
-            aria-label="Data"
-            onClick={() => {
-              setSection('data');
-              showList();
-            }}
-            className={`min-h-[44px] rounded-md px-4 py-2 text-body font-medium shadow-sm ${
-              section === 'data'
-                ? 'bg-accent-primary text-white'
-                : 'border border-border bg-surface text-text-secondary'
-            }`}
-            aria-current={section === 'data' ? 'page' : undefined}
-          >
-            Data
-          </button>
+        <div
+          className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          aria-label="Settings sections"
+        >
+          {settingsSections.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              aria-label={item.label}
+              onClick={() => {
+                setSection(item.id);
+                showList();
+              }}
+              className={`min-h-[44px] flex-shrink-0 rounded-md px-4 py-2 text-body font-medium shadow-sm ${
+                section === item.id
+                  ? 'bg-accent-primary text-white'
+                  : 'border border-border bg-surface text-text-secondary'
+              }`}
+              aria-current={section === item.id ? 'page' : undefined}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </header>
 
-      {section === 'data' ? (
+      {section === 'privacy' ? (
+        <PrivacyScreen />
+      ) : section === 'account' ? (
+        <AccountScreen />
+      ) : section === 'data' ? (
         <DataScreen />
       ) : section === 'audit' ? (
         <AuditLogScreen />

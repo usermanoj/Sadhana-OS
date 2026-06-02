@@ -1,9 +1,11 @@
 import type { Category, SubComponent, TrackingType } from '../types';
-import { getItem, setItem } from './storage';
 import { addAuditEntry } from './audit';
+import { appRepository, type AppStateSnapshot, type StoredAuditLogEntry } from './repository';
 
 
 export const APP_SCHEMA_VERSION = '1.1';
+export const CLOUD_SCHEMA_VERSION = '0.2';
+export const STARTER_TEMPLATE_VERSION = '2026.06.default';
 
 interface SubComponentSeedDefinition {
   id: string;
@@ -139,21 +141,43 @@ const categorySeedDefinitions: CategorySeedDefinition[] = [
   },
 ];
 
-const createSeedCategories = (): Category[] => {
-  const timestamp = new Date().toISOString();
-  return categorySeedDefinitions.map((category, categoryIndex) => ({
-    id: category.id,
-    name: category.name,
-    icon: category.icon,
-    color: category.color,
-    displayOrder: categoryIndex,
-    isArchived: false,
-    createdAt: timestamp,
-    updatedAt: timestamp,
-    subComponents: category.subComponents.map((sub, habitIndex) =>
-      createSubComponent(sub, category.id, habitIndex, timestamp),
-    ),
-  }));
+type SeedIdFactory = (stableId: string) => string;
+
+const useStableId: SeedIdFactory = (stableId) => stableId;
+const createRandomId: SeedIdFactory = () => crypto.randomUUID();
+
+export const createSeedCategories = (options: {
+  timestamp?: string;
+  idFactory?: SeedIdFactory;
+} = {}): Category[] => {
+  const timestamp = options.timestamp ?? new Date().toISOString();
+  const idFactory = options.idFactory ?? useStableId;
+
+  return categorySeedDefinitions.map((category, categoryIndex) => {
+    const categoryId = idFactory(category.id);
+
+    return {
+      id: categoryId,
+      name: category.name,
+      icon: category.icon,
+      color: category.color,
+      displayOrder: categoryIndex,
+      isArchived: false,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      subComponents: category.subComponents.map((sub, habitIndex) =>
+        createSubComponent(
+          {
+            ...sub,
+            id: idFactory(sub.id),
+          },
+          categoryId,
+          habitIndex,
+          timestamp,
+        ),
+      ),
+    };
+  });
 };
 
 const createSubComponent = (
@@ -172,13 +196,54 @@ const createSubComponent = (
   updatedAt: timestamp,
 });
 
+export function createStarterTemplateSnapshot(options: {
+  schemaVersion?: string;
+  timestamp?: string;
+  idFactory?: SeedIdFactory;
+  auditIdFactory?: () => string;
+} = {}): AppStateSnapshot {
+  const timestamp = options.timestamp ?? new Date().toISOString();
+  const categories = createSeedCategories({
+    timestamp,
+    idFactory: options.idFactory ?? createRandomId,
+  });
+  const auditEntry: StoredAuditLogEntry = {
+    id: options.auditIdFactory?.() ?? crypto.randomUUID(),
+    timestamp,
+    actionType: 'data_imported',
+    entityType: 'system',
+    entityId: 'system',
+    oldValue: null,
+    newValue: {
+      starterTemplateVersion: STARTER_TEMPLATE_VERSION,
+      categories: categories.length,
+      habits: categories.reduce((total, category) => total + category.subComponents.length, 0),
+    },
+    note: `Applied starter template ${STARTER_TEMPLATE_VERSION}`,
+  };
+
+  return {
+    version: options.schemaVersion ?? CLOUD_SCHEMA_VERSION,
+    categories,
+    dailyEntries: {},
+    journalEntries: {},
+    auditLogs: [auditEntry],
+  };
+}
+
+export const shouldApplyStarterTemplate = (snapshot: AppStateSnapshot): boolean =>
+  snapshot.categories.length === 0
+  && Object.keys(snapshot.dailyEntries).length === 0
+  && Object.keys(snapshot.journalEntries).length === 0
+  && snapshot.auditLogs.length === 0;
+
 export const seedIfNeeded = (): void => {
-  const version = getItem<string | null>('version', null);
+  const version = appRepository.getVersion(null);
   
   if (!version) {
     const categories = createSeedCategories();
-    setItem('categories', categories);
-    setItem('version', APP_SCHEMA_VERSION);
+    appRepository.setCategories(categories);
+    appRepository.setVersion(APP_SCHEMA_VERSION);
     addAuditEntry(
       'data_imported',
       'system',
@@ -189,7 +254,7 @@ export const seedIfNeeded = (): void => {
     );
   } else if (version === '1.0') {
     // Migrate 1.0 to 1.1: Add tracking types to default sub-components
-    const categories = getItem<Category[]>('categories', []);
+    const categories = appRepository.getCategories();
     
     const updatedCategories = categories.map(cat => {
       const seedCat = categorySeedDefinitions.find(sc => sc.id === cat.id);
@@ -207,8 +272,8 @@ export const seedIfNeeded = (): void => {
       };
     });
 
-    setItem('categories', updatedCategories);
-    setItem('version', APP_SCHEMA_VERSION);
+    appRepository.setCategories(updatedCategories);
+    appRepository.setVersion(APP_SCHEMA_VERSION);
     addAuditEntry(
       'data_imported',
       'system',

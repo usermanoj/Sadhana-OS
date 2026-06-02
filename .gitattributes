@@ -1,23 +1,24 @@
-* text=auto
+﻿# Normalize text files to LF for cross-platform consistency
+* text=auto eol=lf
 
-# Keep source and project text files LF across platforms.
-*.css text eol=lf
-*.html text eol=lf
-*.js text eol=lf
-*.jsx text eol=lf
-*.json text eol=lf
-*.md text eol=lf
-*.mjs text eol=lf
-*.ts text eol=lf
-*.tsx text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
-.gitattributes text eol=lf
+# Windows command scripts can keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
 
-# Binary assets must never be line-ending normalized.
-*.gif binary
-*.ico binary
+# PowerShell scripts can keep CRLF
+*.ps1 text eol=crlf
+
+# Treat common binary assets as binary
+*.png binary
 *.jpg binary
 *.jpeg binary
-*.png binary
+*.gif binary
+*.ico binary
 *.webp binary
+*.avif binary
+*.pdf binary
+*.zip binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
