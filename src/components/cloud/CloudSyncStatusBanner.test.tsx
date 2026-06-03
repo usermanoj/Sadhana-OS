@@ -14,6 +14,7 @@ const syncedContext: CloudSyncContextValue = {
   pendingWrites: 0,
   canRetry: false,
   retry: vi.fn(async () => undefined),
+  refreshFromCloud: vi.fn(async () => undefined),
 };
 
 function renderBanner(overrides: Partial<CloudSyncContextValue> = {}) {

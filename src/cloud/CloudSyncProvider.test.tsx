@@ -135,6 +135,21 @@ function SyncProbe() {
   );
 }
 
+function RefreshProbe() {
+  const sync = useCloudSync();
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        void sync.refreshFromCloud();
+      }}
+    >
+      Refresh cloud cache
+    </button>
+  );
+}
+
 function CategoryWriter() {
   return (
     <button
@@ -228,6 +243,34 @@ describe('CloudSyncProvider', () => {
     await waitFor(() => {
       expect(screen.getByTestId('category-names')).toHaveTextContent('8 Limbs of Yoga');
     });
+  });
+
+  it('refreshes the active user-scoped cache from cloud on demand', async () => {
+    mocks.loadSnapshot
+      .mockResolvedValueOnce(existingCloudSnapshot)
+      .mockResolvedValueOnce(remoteChangedCloudSnapshot);
+
+    render(
+      <AuthContext.Provider value={signedInContext('user-a')}>
+        <CloudSyncProvider>
+          <SyncProbe />
+          <RefreshProbe />
+          <CategoryProbe />
+        </CloudSyncProvider>
+      </AuthContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('synced');
+    });
+    expect(screen.getByTestId('category-names')).toHaveTextContent('Existing Cloud Practice');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh cloud cache' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('category-names')).toHaveTextContent('Changed On Another Device');
+    });
+    expect(mocks.loadSnapshot).toHaveBeenCalledTimes(2);
   });
 
   it('surfaces a background write failure and retries the current local snapshot', async () => {

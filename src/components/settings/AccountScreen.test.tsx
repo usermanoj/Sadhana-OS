@@ -49,6 +49,7 @@ const syncedCloudContext: CloudSyncContextValue = {
   pendingWrites: 0,
   canRetry: false,
   retry: vi.fn(async () => undefined),
+  refreshFromCloud: vi.fn(async () => undefined),
 };
 
 function renderSignedInAccount(syncOverrides: Partial<CloudSyncContextValue> = {}) {

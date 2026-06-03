@@ -36,13 +36,14 @@ However, the full cloud persistence system should **not yet be marked production
 - Visible sync status, queued-write status, manual retry, and reconnect replay now exist.
 - The durable queue has client mutation IDs, snapshot-level conflict detection, and RLS-safe server-side mutation tracking.
 - The durable queue does not yet provide transactional server-side mutation application or per-row merge semantics.
-- Local migration success does not appear to refresh the active user-scoped cache immediately.
+- Local migration success now refreshes the active user-scoped cache immediately when cloud sync is available.
 
 Task 026.1 live RLS/User A-User B validation is now complete and passed against a real Supabase development/staging project with 38 passing checks.
 Task 026.2 visible sync status is implemented.
 Task 026.3 durable queued-write replay is implemented for one coalesced user-scoped snapshot.
 Task 026.4 cross-device conflict and idempotency baseline is implemented for queued snapshot replay.
 Task 026.5 server-side idempotency and mutation tracking is implemented as a best-effort `sync_mutations` status record.
+Task 026.6 migration cache refresh is implemented.
 
 ## What Is Complete
 
@@ -289,7 +290,7 @@ Limitations:
 - Partial uploads can occur before a later table fails.
 - There is no source-ID metadata table.
 - There is no server-assisted migration function.
-- Success does not appear to refresh the active user-scoped cache immediately after upload.
+- Success refreshes the active user-scoped cache immediately after upload when no queued unsynced local changes block refresh.
 
 ### Duplicate Imports Are Only Partially Prevented
 
@@ -673,6 +674,8 @@ Remaining related work is server-side transactional mutation application and per
 
 ### Task 026.6 - Migration Cache Refresh
 
+Status: **Implemented**.
+
 After successful local-to-cloud migration:
 
 - Refresh cloud snapshot.
@@ -683,6 +686,8 @@ Acceptance:
 
 - User sees migrated data immediately after success.
 - Retry remains duplicate-safe.
+
+Remaining related work is live browser validation with real legacy local data and a real Supabase account.
 
 ### Task 026.7 - Cloud Import Job Tracking
 
@@ -748,11 +753,11 @@ Task 026 should be marked complete only when all of the following are true:
 | Frontend repository boundary | Strong foundation | App uses `appRepository` consistently |
 | Cloud write confidence | Partial | Failed writes are queued/replayed with snapshot conflict detection and best-effort server mutation tracking |
 | Local cache isolation | Partial to strong | User-scoped keys exist; live switching validation needed |
-| Migration retry safety | Good for product rows | Not transactional; cache refresh missing |
+| Migration retry safety | Good for product rows | Not transactional; active cache refresh now implemented |
 | Export/import cloud awareness | Partial | Active repo used, but sync completion not guaranteed |
 | Sync error UX | Partial | App shell and Account screen show failure/offline/queued/conflict/retry state |
 | Conflict handling | Partial | Import conflicts and queued replay conflicts are visible; merge UX still missing |
-| Production readiness | Not yet | RLS, visible sync status, queued replay, conflict detection, and mutation tracking are improved; needs browser switching validation, transactional mutation application, merge UX, and migration/import hardening |
+| Production readiness | Not yet | RLS, visible sync status, queued replay, conflict detection, mutation tracking, and migration cache refresh are improved; needs browser switching validation, transactional mutation application, merge UX, and import/export hardening |
 
 ## Summary
 
@@ -768,6 +773,6 @@ Task 026.4 cross-device conflict and idempotency baseline is implemented. Queued
 
 Task 026.5 server-side idempotency and mutation tracking is implemented. Queued snapshot mutations now have an RLS-protected `sync_mutations` status record keyed by `(user_id, client_mutation_id)`.
 
-The remaining work is about end-to-end product confidence and operational safety: live browser account-switching validation, transactional mutation application, guided conflict resolution, cloud/local reconciliation, and production-grade migration/import diagnostics.
+The remaining work is about end-to-end product confidence and operational safety: live browser account-switching validation, transactional mutation application, guided conflict resolution, and production-grade import/export diagnostics.
 
 Task 026 should remain open until the full cloud persistence experience is validated through the app UI and users can recover from sync failures and conflicts across browser restarts and cross-device edits.

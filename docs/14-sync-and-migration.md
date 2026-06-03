@@ -90,6 +90,8 @@ This strategy keeps retries idempotent for the same user and keeps migrated rows
 6. Upsert journal entries.
 7. Upsert audit log entries with `source = migration`.
 8. Update the import job to `status = succeeded`.
+9. Refresh the active user-scoped cloud cache from Supabase.
+10. Rerender the app so migrated data is visible without sign-out or browser refresh.
 
 If any write fails:
 
@@ -102,6 +104,7 @@ Retry behavior:
 - Product rows target the same deterministic IDs on retry.
 - Merge/upsert writes update the same cloud rows instead of creating duplicates.
 - Each retry still creates a new `import_jobs` row so attempts remain auditable.
+- A successful retry refreshes the active user-scoped cache after upload.
 
 ## Conflict Model
 
@@ -123,6 +126,7 @@ Client-side migration is resumable for product rows after a partially completed 
 Task 017 introduced a cloud repository. Task 026.3 adds the first durable reconnect replay layer.
 Task 026.4 adds the first cross-device conflict detection and client-side idempotency baseline.
 Task 026.5 adds RLS-safe server-side mutation tracking through `sync_mutations`.
+Task 026.6 refreshes the active user-scoped cache after local-to-cloud migration succeeds.
 
 Current Task 026.3 behavior:
 

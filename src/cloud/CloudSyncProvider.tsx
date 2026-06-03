@@ -22,7 +22,11 @@ import {
   type CloudDataGateway,
   type CloudMutationStatus,
 } from '../lib/cloudRepository';
-import { createCloudBackedRepository, hydrateLocalCacheOrCreateStarterTemplate } from '../lib/cloudSync';
+import {
+  createCloudBackedRepository,
+  hydrateLocalCacheFromCloud,
+  hydrateLocalCacheOrCreateStarterTemplate,
+} from '../lib/cloudSync';
 import { getSupabaseClient } from '../lib/supabaseClient';
 import { hasMigratableLocalData } from '../lib/localMigration';
 import { reportError, trackEvent } from '../lib/observability';
@@ -55,6 +59,7 @@ export interface CloudSyncContextValue {
   pendingWrites: number;
   canRetry: boolean;
   retry: () => Promise<void>;
+  refreshFromCloud: () => Promise<void>;
 }
 
 interface CloudSyncInternalState {
@@ -72,6 +77,7 @@ interface CloudSyncProviderProps {
 
 const PREPARING_MESSAGE = 'Preparing your private practice space...';
 const SYNCING_MESSAGE = 'Saving changes to cloud...';
+const REFRESHING_MESSAGE = 'Refreshing cloud data...';
 const RETRYING_MESSAGE = 'Retrying cloud sync...';
 const QUEUED_MESSAGE = 'Unsynced changes are queued and will replay when cloud sync is available.';
 const CONFLICT_MESSAGE = 'Cloud data changed on another device. Your local changes remain queued and will not overwrite newer cloud data.';
@@ -85,6 +91,7 @@ const defaultCloudSyncContext: CloudSyncContextValue = {
   pendingWrites: 0,
   canRetry: false,
   retry: async () => undefined,
+  refreshFromCloud: async () => undefined,
 };
 
 const createLocalOnlyState = (): CloudSyncInternalState => ({
@@ -204,6 +211,63 @@ export default function CloudSyncProvider({ children }: CloudSyncProviderProps) 
         pendingWrites: retryMode === 'hydration' ? current.pendingWrites : Math.max(1, current.pendingWrites),
         canRetry: true,
       }));
+    }
+  }, []);
+
+  const refreshFromCloud = useCallback(async () => {
+    const localRepository = localRepositoryRef.current;
+    const cloudGateway = cloudGatewayRef.current;
+    const mutationQueue = mutationQueueRef.current;
+
+    if (!localRepository || !cloudGateway) {
+      return;
+    }
+
+    if (mutationQueue?.count()) {
+      retryModeRef.current = 'queuedWrite';
+      setSyncState((current) => ({
+        ...current,
+        phase: 'queued',
+        message: QUEUED_MESSAGE,
+        pendingWrites: Math.max(1, current.pendingWrites),
+        canRetry: true,
+      }));
+      throw new Error('Cloud refresh is waiting for queued changes to sync first.');
+    }
+
+    setSyncState((current) => ({
+      ...current,
+      phase: 'syncing',
+      message: REFRESHING_MESSAGE,
+      canRetry: false,
+    }));
+
+    try {
+      const snapshot = await hydrateLocalCacheFromCloud(localRepository, cloudGateway);
+      lastConfirmedCloudSnapshotRef.current = snapshot;
+      retryModeRef.current = null;
+      setRepositoryRevision((current) => current + 1);
+      setSyncState((current) => ({
+        ...current,
+        phase: 'synced',
+        message: null,
+        lastSyncedAt: new Date().toISOString(),
+        pendingWrites: 0,
+        canRetry: false,
+      }));
+    } catch (error) {
+      retryModeRef.current = 'hydration';
+      trackEvent('sync_error_seen', { area: 'cloud_cache_refresh' });
+      reportError(error, 'cloud_cache_refresh_failed');
+      setSyncState((current) => ({
+        ...current,
+        phase: 'failed',
+        message: getFailureMessage('hydration'),
+        lastErrorAt: new Date().toISOString(),
+        pendingWrites: 0,
+        canRetry: true,
+      }));
+      throw error;
     }
   }, []);
 
@@ -418,7 +482,8 @@ export default function CloudSyncProvider({ children }: CloudSyncProviderProps) 
     pendingWrites: syncState.pendingWrites,
     canRetry: visibleStatus === 'offline' ? false : syncState.canRetry,
     retry,
-  }), [retry, syncState, visibleStatus]);
+    refreshFromCloud,
+  }), [refreshFromCloud, retry, syncState, visibleStatus]);
 
   const content = auth.isCloudConfigured && auth.status === 'signedIn' && userId && readyUserId !== userId
     ? (

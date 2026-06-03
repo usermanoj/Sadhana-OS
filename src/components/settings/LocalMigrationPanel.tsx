@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { CloudUpload, Database, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../auth/AuthProvider';
+import { useCloudSync } from '../../cloud/CloudSyncProvider';
 import { createLocalStorageRepository } from '../../lib/repository';
 import {
   createLocalMigrationPlan,
@@ -17,6 +18,7 @@ type MigrationStatus = {
 
 export default function LocalMigrationPanel() {
   const auth = useAuth();
+  const cloudSync = useCloudSync();
   const [status, setStatus] = useState<MigrationStatus>(null);
   const [isMigrating, setIsMigrating] = useState(false);
   const snapshot = useMemo(() => createLocalStorageRepository().getSnapshot(), []);
@@ -39,9 +41,19 @@ export default function LocalMigrationPanel() {
       setIsMigrating(true);
       setStatus(null);
       await uploadLocalMigrationPlan(client, plan);
+      let refreshedCloudCache = true;
+      try {
+        await cloudSync.refreshFromCloud();
+      } catch (refreshError) {
+        refreshedCloudCache = false;
+        console.warn('Cloud cache refresh after local migration failed', refreshError);
+      }
+
       setStatus({
         tone: 'success',
-        text: 'Local data was copied to your cloud account. The local copy remains on this device.',
+        text: refreshedCloudCache
+          ? 'Local data was copied to your cloud account. Your cloud view has been refreshed. The local copy remains on this device.'
+          : 'Local data was copied to your cloud account. Cloud refresh did not complete; use Retry cloud sync if migrated data is not visible. The local copy remains on this device.',
       });
     } catch (error) {
       setStatus({
