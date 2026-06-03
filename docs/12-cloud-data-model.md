@@ -178,6 +178,28 @@ Future-ready device diagnostics for offline sync.
 | `last_seen_at` | `timestamptz` | Last active timestamp |
 | `created_at` | `timestamptz` | Server default |
 
+### `sync_mutations`
+
+RLS-protected idempotency and status records for queued client cloud writes.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | `uuid` | Primary key |
+| `user_id` | `uuid` | Owner |
+| `client_mutation_id` | `text` | Stable client-generated idempotency key |
+| `mutation_type` | `text` | Currently `replaceSnapshot` |
+| `status` | `text` | `pending`, `running`, `succeeded`, `failed`, or `conflict` |
+| `attempt_count` | `int` | Number of replay attempts observed by the client |
+| `last_error` | `text` | Sanitized operational error message |
+| `metadata` | `jsonb` | Operational metadata only; no snapshot contents or journal text |
+| `created_at` | `timestamptz` | Server default |
+| `updated_at` | `timestamptz` | Trigger-maintained |
+| `completed_at` | `timestamptz` | Set when replay succeeds |
+
+Unique key: `(user_id, client_mutation_id)`.
+
+Normal users may select, insert, and update their own mutation rows. They may not delete mutation history.
+
 ## Row-Level Security
 
 All user-owned tables have RLS enabled.
@@ -213,4 +235,10 @@ The initial migration is:
 
 ```text
 supabase/migrations/20260601000000_initial_schema.sql
+```
+
+The sync mutation tracking migration is:
+
+```text
+supabase/migrations/20260603000000_add_sync_mutations.sql
 ```

@@ -57,6 +57,7 @@ describe('createCloudBackedRepository', () => {
       saveJournalEntries: vi.fn<CloudDataGateway['saveJournalEntries']>(),
       saveAuditLogs: vi.fn<CloudDataGateway['saveAuditLogs']>(),
       replaceSnapshot: vi.fn<CloudDataGateway['replaceSnapshot']>(),
+      recordMutationStatus: vi.fn<CloudDataGateway['recordMutationStatus']>(),
     };
     const repository = createCloudBackedRepository({
       localRepository,
@@ -96,6 +97,7 @@ describe('createCloudBackedRepository', () => {
       saveJournalEntries: vi.fn<CloudDataGateway['saveJournalEntries']>(),
       saveAuditLogs: vi.fn<CloudDataGateway['saveAuditLogs']>(),
       replaceSnapshot: vi.fn<CloudDataGateway['replaceSnapshot']>(),
+      recordMutationStatus: vi.fn<CloudDataGateway['recordMutationStatus']>(),
     };
     const repository = createCloudBackedRepository({
       localRepository,
@@ -138,6 +140,7 @@ describe('createCloudBackedRepository', () => {
       saveJournalEntries: vi.fn<CloudDataGateway['saveJournalEntries']>(),
       saveAuditLogs: vi.fn<CloudDataGateway['saveAuditLogs']>(),
       replaceSnapshot: vi.fn<CloudDataGateway['replaceSnapshot']>(),
+      recordMutationStatus: vi.fn<CloudDataGateway['recordMutationStatus']>(),
     };
 
     await hydrateLocalCacheFromCloud(localRepository, gateway);
@@ -162,6 +165,7 @@ describe('createCloudBackedRepository', () => {
       saveJournalEntries: vi.fn<CloudDataGateway['saveJournalEntries']>(),
       saveAuditLogs: vi.fn<CloudDataGateway['saveAuditLogs']>(),
       replaceSnapshot,
+      recordMutationStatus: vi.fn<CloudDataGateway['recordMutationStatus']>(),
     };
 
     const starterSnapshot = await hydrateLocalCacheOrCreateStarterTemplate(localRepository, gateway);
@@ -200,6 +204,7 @@ describe('createCloudBackedRepository', () => {
       saveJournalEntries: vi.fn<CloudDataGateway['saveJournalEntries']>(),
       saveAuditLogs: vi.fn<CloudDataGateway['saveAuditLogs']>(),
       replaceSnapshot,
+      recordMutationStatus: vi.fn<CloudDataGateway['recordMutationStatus']>(),
     };
 
     const hydratedSnapshot = await hydrateLocalCacheOrCreateStarterTemplate(localRepository, gateway);

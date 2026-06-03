@@ -32,7 +32,7 @@ PowerShell example:
 Notes:
   - Use a development/staging Supabase project.
   - Test users must already exist and be able to sign in.
-  - This script creates test rows and archives the temporary category/habit.
+  - This script creates test rows, archives the temporary category/habit, and leaves non-sensitive validation history.
   - It does not use a service-role key and does not hard-delete data.
 `;
 
@@ -221,6 +221,7 @@ async function run() {
   const dailyHabitEntryId = crypto.randomUUID();
   const journalEntryId = crypto.randomUUID();
   const auditEntryId = crypto.randomUUID();
+  const syncMutationId = crypto.randomUUID();
   const categoryName = `RLS Test ${runId}`;
 
   await insertAndReturnId(userAClient, 'categories', {
@@ -294,6 +295,20 @@ async function run() {
     source: 'client',
   }, 'User A can insert own audit log');
 
+  await insertAndReturnId(userAClient, 'sync_mutations', {
+    id: syncMutationId,
+    user_id: userA.id,
+    client_mutation_id: `rls-validation-${runId}`,
+    mutation_type: 'replaceSnapshot',
+    status: 'running',
+    attempt_count: 1,
+    last_error: null,
+    metadata: {
+      validation: true,
+      runId,
+    },
+  }, 'User A can insert own sync mutation');
+
   await expectNoVisibleRows(userBClient, 'profiles', 'id', userA.id, 'User B cannot select User A profile');
   await expectNoVisibleRows(userBClient, 'user_settings', 'user_id', userA.id, 'User B cannot select User A settings');
   await expectNoVisibleRows(userBClient, 'categories', 'id', categoryId, 'User B cannot select User A category');
@@ -308,6 +323,13 @@ async function run() {
   );
   await expectNoVisibleRows(userBClient, 'journal_entries', 'id', journalEntryId, 'User B cannot select User A journal');
   await expectNoVisibleRows(userBClient, 'audit_log_entries', 'id', auditEntryId, 'User B cannot select User A audit log');
+  await expectNoVisibleRows(
+    userBClient,
+    'sync_mutations',
+    'id',
+    syncMutationId,
+    'User B cannot select User A sync mutation',
+  );
 
   const crossUserCategoryId = crypto.randomUUID();
   const { error: crossUserInsertError } = await userBClient.from('categories').insert({
@@ -354,6 +376,19 @@ async function run() {
   );
 
   await expectRejectedOrNoop(
+    () => userBClient.from('sync_mutations').update({ status: 'failed' }).eq('id', syncMutationId),
+    () => expectRowValue(
+      userAClient,
+      'sync_mutations',
+      syncMutationId,
+      'status',
+      { status: 'running' },
+      'User A sync mutation stayed unchanged after User B update attempt',
+    ),
+    'User B cannot update User A sync mutation',
+  );
+
+  await expectRejectedOrNoop(
     () => userBClient.from('categories').delete().eq('id', categoryId),
     () => expectRowValue(
       userAClient,
@@ -377,6 +412,19 @@ async function run() {
       'User A journal stayed present after own delete attempt',
     ),
     'Normal user cannot hard-delete own journal entry',
+  );
+
+  await expectRejectedOrNoop(
+    () => userAClient.from('sync_mutations').delete().eq('id', syncMutationId),
+    () => expectRowValue(
+      userAClient,
+      'sync_mutations',
+      syncMutationId,
+      'status',
+      { status: 'running' },
+      'Sync mutation stayed present after own delete attempt',
+    ),
+    'Normal user cannot hard-delete own sync mutation',
   );
 
   await expectRejectedOrNoop(

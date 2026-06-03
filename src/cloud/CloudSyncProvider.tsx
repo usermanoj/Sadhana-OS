@@ -17,12 +17,20 @@ import {
   resetActiveAppRepository,
   setActiveAppRepository,
 } from '../lib/repository';
-import { createSupabaseCloudGateway, type CloudDataGateway } from '../lib/cloudRepository';
+import {
+  createSupabaseCloudGateway,
+  type CloudDataGateway,
+  type CloudMutationStatus,
+} from '../lib/cloudRepository';
 import { createCloudBackedRepository, hydrateLocalCacheOrCreateStarterTemplate } from '../lib/cloudSync';
 import { getSupabaseClient } from '../lib/supabaseClient';
 import { hasMigratableLocalData } from '../lib/localMigration';
 import { reportError, trackEvent } from '../lib/observability';
-import { createCloudMutationQueue, type CloudMutationQueue } from '../lib/cloudMutationQueue';
+import {
+  createCloudMutationQueue,
+  type CloudMutationQueue,
+  type QueuedCloudMutation,
+} from '../lib/cloudMutationQueue';
 import { hasCloudSnapshotChangedSinceBase } from '../lib/cloudConflict';
 
 export type CloudSyncStatus =
@@ -131,7 +139,15 @@ export default function CloudSyncProvider({ children }: CloudSyncProviderProps) 
         const snapshot = queuedMutation?.snapshot ?? localRepository.getSnapshot({ versionFallback: '0.2' });
         const currentCloudSnapshot = await cloudGateway.loadSnapshot();
 
+        if (queuedMutation) {
+          await recordMutationStatusSafely(cloudGateway, queuedMutation, 'running');
+        }
+
         if (queuedMutation && hasCloudSnapshotChangedSinceBase(queuedMutation.baseSnapshot, currentCloudSnapshot)) {
+          await recordMutationStatusSafely(cloudGateway, queuedMutation, 'conflict', {
+            conflictReason: 'cloud_snapshot_changed',
+            lastErrorMessage: CONFLICT_MESSAGE,
+          });
           retryModeRef.current = 'queuedWrite';
           trackEvent('sync_error_seen', { area: 'queued_write_conflict' });
           setSyncState((current) => ({
@@ -147,6 +163,11 @@ export default function CloudSyncProvider({ children }: CloudSyncProviderProps) 
 
         localRepository.replaceSnapshot(snapshot);
         await cloudGateway.replaceSnapshot(snapshot);
+        if (queuedMutation) {
+          await recordMutationStatusSafely(cloudGateway, queuedMutation, 'succeeded', {
+            completedAt: new Date().toISOString(),
+          });
+        }
         mutationQueue?.clear();
         lastConfirmedCloudSnapshotRef.current = snapshot;
       }
@@ -163,7 +184,12 @@ export default function CloudSyncProvider({ children }: CloudSyncProviderProps) 
     } catch (error) {
       retryModeRef.current = retryMode;
       if (retryMode === 'queuedWrite') {
-        mutationQueue?.recordReplayFailure(error);
+        const failedMutation = mutationQueue?.recordReplayFailure(error);
+        if (failedMutation) {
+          await recordMutationStatusSafely(cloudGateway, failedMutation, 'failed', {
+            lastErrorMessage: getSafeCloudErrorMessage(error),
+          });
+        }
       }
       trackEvent('sync_error_seen', {
         area: retryMode === 'hydration' ? 'retry_hydration' : 'retry_queued_write',
@@ -307,9 +333,12 @@ export default function CloudSyncProvider({ children }: CloudSyncProviderProps) 
       onSyncError(error) {
         if (!isMounted) return;
         retryModeRef.current = 'queuedWrite';
-        mutationQueue.enqueueSnapshot(localRepository.getSnapshot({ versionFallback: '0.2' }), {
+        const queuedMutation = mutationQueue.enqueueSnapshot(localRepository.getSnapshot({ versionFallback: '0.2' }), {
           baseSnapshot: lastConfirmedCloudSnapshotRef.current,
           error,
+        });
+        void recordMutationStatusSafely(cloudGateway, queuedMutation, 'failed', {
+          lastErrorMessage: getSafeCloudErrorMessage(error),
         });
         trackEvent('sync_error_seen', { area: 'repository_write' });
         reportError(error, 'cloud_sync_failed');
@@ -423,4 +452,60 @@ function getFailureMessage(mode: CloudSyncRetryMode): string {
   }
 
   return QUEUED_MESSAGE;
+}
+
+interface MutationStatusOptions {
+  completedAt?: string;
+  conflictReason?: string;
+  lastErrorMessage?: string;
+}
+
+async function recordMutationStatusSafely(
+  cloudGateway: CloudDataGateway,
+  mutation: QueuedCloudMutation,
+  status: CloudMutationStatus,
+  options: MutationStatusOptions = {},
+): Promise<void> {
+  try {
+    await cloudGateway.recordMutationStatus({
+      clientMutationId: mutation.clientMutationId,
+      mutationType: mutation.type,
+      status,
+      attemptCount: getTrackedAttemptCount(mutation, status),
+      lastErrorMessage: options.lastErrorMessage ?? mutation.lastErrorMessage ?? null,
+      metadata: {
+        queuedAt: mutation.createdAt,
+        updatedAt: mutation.updatedAt,
+        lastAttemptAt: mutation.lastAttemptAt ?? null,
+        hasBaseSnapshot: Boolean(mutation.baseSnapshot),
+        snapshotVersion: mutation.snapshot.version,
+        conflictReason: options.conflictReason ?? null,
+      },
+      completedAt: options.completedAt ?? null,
+    });
+  } catch (error) {
+    reportError(error, 'cloud_mutation_status_failed');
+  }
+}
+
+function getTrackedAttemptCount(
+  mutation: QueuedCloudMutation,
+  status: CloudMutationStatus,
+): number {
+  if (status === 'running' || status === 'succeeded' || status === 'conflict') {
+    return mutation.attemptCount + 1;
+  }
+
+  return Math.max(1, mutation.attemptCount);
+}
+
+function getSafeCloudErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  const trimmed = message.trim();
+
+  if (!trimmed) {
+    return 'Cloud sync failed.';
+  }
+
+  return trimmed.length > 180 ? `${trimmed.slice(0, 177)}...` : trimmed;
 }

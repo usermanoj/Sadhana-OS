@@ -73,6 +73,30 @@ interface CloudSettingsRow {
   schema_version: string;
 }
 
+export type CloudMutationType = 'replaceSnapshot';
+export type CloudMutationStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'conflict';
+
+export interface CloudMutationStatusInput {
+  clientMutationId: string;
+  mutationType: CloudMutationType;
+  status: CloudMutationStatus;
+  attemptCount: number;
+  lastErrorMessage?: string | null;
+  metadata?: Record<string, unknown>;
+  completedAt?: string | null;
+}
+
+interface CloudSyncMutationRow {
+  user_id: string;
+  client_mutation_id: string;
+  mutation_type: CloudMutationType;
+  status: CloudMutationStatus;
+  attempt_count: number;
+  last_error: string | null;
+  metadata: Record<string, unknown>;
+  completed_at: string | null;
+}
+
 export interface CloudSnapshotRows {
   settings: CloudSettingsRow | null;
   categories: CloudCategoryRow[];
@@ -90,6 +114,7 @@ export interface CloudDataGateway {
   saveJournalEntries(entries: Record<DateKey, JournalEntry>): Promise<void>;
   saveAuditLogs(auditLogs: StoredAuditLogEntry[]): Promise<void>;
   replaceSnapshot(snapshot: AppStateSnapshot): Promise<void>;
+  recordMutationStatus(input: CloudMutationStatusInput): Promise<void>;
 }
 
 export function mapCloudRowsToSnapshot(rows: CloudSnapshotRows): AppStateSnapshot {
@@ -241,6 +266,30 @@ export function createSupabaseCloudGateway(
       await this.saveJournalEntries(snapshot.journalEntries);
       await this.saveAuditLogs(snapshot.auditLogs);
     },
+    async recordMutationStatus(input) {
+      await upsertRows(
+        client,
+        'sync_mutations',
+        [mapCloudMutationStatusToRow(input, userId)],
+        'user_id,client_mutation_id',
+      );
+    },
+  };
+}
+
+export function mapCloudMutationStatusToRow(
+  input: CloudMutationStatusInput,
+  userId: string,
+): CloudSyncMutationRow {
+  return {
+    user_id: userId,
+    client_mutation_id: input.clientMutationId,
+    mutation_type: input.mutationType,
+    status: input.status,
+    attempt_count: input.attemptCount,
+    last_error: input.lastErrorMessage ?? null,
+    metadata: input.metadata ?? {},
+    completed_at: input.completedAt ?? null,
   };
 }
 

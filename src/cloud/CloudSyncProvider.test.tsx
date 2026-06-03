@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   saveJournalEntries: vi.fn(),
   saveAuditLogs: vi.fn(),
   replaceSnapshot: vi.fn(),
+  recordMutationStatus: vi.fn(),
 }));
 
 vi.mock('../lib/supabaseClient', () => ({
@@ -35,6 +36,7 @@ vi.mock('../lib/cloudRepository', () => ({
       saveJournalEntries: mocks.saveJournalEntries,
       saveAuditLogs: mocks.saveAuditLogs,
       replaceSnapshot: mocks.replaceSnapshot,
+      recordMutationStatus: mocks.recordMutationStatus,
     };
   }),
 }));
@@ -157,6 +159,7 @@ describe('CloudSyncProvider', () => {
     mocks.saveJournalEntries.mockResolvedValue(undefined);
     mocks.saveAuditLogs.mockResolvedValue(undefined);
     mocks.replaceSnapshot.mockResolvedValue(undefined);
+    mocks.recordMutationStatus.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -255,6 +258,12 @@ describe('CloudSyncProvider', () => {
       'Unsynced changes are queued',
     );
     expect(createCloudMutationQueue('user-a').get()?.snapshot.categories).toEqual([userACategory]);
+    await waitFor(() => {
+      expect(mocks.recordMutationStatus).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'failed',
+        clientMutationId: createCloudMutationQueue('user-a').get()?.clientMutationId,
+      }));
+    });
 
     fireEvent.click(screen.getByRole('button', { name: 'Retry cloud sync' }));
 
@@ -263,6 +272,15 @@ describe('CloudSyncProvider', () => {
     });
     expect(mocks.replaceSnapshot).toHaveBeenCalledWith(expect.objectContaining({
       categories: [userACategory],
+    }));
+    expect(mocks.recordMutationStatus).toHaveBeenCalledWith(expect.objectContaining({
+      status: 'running',
+      mutationType: 'replaceSnapshot',
+    }));
+    expect(mocks.recordMutationStatus).toHaveBeenCalledWith(expect.objectContaining({
+      status: 'succeeded',
+      mutationType: 'replaceSnapshot',
+      completedAt: expect.any(String),
     }));
     expect(createCloudMutationQueue('user-a').get()).toBeNull();
   });
@@ -361,8 +379,49 @@ describe('CloudSyncProvider', () => {
     });
 
     expect(screen.getByTestId('sync-message')).toHaveTextContent('Cloud data changed on another device');
+    expect(mocks.recordMutationStatus).toHaveBeenCalledWith(expect.objectContaining({
+      status: 'conflict',
+      lastErrorMessage: expect.stringContaining('Cloud data changed'),
+    }));
     expect(mocks.replaceSnapshot).not.toHaveBeenCalled();
     expect(createCloudMutationQueue('user-a').count()).toBe(1);
+  });
+
+  it('does not block queued replay when mutation status tracking fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    mocks.loadSnapshot.mockResolvedValue(existingCloudSnapshot);
+    mocks.saveCategories.mockRejectedValueOnce(new Error('network unavailable'));
+    mocks.recordMutationStatus.mockRejectedValue(new Error('tracking table unavailable'));
+
+    render(
+      <AuthContext.Provider value={signedInContext('user-a')}>
+        <CloudSyncProvider>
+          <SyncProbe />
+          <CategoryWriter />
+        </CloudSyncProvider>
+      </AuthContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('synced');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save category locally' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('queued');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Retry cloud sync' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('synced');
+    });
+
+    expect(mocks.replaceSnapshot).toHaveBeenCalledWith(expect.objectContaining({
+      categories: [userACategory],
+    }));
+    expect(createCloudMutationQueue('user-a').count()).toBe(0);
   });
 });
 

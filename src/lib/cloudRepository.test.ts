@@ -1,4 +1,4 @@
-import { mapCloudRowsToSnapshot } from './cloudRepository';
+import { mapCloudMutationStatusToRow, mapCloudRowsToSnapshot } from './cloudRepository';
 
 describe('mapCloudRowsToSnapshot', () => {
   it('maps Supabase rows into the local app snapshot shape', () => {
@@ -63,5 +63,36 @@ describe('mapCloudRowsToSnapshot', () => {
     expect(snapshot.dailyEntries['2026-01-02']?.completions).toEqual({ 'habit-1': true });
     expect(snapshot.journalEntries['2026-01-02']?.mood).toBe('steady');
     expect(snapshot.auditLogs[0]?.actionType).toBe('category_created');
+  });
+});
+
+describe('mapCloudMutationStatusToRow', () => {
+  it('maps queued mutation metadata without including snapshot contents', () => {
+    expect(mapCloudMutationStatusToRow({
+      clientMutationId: 'mutation-1',
+      mutationType: 'replaceSnapshot',
+      status: 'failed',
+      attemptCount: 2,
+      lastErrorMessage: 'Cloud sync failed.',
+      metadata: {
+        queuedAt: '2026-06-01T00:00:00.000Z',
+        updatedAt: '2026-06-01T01:00:00.000Z',
+        hasBaseSnapshot: true,
+      },
+      completedAt: null,
+    }, 'user-a')).toEqual({
+      user_id: 'user-a',
+      client_mutation_id: 'mutation-1',
+      mutation_type: 'replaceSnapshot',
+      status: 'failed',
+      attempt_count: 2,
+      last_error: 'Cloud sync failed.',
+      metadata: {
+        queuedAt: '2026-06-01T00:00:00.000Z',
+        updatedAt: '2026-06-01T01:00:00.000Z',
+        hasBaseSnapshot: true,
+      },
+      completed_at: null,
+    });
   });
 });

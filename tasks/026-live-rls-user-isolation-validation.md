@@ -16,6 +16,7 @@ Provide a repeatable live Supabase validation script for user-owned cloud persis
 - Validate that cross-user relationships fail.
 - Validate that normal users cannot hard-delete product data.
 - Validate that audit logs remain append-only.
+- Validate that sync mutation tracking rows are user-isolated.
 - Document how to run the script safely.
 
 ## Out Of Scope
@@ -78,7 +79,7 @@ Date: 2026-06-03
 Environment: Supabase development/staging project
 Command: npm run validate:cloud-rls
 Result: PASS
-Total checks: 32 passing checks
+Total checks: 38 passing checks
 Key type: Supabase anon/publishable key only
 Service-role key: Not used
 Credentials: Supplied through local environment variables only
@@ -91,18 +92,20 @@ Validated:
 - User B could not read User A private data.
 - User B could not insert rows with User A ownership.
 - User B could not update or delete User A category data.
+- User B could not read or update User A sync mutation rows.
 - Cross-user habit/category FK writes were rejected.
 - Normal users could not hard-delete protected journal rows.
+- Normal users could not hard-delete sync mutation rows.
 - Normal users could not update or delete audit logs.
 - Temporary validation category and habit rows were archived, not hard-deleted.
 
 Recommended next tasks:
 
-- Task 026.2 - Cloud Sync Status, Retry, and Error UX.
-- Task 026.3 - Durable Mutation Queue and Reconnect Replay.
-- Task 026.4 - Cross-Device Conflict and Idempotency Baseline.
-- Task 026.5 - Local-to-Cloud Migration UX.
-- Task 026.6 - Cross-browser/cross-device cloud sync validation.
+- Task 026.6 - Migration Cache Refresh.
+- Task 026.7 - Cloud Import Job Tracking.
+- Task 026.8 - Export Freshness Guarantee.
+- Task 026.9 - Guided Conflict Resolution.
+- Cross-browser/cross-device cloud sync validation.
 - Later - Production SMTP, Apple OAuth, account deletion/export hardening.
 
 ## Verification

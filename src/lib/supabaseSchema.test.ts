@@ -1,12 +1,12 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const migrationPath = resolve(
-  process.cwd(),
-  'supabase/migrations/20260601000000_initial_schema.sql',
-);
-
-const migrationSql = readFileSync(migrationPath, 'utf8');
+const migrationsPath = resolve(process.cwd(), 'supabase/migrations');
+const migrationSql = readdirSync(migrationsPath)
+  .filter((fileName) => fileName.endsWith('.sql'))
+  .sort()
+  .map((fileName) => readFileSync(resolve(migrationsPath, fileName), 'utf8'))
+  .join('\n');
 
 const userOwnedTables = [
   'profiles',
@@ -19,6 +19,7 @@ const userOwnedTables = [
   'audit_log_entries',
   'import_jobs',
   'sync_devices',
+  'sync_mutations',
 ];
 
 describe('Supabase initial schema migration', () => {
@@ -34,7 +35,7 @@ describe('Supabase initial schema migration', () => {
     });
   });
 
-  it('adds owner-scoped select, insert, and update policies for mutable product tables', () => {
+  it('adds owner-scoped select, insert, and update policies for mutable user-owned tables', () => {
     [
       'categories',
       'habits',
@@ -43,6 +44,7 @@ describe('Supabase initial schema migration', () => {
       'journal_entries',
       'import_jobs',
       'sync_devices',
+      'sync_mutations',
       'user_settings',
     ].forEach((table) => {
       expect(migrationSql).toContain(`create policy ${table}_select_own on public.${table}`);
@@ -63,6 +65,15 @@ describe('Supabase initial schema migration', () => {
   it('does not grant normal user delete policies on product tables', () => {
     expect(migrationSql).not.toMatch(/create policy \w+_delete_own/i);
     expect(migrationSql).not.toMatch(/for delete using/i);
+  });
+
+  it('adds a user-scoped idempotency key for sync mutations', () => {
+    expect(migrationSql).toContain('create table if not exists public.sync_mutations');
+    expect(migrationSql).toContain('client_mutation_id text not null');
+    expect(migrationSql).toContain('mutation_type text not null');
+    expect(migrationSql).toContain("status text not null default 'pending'");
+    expect(migrationSql).toContain('unique (user_id, client_mutation_id)');
+    expect(migrationSql).toContain('create index if not exists sync_mutations_user_updated_idx');
   });
 
   it('bootstraps profile and settings rows when an auth user is created', () => {

@@ -122,6 +122,7 @@ Client-side migration is resumable for product rows after a partially completed 
 
 Task 017 introduced a cloud repository. Task 026.3 adds the first durable reconnect replay layer.
 Task 026.4 adds the first cross-device conflict detection and client-side idempotency baseline.
+Task 026.5 adds RLS-safe server-side mutation tracking through `sync_mutations`.
 
 Current Task 026.3 behavior:
 
@@ -131,6 +132,8 @@ Current Task 026.3 behavior:
 - Browser `online` events replay queued changes automatically.
 - The app shell and Account screen show queued pending changes.
 - Successful replay clears the queued mutation.
+- Queued mutations are recorded in `sync_mutations` when tracking is available.
+- The server-side idempotency key is `(user_id, client_mutation_id)`.
 
 Current limitations:
 
@@ -138,14 +141,14 @@ Current limitations:
 - Storage currently uses the existing localStorage persistence layer.
 - Replay checks the current cloud snapshot before writing when a base snapshot is available.
 - Cross-device changes block replay and keep local changes queued.
-- Server-side idempotency keys are not yet enforced.
+- Server-side mutation tracking is best-effort and records status, not transactional mutation application.
 - Conflict resolution UI is not yet implemented.
 
 Later offline sync should add:
 
 - IndexedDB cache.
-- `client_mutation_id`.
-- Server-side idempotency table or columns.
+- Per-row mutation records.
+- Server-side transactional mutation application.
 - Conflict diagnostics.
 - Last-write-wins for daily habit values.
 - Explicit conflict prompts for tracker configuration changes.

@@ -22,7 +22,7 @@ This validation is a hardening step after the schema/repository audit. It proves
 | Environment | Supabase development/staging project |
 | Command | `npm run validate:cloud-rls` |
 | Result | PASS |
-| Total checks | 32 passing checks |
+| Total checks | 38 passing checks |
 | Auth method | Two real Supabase Auth users |
 | Key used | Supabase anon/publishable key only |
 | Service-role key used | No |
@@ -42,6 +42,7 @@ Successful checks:
 - User A can insert own daily habit entry: PASS.
 - User A can insert own journal entry: PASS.
 - User A can insert own audit log: PASS.
+- User A can insert own sync mutation: PASS.
 - User B cannot select User A profile: PASS.
 - User B cannot select User A settings: PASS.
 - User B cannot select User A category: PASS.
@@ -50,14 +51,19 @@ Successful checks:
 - User B cannot select User A daily habit entry: PASS.
 - User B cannot select User A journal: PASS.
 - User B cannot select User A audit log: PASS.
+- User B cannot select User A sync mutation: PASS.
 - User B cannot insert category with User A owner: PASS.
 - Cross-user habit/category FK is rejected: PASS.
 - User A category stayed unchanged after User B update attempt: PASS.
 - User B cannot update User A category: PASS.
+- User A sync mutation stayed unchanged after User B update attempt: PASS.
+- User B cannot update User A sync mutation: PASS.
 - User A category stayed present after User B delete attempt: PASS.
 - User B cannot delete User A category: PASS.
 - User A journal stayed present after own delete attempt: PASS.
 - Normal user cannot hard-delete own journal entry: PASS.
+- Sync mutation stayed present after own delete attempt: PASS.
+- Normal user cannot hard-delete own sync mutation: PASS.
 - Audit log stayed unchanged after own update attempt: PASS.
 - Normal user cannot update own audit log: PASS.
 - Audit log stayed present after own delete attempt: PASS.
@@ -71,6 +77,8 @@ Final output:
 Live Supabase RLS validation passed.
 ```
 
+Task 026.5 `sync_mutations` checks are included in the latest successful run.
+
 ## What Was Validated
 
 The live run validated the actual Supabase project, not only local mocks.
@@ -82,8 +90,10 @@ It proved:
 - User B could not read User A private rows.
 - User B could not insert a row with User A ownership.
 - User B could not modify or delete User A category data.
+- User B could not read or modify User A sync mutation history.
 - Cross-user habit/category relationships were rejected.
 - A normal user could not hard-delete protected journal data.
+- A normal user could not hard-delete sync mutation history.
 - Audit logs behaved as append-only from the normal-user perspective.
 - Temporary validation rows were archived instead of hard-deleted.
 
@@ -97,6 +107,7 @@ The validated tables included:
 - `daily_habit_entries`
 - `journal_entries`
 - `audit_log_entries`
+- `sync_mutations`
 
 ## Why This Matters
 
@@ -200,7 +211,7 @@ If it fails, do not mark cloud persistence production-ready. Inspect the failed 
 
 The script creates temporary rows under User A.
 
-It archives the temporary category and habit to reduce UI clutter. It does not hard-delete rows because normal app users should not have delete policies.
+It archives the temporary category and habit to reduce UI clutter. It also leaves non-sensitive audit and sync mutation validation history. It does not hard-delete rows because normal app users should not have delete policies.
 
 The generated daily and journal rows use a far-future validation date to avoid normal customer data.
 
@@ -239,11 +250,11 @@ Those remain separate hardening tasks.
 
 ## Recommended Next Tasks
 
-- Task 026.2 - Cloud Sync Status, Retry, and Error UX.
-- Task 026.3 - Durable Mutation Queue and Reconnect Replay.
-- Task 026.4 - Cross-Device Conflict and Idempotency Baseline.
-- Task 026.5 - Local-to-Cloud Migration UX.
-- Task 026.6 - Cross-browser/cross-device cloud sync validation.
+- Task 026.6 - Migration Cache Refresh.
+- Task 026.7 - Cloud Import Job Tracking.
+- Task 026.8 - Export Freshness Guarantee.
+- Task 026.9 - Guided Conflict Resolution.
+- Cross-browser/cross-device cloud sync validation.
 - Later - Production SMTP.
 - Later - Apple OAuth.
 - Later - Account deletion/export hardening.
@@ -257,6 +268,7 @@ Passing this script means:
 - Cross-user ownership writes are blocked.
 - Cross-user relationships are blocked.
 - Audit logs are append-only from the browser client.
+- Sync mutation history is user-isolated when the Task 026.5 migration has been applied and the updated script has passed.
 - Normal-user hard deletes are blocked.
 
 This is a major milestone, but it does not by itself make the full cloud persistence system production-ready. Sync health, retries, conflict handling, and migration UX still need hardening.
