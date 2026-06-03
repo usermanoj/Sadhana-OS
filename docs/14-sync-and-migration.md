@@ -120,11 +120,32 @@ Client-side migration is resumable for product rows after a partially completed 
 
 ## Future Offline Sync
 
-Task 017 introduces a cloud repository. Later offline sync should add:
+Task 017 introduced a cloud repository. Task 026.3 adds the first durable reconnect replay layer.
+Task 026.4 adds the first cross-device conflict detection and client-side idempotency baseline.
+
+Current Task 026.3 behavior:
+
+- Failed cloud writes are stored in a user-scoped durable queue.
+- The queue coalesces repeated writes into the latest local snapshot.
+- Manual retry replays the queued snapshot through `replaceSnapshot`.
+- Browser `online` events replay queued changes automatically.
+- The app shell and Account screen show queued pending changes.
+- Successful replay clears the queued mutation.
+
+Current limitations:
+
+- The queue stores one `replaceSnapshot` mutation per user instead of per-row mutations.
+- Storage currently uses the existing localStorage persistence layer.
+- Replay checks the current cloud snapshot before writing when a base snapshot is available.
+- Cross-device changes block replay and keep local changes queued.
+- Server-side idempotency keys are not yet enforced.
+- Conflict resolution UI is not yet implemented.
+
+Later offline sync should add:
 
 - IndexedDB cache.
-- Mutation queue.
 - `client_mutation_id`.
+- Server-side idempotency table or columns.
 - Conflict diagnostics.
 - Last-write-wins for daily habit values.
 - Explicit conflict prompts for tracker configuration changes.

@@ -99,8 +99,10 @@ Validated:
 Recommended next tasks:
 
 - Task 026.2 - Cloud Sync Status, Retry, and Error UX.
-- Task 026.3 - Local-to-Cloud Migration UX.
-- Task 026.4 - Cross-browser/cross-device cloud sync validation.
+- Task 026.3 - Durable Mutation Queue and Reconnect Replay.
+- Task 026.4 - Cross-Device Conflict and Idempotency Baseline.
+- Task 026.5 - Local-to-Cloud Migration UX.
+- Task 026.6 - Cross-browser/cross-device cloud sync validation.
 - Later - Production SMTP, Apple OAuth, account deletion/export hardening.
 
 ## Verification

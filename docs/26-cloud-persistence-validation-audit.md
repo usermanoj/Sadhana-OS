@@ -32,13 +32,16 @@ The foundation is solid:
 However, the full cloud persistence system should **not yet be marked production-ready** because:
 
 - Cloud writes are asynchronous fire-and-forget after local writes.
-- Failed cloud writes can leave local cache ahead of cloud state.
-- Sync errors are reported to telemetry/console, not clearly visible in the UI.
-- There is no durable mutation queue or replay mechanism.
-- There is no cross-device conflict model beyond simple upsert/last-write behavior.
+- Failed cloud writes can temporarily leave local cache ahead of cloud state.
+- Visible sync status, queued-write status, manual retry, and reconnect replay now exist.
+- The durable queue has client mutation IDs and snapshot-level conflict detection.
+- The durable queue does not yet provide server-side idempotency or per-row merge semantics.
 - Local migration success does not appear to refresh the active user-scoped cache immediately.
 
 Task 026.1 live RLS/User A-User B validation is now complete and passed against a real Supabase development/staging project with 32 passing checks.
+Task 026.2 visible sync status is implemented.
+Task 026.3 durable queued-write replay is implemented for one coalesced user-scoped snapshot.
+Task 026.4 cross-device conflict and idempotency baseline is implemented for queued snapshot replay.
 
 ## What Is Complete
 
@@ -232,11 +235,20 @@ If a Supabase write fails:
 - Local cache still contains the new state.
 - UI keeps showing the new state.
 - The cloud may not have the write.
-- There is no persisted pending mutation queue.
-- There is no automatic retry once connectivity or auth recovers.
-- There is no visible "not synced" state in the app.
+- A user-scoped queued `replaceSnapshot` mutation is persisted.
+- Repeated failed writes coalesce into the latest local snapshot.
+- Manual retry replays the queued snapshot.
+- Browser `online` events replay queued changes.
 
-Current handling reports telemetry and console errors through `reportError`, but does not give a user-facing sync health banner.
+Current handling now reports telemetry and console errors through `reportError` and surfaces user-facing sync health in the app shell and Account screen.
+
+Remaining limitations:
+
+- The queue is snapshot-level, not per-row.
+- Replay checks whether cloud changed since the queued write base snapshot.
+- Cross-device changes block replay and keep the local queued snapshot.
+- There is no server-side `client_mutation_id` enforcement.
+- There is no merge/conflict-resolution UI.
 
 ### Initial Hydration Has A Soft Failure Path
 
@@ -247,8 +259,9 @@ If hydration fails:
 - The error is reported.
 - The app is allowed to continue mounting.
 - The user may see stale or empty user-scoped local cache.
+- The app shows a visible cloud sync failure state and an in-memory retry action.
 
-This avoids blocking the user forever, but it is not enough for production-grade data confidence without visible sync state.
+This avoids blocking the user forever and no longer fails silently. It still needs browser-level validation and guided conflict resolution before production launch.
 
 ### Migration Upload Is Retry-Friendly But Not Transactional
 
@@ -285,16 +298,15 @@ JSON import:
 
 ### Conflict Handling Is Limited
 
-Current conflict handling exists for JSON import only through `ConflictDialog`.
+Current conflict handling exists for JSON import through `ConflictDialog` and for queued cloud replay through snapshot-level base/current-cloud comparison.
 
-There is no general cross-device conflict strategy for:
+There is no general cross-device merge strategy for:
 
 - Two devices editing trackers simultaneously.
-- A stale local cache overwriting newer cloud rows.
-- Offline edits queued and replayed later.
+- Merging a queued stale local snapshot with newer cloud rows.
 - Same-day daily values edited from multiple sessions.
 
-Current upsert behavior effectively trends toward last client write, but without a visible conflict model.
+Queued replay now blocks overwrite when cloud changed since the queued write base snapshot. Normal online upsert behavior still trends toward last client write.
 
 ### Logout/Switching Is Safer But Still Needs Live Browser Validation
 
@@ -323,28 +335,40 @@ Still needed:
 - User A data returns after switching back.
 - User-scoped local cache keys remain isolated through the full browser flow.
 
-### User-Facing Sync Status
+### Durable Sync Guarantees
 
-There is no visible sync health indicator for:
+Task 026.2 added visible sync health for:
 
 - Initial hydration failure.
 - Background cloud write failure.
 - Offline or unreachable Supabase.
-- Pending unsynced changes.
 - Last successful sync time.
+
+Still missing:
+
+- Per-row mutation persistence.
+- Server-side idempotent retry records.
+- Guided cross-device conflict resolution.
 
 ### Durable Mutation Queue
 
-There is no IndexedDB or durable queue for pending cloud writes.
+Task 026.3 added a durable user-scoped queued-write layer.
 
-Missing:
+Implemented:
 
-- `client_mutation_id`.
-- Pending mutation persistence.
+- Failed cloud writes persist one coalesced `replaceSnapshot` mutation per user.
+- Pending queued writes survive provider remount/browser refresh.
+- Manual retry replays queued changes.
+- Browser `online` events replay queued changes.
+- App shell and Account screen show queued pending changes.
+
+Still missing:
+
+- Server-side `client_mutation_id` enforcement.
+- Per-row pending mutation persistence.
 - Retry with backoff.
-- Replay after reconnect.
-- Idempotent mutation application.
-- User-visible queue status.
+- Server-side idempotent mutation application.
+- Merge/conflict-resolution UI.
 
 ### Server-Assisted Migration
 
@@ -430,17 +454,20 @@ Partially.
 
 ### 9. Whether sync errors are visible to the user
 
-Mostly no.
+Partially yes.
 
-Migration/import form errors are visible. Background cloud sync errors are telemetry/console only.
+Migration/import form errors are visible. Task 026.2 adds app-shell and Account-screen visibility for initial hydration failures, background cloud write failures, offline status, syncing, retrying, and last successful sync time.
 
 ### 10. Whether retry/conflict handling exists
 
 Partially.
 
 - Migration retry for product rows exists.
+- Latest in-memory cloud sync failure can be retried from the UI.
 - JSON import conflict summary exists.
-- General cloud write retry, durable queue, and cross-device conflict handling do not exist.
+- Durable cloud write queue exists.
+- Queued cloud replay detects base/current-cloud conflicts and blocks overwrite.
+- Server-side idempotency and guided conflict resolution do not exist yet.
 
 ### 11. Whether export/import works with cloud-backed state
 
@@ -533,7 +560,7 @@ As User A:
 - Confirm the app shows a clear sync failure state.
 - Confirm retry behavior is understandable.
 
-This last item is expected to fail today and should become a hardening task.
+The app now has a visible sync failure state and in-memory retry path. This checklist still needs manual browser validation against a real Supabase development/staging project.
 
 ## Recommended Hardening Tasks
 
@@ -562,7 +589,9 @@ Remaining related work is browser-level validation of the complete app flow, not
 
 ### Task 026.2 - User-Facing Sync Health
 
-Add sync state to the app shell/account area.
+Status: **Implemented**.
+
+Task 026.2 adds sync state to the app shell/account area.
 
 States:
 
@@ -571,28 +600,49 @@ States:
 - Syncing.
 - Offline.
 - Sync failed.
-- Unsynced changes pending.
+- Retrying.
 
 Acceptance:
 
-- Background write failures are visible.
-- Initial hydration failure is visible.
-- User can retry or understand next action.
+- Background write failures are visible. Completed.
+- Initial hydration failure is visible. Completed.
+- User can retry or understand next action. Completed for the latest in-memory sync failure.
+
+Remaining related work is durable queueing, reconnect replay, and conflict resolution.
 
 ### Task 026.3 - Durable Mutation Queue
 
-Add a durable local queue for cloud mutations.
+Status: **Implemented**.
 
-Recommended storage: IndexedDB, not localStorage, once production offline support is prioritized.
+Task 026.3 adds a durable local queue for cloud mutations using the current local persistence layer.
 
 Acceptance:
 
-- Failed mutations are stored.
-- Mutations replay after reconnect.
-- Mutations have idempotency keys.
-- Queue is user-scoped.
+- Failed mutations are stored. Completed for one coalesced snapshot mutation per user.
+- Mutations replay after reconnect. Completed for browser `online` events.
+- Mutations have idempotency keys. Not yet; still recommended for a future per-row queue.
+- Queue is user-scoped. Completed.
 
-### Task 026.4 - Migration Cache Refresh
+Remaining related work is an IndexedDB-backed per-row queue with server-side `client_mutation_id`, retry backoff, and guided conflict resolution.
+
+### Task 026.4 - Cross-Device Conflict And Idempotency Baseline
+
+Status: **Implemented**.
+
+Task 026.4 adds client-side mutation IDs and snapshot-level conflict detection for queued cloud replay.
+
+Acceptance:
+
+- Queued mutations have stable `clientMutationId` values. Completed.
+- Queued mutations store a base cloud snapshot when available. Completed.
+- Replay checks the current cloud snapshot before writing. Completed.
+- Replay is blocked when cloud changed since the queued write base snapshot. Completed.
+- Conflict state is visible in the app shell and Account screen. Completed.
+- Queued local changes remain stored after conflict detection. Completed.
+
+Remaining related work is server-side idempotency enforcement, per-row mutation metadata, and guided merge/conflict-resolution UX.
+
+### Task 026.5 - Migration Cache Refresh
 
 After successful local-to-cloud migration:
 
@@ -605,7 +655,7 @@ Acceptance:
 - User sees migrated data immediately after success.
 - Retry remains duplicate-safe.
 
-### Task 026.5 - Cloud Import Job Tracking
+### Task 026.6 - Cloud Import Job Tracking
 
 Record JSON imports in `import_jobs`, not only local audit.
 
@@ -615,7 +665,7 @@ Acceptance:
 - Summary includes counts and conflict mode.
 - Repeated imports can be diagnosed.
 
-### Task 026.6 - Export Freshness Guarantee
+### Task 026.7 - Export Freshness Guarantee
 
 Before cloud-mode export:
 
@@ -626,7 +676,7 @@ Acceptance:
 
 - User understands whether export includes cloud-confirmed data.
 
-### Task 026.7 - Conflict Model
+### Task 026.8 - Guided Conflict Resolution
 
 Define conflict rules for multi-device use.
 
@@ -667,13 +717,13 @@ Task 026 should be marked complete only when all of the following are true:
 | Schema ownership | Strong | Owner keys and composite FKs exist |
 | RLS design | Strong and live-validated | 32 live checks passed with anon/publishable key only |
 | Frontend repository boundary | Strong foundation | App uses `appRepository` consistently |
-| Cloud write confidence | Partial | Async fire-and-forget writes can fail silently |
+| Cloud write confidence | Partial | Failed writes are queued/replayed with snapshot conflict detection |
 | Local cache isolation | Partial to strong | User-scoped keys exist; live switching validation needed |
 | Migration retry safety | Good for product rows | Not transactional; cache refresh missing |
 | Export/import cloud awareness | Partial | Active repo used, but sync completion not guaranteed |
-| Sync error UX | Weak | Telemetry/console only for background sync |
-| Conflict handling | Weak | Import conflicts only |
-| Production readiness | Not yet | RLS is live-validated; needs sync health, retries, browser switching validation, and migration/import hardening |
+| Sync error UX | Partial | App shell and Account screen show failure/offline/queued/conflict/retry state |
+| Conflict handling | Partial | Import conflicts and queued replay conflicts are visible; merge UX still missing |
+| Production readiness | Not yet | RLS, visible sync status, queued replay, and conflict detection are improved; needs browser switching validation, server-side idempotency, merge UX, and migration/import hardening |
 
 ## Summary
 
@@ -681,6 +731,12 @@ Sadhana OS has a good authenticated cloud persistence foundation. The schema and
 
 Task 026.1 live RLS/User A-User B isolation validation is complete and passed with 32 checks. This materially improves confidence that the Supabase development/staging project enforces core user isolation using normal authenticated sessions and the public anon/publishable key.
 
-The remaining work is about end-to-end product confidence and operational safety: live browser account-switching validation, visible sync state, durable retries, cloud/local reconciliation, and production-grade migration/import diagnostics.
+Task 026.2 visible sync status and in-memory retry are implemented. Hydration and background write failures now have user-facing status instead of remaining console-only.
 
-Task 026 should remain open until the full cloud persistence experience is validated through the app UI and users can understand and recover from sync failures.
+Task 026.3 durable queued-write replay is implemented. Failed cloud writes now persist as a user-scoped coalesced snapshot and replay on retry or browser reconnect.
+
+Task 026.4 cross-device conflict and idempotency baseline is implemented. Queued writes now carry stable client mutation IDs, compare base/current cloud snapshots before replay, and block overwrite when another device changed cloud data.
+
+The remaining work is about end-to-end product confidence and operational safety: live browser account-switching validation, server-side idempotency, guided conflict resolution, cloud/local reconciliation, and production-grade migration/import diagnostics.
+
+Task 026 should remain open until the full cloud persistence experience is validated through the app UI and users can recover from sync failures and conflicts across browser restarts and cross-device edits.

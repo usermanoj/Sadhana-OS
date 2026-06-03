@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest';
-import { getItem, setItem } from './storage';
+import { getItem, removeItem, setItem } from './storage';
 
 describe('Storage Utilities', () => {
   beforeEach(() => {
@@ -11,6 +11,15 @@ describe('Storage Utilities', () => {
     setItem('test_key', data);
     expect(getItem('test_key', null)).toEqual(data);
     expect(localStorage.getItem('sadhana:test_key')).toBe(JSON.stringify(data));
+  });
+
+  it('removes stored values', () => {
+    setItem('test_key', { test: 'value' });
+
+    removeItem('test_key');
+
+    expect(getItem('test_key', null)).toBeNull();
+    expect(localStorage.getItem('sadhana:test_key')).toBeNull();
   });
 
   it('returns fallback when key is missing', () => {

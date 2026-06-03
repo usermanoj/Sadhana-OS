@@ -6,12 +6,27 @@ import { createStarterTemplateSnapshot, shouldApplyStarterTemplate } from './see
 export interface CloudBackedRepositoryOptions {
   localRepository: AppRepository;
   cloudGateway: CloudDataGateway;
-  onSyncError?: (error: unknown) => void;
+  onSyncStart?: (event: CloudSyncOperationEvent) => void;
+  onSyncSuccess?: (event: CloudSyncOperationEvent) => void;
+  onSyncError?: (error: unknown, event: CloudSyncOperationEvent) => void;
+}
+
+export type CloudSyncOperation =
+  | 'categories'
+  | 'dailyEntries'
+  | 'journalEntries'
+  | 'auditLogs'
+  | 'snapshot';
+
+export interface CloudSyncOperationEvent {
+  operation: CloudSyncOperation;
 }
 
 export function createCloudBackedRepository({
   localRepository,
   cloudGateway,
+  onSyncStart,
+  onSyncSuccess,
   onSyncError,
 }: CloudBackedRepositoryOptions): AppRepository {
   function getVersion(fallback: string): string;
@@ -24,10 +39,17 @@ export function createCloudBackedRepository({
     return localRepository.getVersion(fallback);
   }
 
-  const sync = (operation: Promise<void>) => {
-    void operation.catch((error: unknown) => {
-      onSyncError?.(error);
-    });
+  const sync = (operationName: CloudSyncOperation, operation: Promise<void>) => {
+    const event: CloudSyncOperationEvent = { operation: operationName };
+
+    onSyncStart?.(event);
+    void operation
+      .then(() => {
+        onSyncSuccess?.(event);
+      })
+      .catch((error: unknown) => {
+        onSyncError?.(error, event);
+      });
   };
 
   return {
@@ -40,35 +62,35 @@ export function createCloudBackedRepository({
     },
     setCategories(categories: Category[]) {
       localRepository.setCategories(categories);
-      sync(cloudGateway.saveCategories(categories));
+      sync('categories', cloudGateway.saveCategories(categories));
     },
     getDailyEntries() {
       return localRepository.getDailyEntries();
     },
     setDailyEntries(entries: Record<DateKey, DailyEntry>) {
       localRepository.setDailyEntries(entries);
-      sync(cloudGateway.saveDailyEntries(entries));
+      sync('dailyEntries', cloudGateway.saveDailyEntries(entries));
     },
     getJournalEntries() {
       return localRepository.getJournalEntries();
     },
     setJournalEntries(entries: Record<DateKey, JournalEntry>) {
       localRepository.setJournalEntries(entries);
-      sync(cloudGateway.saveJournalEntries(entries));
+      sync('journalEntries', cloudGateway.saveJournalEntries(entries));
     },
     getAuditLogs() {
       return localRepository.getAuditLogs();
     },
     setAuditLogs(auditLogs: StoredAuditLogEntry[]) {
       localRepository.setAuditLogs(auditLogs);
-      sync(cloudGateway.saveAuditLogs(auditLogs));
+      sync('auditLogs', cloudGateway.saveAuditLogs(auditLogs));
     },
     getSnapshot(options) {
       return localRepository.getSnapshot(options);
     },
     replaceSnapshot(snapshot: AppStateSnapshot) {
       localRepository.replaceSnapshot(snapshot);
-      sync(cloudGateway.replaceSnapshot(snapshot));
+      sync('snapshot', cloudGateway.replaceSnapshot(snapshot));
     },
   };
 }

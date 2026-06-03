@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { User } from '@supabase/supabase-js';
 import { AuthContext, defaultAuthContext, type AuthContextValue } from '../auth/AuthProvider';
 import {
@@ -7,8 +7,9 @@ import {
   resetActiveAppRepository,
   type AppStateSnapshot,
 } from '../lib/repository';
+import { createCloudMutationQueue } from '../lib/cloudMutationQueue';
 import type { Category } from '../types';
-import CloudSyncProvider from './CloudSyncProvider';
+import CloudSyncProvider, { useCloudSync } from './CloudSyncProvider';
 
 const mocks = vi.hoisted(() => ({
   currentUserId: 'user-b',
@@ -58,6 +59,36 @@ const emptyCloudSnapshot: AppStateSnapshot = {
   auditLogs: [],
 };
 
+const existingCloudSnapshot: AppStateSnapshot = {
+  ...emptyCloudSnapshot,
+  categories: [{
+    id: 'category-existing',
+    name: 'Existing Cloud Practice',
+    icon: 'sparkles',
+    color: '#7C3AED',
+    displayOrder: 0,
+    isArchived: false,
+    createdAt: '2026-06-01T00:00:00.000Z',
+    updatedAt: '2026-06-01T00:00:00.000Z',
+    subComponents: [],
+  }],
+};
+
+const remoteChangedCloudSnapshot: AppStateSnapshot = {
+  ...emptyCloudSnapshot,
+  categories: [{
+    id: 'category-existing',
+    name: 'Changed On Another Device',
+    icon: 'sparkles',
+    color: '#7C3AED',
+    displayOrder: 0,
+    isArchived: false,
+    createdAt: '2026-06-01T00:00:00.000Z',
+    updatedAt: '2026-06-02T00:00:00.000Z',
+    subComponents: [],
+  }],
+};
+
 const signedInContext = (userId: string): AuthContextValue => ({
   ...defaultAuthContext,
   isCloudConfigured: true,
@@ -82,8 +113,42 @@ function CategoryProbe() {
   return <div data-testid="category-names">{names.join(',') || 'empty'}</div>;
 }
 
+function SyncProbe() {
+  const sync = useCloudSync();
+
+  return (
+    <div>
+      <span data-testid="sync-status">{sync.status}</span>
+      <span data-testid="sync-message">{sync.message ?? 'no message'}</span>
+      <button
+        type="button"
+        onClick={() => {
+          void sync.retry();
+        }}
+        disabled={!sync.canRetry}
+      >
+        Retry cloud sync
+      </button>
+    </div>
+  );
+}
+
+function CategoryWriter() {
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        appRepository.setCategories([userACategory]);
+      }}
+    >
+      Save category locally
+    </button>
+  );
+}
+
 describe('CloudSyncProvider', () => {
   beforeEach(() => {
+    setNavigatorOnline(true);
     localStorage.clear();
     resetActiveAppRepository();
     mocks.loadSnapshot.mockResolvedValue(emptyCloudSnapshot);
@@ -127,4 +192,183 @@ describe('CloudSyncProvider', () => {
       ]),
     }));
   });
+
+  it('surfaces initial cloud hydration failure and retries hydration', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    mocks.loadSnapshot
+      .mockRejectedValueOnce(new Error('network unavailable'))
+      .mockResolvedValueOnce(emptyCloudSnapshot);
+
+    render(
+      <AuthContext.Provider value={signedInContext('user-a')}>
+        <CloudSyncProvider>
+          <SyncProbe />
+          <CategoryProbe />
+        </CloudSyncProvider>
+      </AuthContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('failed');
+    });
+
+    expect(screen.getByTestId('sync-message')).toHaveTextContent('Cloud data could not be refreshed');
+    expect(screen.getByTestId('category-names')).toHaveTextContent('empty');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Retry cloud sync' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('synced');
+    });
+
+    expect(mocks.loadSnapshot).toHaveBeenCalledTimes(2);
+    await waitFor(() => {
+      expect(screen.getByTestId('category-names')).toHaveTextContent('8 Limbs of Yoga');
+    });
+  });
+
+  it('surfaces a background write failure and retries the current local snapshot', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    mocks.loadSnapshot.mockResolvedValue(existingCloudSnapshot);
+    mocks.saveCategories.mockRejectedValueOnce(new Error('network unavailable'));
+
+    render(
+      <AuthContext.Provider value={signedInContext('user-a')}>
+        <CloudSyncProvider>
+          <SyncProbe />
+          <CategoryWriter />
+        </CloudSyncProvider>
+      </AuthContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('synced');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save category locally' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('queued');
+    });
+
+    expect(screen.getByTestId('sync-message')).toHaveTextContent(
+      'Unsynced changes are queued',
+    );
+    expect(createCloudMutationQueue('user-a').get()?.snapshot.categories).toEqual([userACategory]);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Retry cloud sync' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('synced');
+    });
+    expect(mocks.replaceSnapshot).toHaveBeenCalledWith(expect.objectContaining({
+      categories: [userACategory],
+    }));
+    expect(createCloudMutationQueue('user-a').get()).toBeNull();
+  });
+
+  it('loads a durable queued snapshot on the next signed-in mount', async () => {
+    createCloudMutationQueue('user-a').enqueueSnapshot({
+      ...emptyCloudSnapshot,
+      categories: [userACategory],
+    });
+
+    render(
+      <AuthContext.Provider value={signedInContext('user-a')}>
+        <CloudSyncProvider>
+          <SyncProbe />
+          <CategoryProbe />
+        </CloudSyncProvider>
+      </AuthContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('queued');
+    });
+
+    expect(screen.getByTestId('category-names')).toHaveTextContent('User A Practice');
+    expect(mocks.loadSnapshot).not.toHaveBeenCalled();
+  });
+
+  it('replays queued writes when the browser comes back online', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    setNavigatorOnline(false);
+    mocks.loadSnapshot.mockResolvedValue(existingCloudSnapshot);
+    mocks.saveCategories.mockRejectedValueOnce(new Error('network unavailable'));
+
+    render(
+      <AuthContext.Provider value={signedInContext('user-a')}>
+        <CloudSyncProvider>
+          <SyncProbe />
+          <CategoryWriter />
+        </CloudSyncProvider>
+      </AuthContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('offline');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save category locally' }));
+
+    await waitFor(() => {
+      expect(createCloudMutationQueue('user-a').count()).toBe(1);
+    });
+
+    setNavigatorOnline(true);
+    window.dispatchEvent(new Event('online'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('synced');
+    });
+
+    expect(mocks.replaceSnapshot).toHaveBeenCalledWith(expect.objectContaining({
+      categories: [userACategory],
+    }));
+    expect(createCloudMutationQueue('user-a').count()).toBe(0);
+  });
+
+  it('blocks queued replay when cloud changed since the queued write base snapshot', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    mocks.loadSnapshot
+      .mockResolvedValueOnce(existingCloudSnapshot)
+      .mockResolvedValueOnce(remoteChangedCloudSnapshot);
+    mocks.saveCategories.mockRejectedValueOnce(new Error('network unavailable'));
+
+    render(
+      <AuthContext.Provider value={signedInContext('user-a')}>
+        <CloudSyncProvider>
+          <SyncProbe />
+          <CategoryWriter />
+        </CloudSyncProvider>
+      </AuthContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('synced');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save category locally' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('queued');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Retry cloud sync' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('conflict');
+    });
+
+    expect(screen.getByTestId('sync-message')).toHaveTextContent('Cloud data changed on another device');
+    expect(mocks.replaceSnapshot).not.toHaveBeenCalled();
+    expect(createCloudMutationQueue('user-a').count()).toBe(1);
+  });
 });
+
+function setNavigatorOnline(value: boolean) {
+  Object.defineProperty(window.navigator, 'onLine', {
+    configurable: true,
+    value,
+  });
+}

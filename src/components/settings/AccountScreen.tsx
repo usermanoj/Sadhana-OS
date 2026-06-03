@@ -1,6 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, CloudOff, LogOut, Mail, ShieldCheck, UserRound } from 'lucide-react';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Cloud,
+  CloudOff,
+  LogOut,
+  Mail,
+  RefreshCw,
+  ShieldCheck,
+  UserRound,
+} from 'lucide-react';
 import { useAuth } from '../../auth/AuthProvider';
+import { useCloudSync, type CloudSyncStatus } from '../../cloud/CloudSyncProvider';
 import { getAuthCooldownRemainingSeconds, startAuthCooldown } from '../../lib/authCooldown';
 import { getFriendlyAuthError } from '../../lib/authErrors';
 import LocalMigrationPanel from './LocalMigrationPanel';
@@ -118,8 +129,10 @@ export default function AccountScreen() {
             </button>
           </div>
 
+          <CloudSyncAccountPanel />
+
           <dl className="mt-5 grid gap-3 sm:grid-cols-2">
-            <AccountField label="Sync Status" value={auth.status === 'signedIn' ? 'Signed in' : auth.status} />
+            <AccountField label="Account Status" value={auth.status === 'signedIn' ? 'Signed in' : auth.status} />
             <AccountField label="Timezone" value={auth.profile?.timezone ?? 'UTC'} />
             <AccountField label="Week Starts On" value={formatWeekStart(auth.profile?.weekStartsOn ?? 1)} />
             <AccountField
@@ -207,6 +220,82 @@ function AccountField({ label, value }: { label: string; value: string }) {
   );
 }
 
+function CloudSyncAccountPanel() {
+  const sync = useCloudSync();
+  const isProblem = sync.status === 'failed'
+    || sync.status === 'offline'
+    || sync.status === 'queued'
+    || sync.status === 'conflict';
+  const Icon = sync.status === 'offline'
+    ? CloudOff
+    : isProblem
+      ? AlertTriangle
+      : sync.status === 'retrying'
+        ? RefreshCw
+        : Cloud;
+
+  return (
+    <div
+      aria-label="Cloud sync"
+      role={isProblem ? 'alert' : 'status'}
+      className={`mt-5 rounded-md border px-3 py-3 ${
+        isProblem
+          ? 'border-accent-warning/30 bg-accent-warning/10'
+          : 'border-border bg-muted/50'
+      }`}
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
+          <span
+            className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${
+              isProblem ? 'bg-accent-warning/20 text-amber-700' : 'bg-accent-primary/10 text-accent-primary'
+            }`}
+          >
+            <Icon
+              size={18}
+              aria-hidden="true"
+              className={sync.status === 'retrying' ? 'motion-safe:animate-spin' : undefined}
+            />
+          </span>
+          <div className="min-w-0">
+            <p className="text-caption font-medium text-text-secondary">Cloud Sync</p>
+            <p className="mt-1 text-body font-medium text-text-primary">
+              {getCloudSyncStatusLabel(sync.status)}
+            </p>
+            {sync.message ? (
+              <p className="mt-1 text-caption text-text-secondary">{sync.message}</p>
+            ) : null}
+            {sync.lastSyncedAt ? (
+              <p className="mt-1 text-caption text-text-secondary">
+                Last synced {formatSyncTimestamp(sync.lastSyncedAt)}
+              </p>
+            ) : null}
+            {sync.pendingWrites > 0 ? (
+              <p className="mt-1 text-caption text-text-secondary">
+                {sync.pendingWrites} pending {sync.pendingWrites === 1 ? 'change' : 'changes'}
+              </p>
+            ) : null}
+          </div>
+        </div>
+
+        {sync.canRetry ? (
+          <button
+            type="button"
+            onClick={() => {
+              void sync.retry();
+            }}
+            disabled={sync.status === 'retrying'}
+            className="flex min-h-[40px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-body font-medium text-text-primary shadow-sm disabled:opacity-60"
+          >
+            <RefreshCw size={16} aria-hidden="true" />
+            Retry cloud sync
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function StatusBanner({ status }: { status: NonNullable<StatusMessage> }) {
   return (
     <p
@@ -220,6 +309,25 @@ function StatusBanner({ status }: { status: NonNullable<StatusMessage> }) {
       {status.text}
     </p>
   );
+}
+
+function getCloudSyncStatusLabel(status: CloudSyncStatus): string {
+  if (status === 'preparing') return 'Preparing cloud data';
+  if (status === 'synced') return 'Synced';
+  if (status === 'syncing') return 'Syncing';
+  if (status === 'queued') return 'Unsynced changes pending';
+  if (status === 'conflict') return 'Cloud changes need review';
+  if (status === 'offline') return 'Offline';
+  if (status === 'failed') return 'Sync failed';
+  if (status === 'retrying') return 'Retrying';
+  return 'Local only';
+}
+
+function formatSyncTimestamp(value: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(value));
 }
 
 function formatWeekStart(value: number): string {

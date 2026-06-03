@@ -48,6 +48,8 @@ describe('createCloudBackedRepository', () => {
   it('writes locally and forwards category changes to the cloud gateway', async () => {
     const localRepository = createMemoryRepository();
     const saveCategories = vi.fn<CloudDataGateway['saveCategories']>().mockResolvedValue(undefined);
+    const onSyncStart = vi.fn();
+    const onSyncSuccess = vi.fn();
     const gateway = {
       loadSnapshot: vi.fn<CloudDataGateway['loadSnapshot']>(),
       saveCategories,
@@ -59,6 +61,8 @@ describe('createCloudBackedRepository', () => {
     const repository = createCloudBackedRepository({
       localRepository,
       cloudGateway: gateway,
+      onSyncStart,
+      onSyncSuccess,
     });
     const categories: Category[] = [{
       id: 'category-1',
@@ -77,6 +81,45 @@ describe('createCloudBackedRepository', () => {
 
     expect(repository.getCategories()).toEqual(categories);
     expect(saveCategories).toHaveBeenCalledWith(categories);
+    expect(onSyncStart).toHaveBeenCalledWith({ operation: 'categories' });
+    expect(onSyncSuccess).toHaveBeenCalledWith({ operation: 'categories' });
+  });
+
+  it('reports failed background cloud writes without rolling back local state', async () => {
+    const localRepository = createMemoryRepository();
+    const error = new Error('network unavailable');
+    const onSyncError = vi.fn();
+    const gateway = {
+      loadSnapshot: vi.fn<CloudDataGateway['loadSnapshot']>(),
+      saveCategories: vi.fn<CloudDataGateway['saveCategories']>().mockRejectedValue(error),
+      saveDailyEntries: vi.fn<CloudDataGateway['saveDailyEntries']>(),
+      saveJournalEntries: vi.fn<CloudDataGateway['saveJournalEntries']>(),
+      saveAuditLogs: vi.fn<CloudDataGateway['saveAuditLogs']>(),
+      replaceSnapshot: vi.fn<CloudDataGateway['replaceSnapshot']>(),
+    };
+    const repository = createCloudBackedRepository({
+      localRepository,
+      cloudGateway: gateway,
+      onSyncError,
+    });
+    const categories: Category[] = [{
+      id: 'category-1',
+      name: 'Yoga',
+      icon: 'lotus',
+      color: '#7C3AED',
+      displayOrder: 0,
+      isArchived: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      subComponents: [],
+    }];
+
+    repository.setCategories(categories);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(repository.getCategories()).toEqual(categories);
+    expect(onSyncError).toHaveBeenCalledWith(error, { operation: 'categories' });
   });
 
   it('hydrates the local cache from the cloud gateway', async () => {

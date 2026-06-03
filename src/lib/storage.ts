@@ -21,3 +21,11 @@ export function setItem(key: string, value: unknown): void {
     console.error(`Error writing ${key} to localStorage:`, error);
   }
 }
+
+export function removeItem(key: string): void {
+  try {
+    localStorage.removeItem(`${PREFIX}${key}`);
+  } catch (error) {
+    console.error(`Error removing ${key} from localStorage:`, error);
+  }
+}
