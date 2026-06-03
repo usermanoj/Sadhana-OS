@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "validate:cloud-rls": "node scripts/validate-cloud-rls.mjs",
     "typecheck": "tsc -b && tsc -p tsconfig.test.json --noEmit",
     "lint": "eslint ."
   },
