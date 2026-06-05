@@ -7,6 +7,7 @@ This document defines the v0.2 path from localStorage-only MVP data to authentic
 ## Migration Principles
 
 - Migration is explicit, never automatic.
+- Migration requires review before upload; the first action must not write cloud rows.
 - LocalStorage is never deleted during migration.
 - Existing export/import remains available.
 - Existing timestamps are preserved where valid.
@@ -14,6 +15,9 @@ This document defines the v0.2 path from localStorage-only MVP data to authentic
 - Audit history is preserved.
 - The first client-side migration mode is merge/upsert.
 - Hard deletion and destructive overwrite are not part of client migration.
+- Root legacy localStorage is a shared device backup with no owner metadata. After a backup is successfully copied to one cloud account, the same backup is not offered to another account by default.
+- Migration into a cloud account that already has practice data is blocked by default to prevent accidental account mixing.
+- If copied local custom groups are detected after an earlier accidental migration, the app may offer an archive-only cleanup action.
 
 ## Local Data Detection
 
@@ -45,6 +49,8 @@ The app builds a deterministic migration plan with:
 - Cloud table rows for categories, habits, daily entries, daily habit entries, journal entries, and audit log entries.
 
 The local checksum is deterministic for the source snapshot. Cloud primary keys are also deterministic per user and local source record so a failed migration can be retried without creating duplicate cloud rows. The same local source record maps to different cloud IDs for different users.
+
+When migrating unchanged legacy starter-template rows, the planner first checks the existing cloud snapshot. If the same starter category already exists in cloud under cloud-generated starter IDs, the legacy local starter category and habit IDs are mapped to the existing cloud IDs. This prevents duplicate active copies of default categories such as `8 Limbs of Yoga`.
 
 ## Cloud Mapping
 
@@ -82,16 +88,22 @@ This strategy keeps retries idempotent for the same user and keeps migrated rows
 
 ## Upload Flow
 
-1. Create an `import_jobs` row with `status = running`.
-2. Upsert categories.
-3. Upsert habits.
-4. Upsert daily aggregate entries.
-5. Upsert daily habit value entries.
-6. Upsert journal entries.
-7. Upsert audit log entries with `source = migration`.
-8. Update the import job to `status = succeeded`.
-9. Refresh the active user-scoped cloud cache from Supabase.
-10. Rerender the app so migrated data is visible without sign-out or browser refresh.
+1. User reviews the local backup summary.
+2. The app loads the current cloud snapshot for the signed-in account.
+3. The app blocks migration when the target cloud account already has user-created practice data.
+4. If previously copied local custom groups are detected, the app can archive those groups without hard deletion.
+5. If the target account has no user-created practice data, the user explicitly confirms copying the reviewed local backup.
+6. Create an `import_jobs` row with `status = running`.
+7. Upsert categories.
+8. Upsert habits.
+9. Upsert daily aggregate entries.
+10. Upsert daily habit value entries.
+11. Upsert journal entries.
+12. Insert missing audit log entries with `source = migration`; duplicate audit IDs are ignored because audit rows are append-only.
+13. Update the import job to `status = succeeded`.
+14. Record a local completion marker keyed by backup checksum and cloud user ID.
+15. Refresh the active user-scoped cloud cache from Supabase.
+16. Rerender the app so migrated data is visible without sign-out or browser refresh.
 
 If any write fails:
 
@@ -103,8 +115,19 @@ Retry behavior:
 
 - Product rows target the same deterministic IDs on retry.
 - Merge/upsert writes update the same cloud rows instead of creating duplicates.
+- Audit log rows are append-only. Retries use duplicate-ignore semantics instead of updating existing audit rows, which keeps the browser aligned with RLS.
 - Each retry still creates a new `import_jobs` row so attempts remain auditable.
+- A successful migration records a local completion marker. If the same root backup checksum was already copied to a different cloud user, the panel blocks copying it again to avoid mixing accounts on a shared browser/device.
 - A successful retry refreshes the active user-scoped cache after upload.
+- Accidental copied local custom groups are archived, not hard-deleted, and generate audit history.
+
+Starter-template duplicate repair:
+
+- If a prior migration already created duplicate active starter categories, the repair step archives duplicate starter rows before upload and checks again after upload.
+- The active copy with daily usage is kept to preserve visible practice history.
+- Duplicate rows are archived, not hard-deleted.
+- Repair writes audit log entries for archived duplicate categories.
+- Repair audit rows are inserted with duplicate-ignore semantics so retries do not try to update audit history.
 
 ## Conflict Model
 
@@ -115,11 +138,11 @@ v0.2 migration uses merge/upsert by cloud keys:
 - Daily entries: `(user_id, entry_date)`
 - Daily habit entries: `(user_id, entry_date, habit_id)`
 - Journal entries: `(user_id, entry_date)`
-- Audit logs: `(user_id, id)`
+- Audit logs: `(user_id, id)` with duplicate conflicts ignored instead of updated
 
 Destructive overwrite is deferred because normal users intentionally do not have delete policies on product data.
 
-Client-side migration is resumable for product rows after a partially completed upload because row IDs are deterministic for a given user and source snapshot. A later server-assisted migration can still add richer source-ID metadata and transactional orchestration if needed.
+Client-side migration is resumable for product rows after a partially completed upload because row IDs are deterministic for a given user and source snapshot. Audit history remains append-only on retry. A later server-assisted migration can still add richer source-ID metadata and transactional orchestration if needed.
 
 ## Future Offline Sync
 
@@ -127,6 +150,7 @@ Task 017 introduced a cloud repository. Task 026.3 adds the first durable reconn
 Task 026.4 adds the first cross-device conflict detection and client-side idempotency baseline.
 Task 026.5 adds RLS-safe server-side mutation tracking through `sync_mutations`.
 Task 026.6 refreshes the active user-scoped cache after local-to-cloud migration succeeds.
+Task 026.6.1 prevents and repairs duplicate starter-template rows during local-to-cloud migration.
 
 Current Task 026.3 behavior:
 

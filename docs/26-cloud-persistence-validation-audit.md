@@ -44,6 +44,7 @@ Task 026.3 durable queued-write replay is implemented for one coalesced user-sco
 Task 026.4 cross-device conflict and idempotency baseline is implemented for queued snapshot replay.
 Task 026.5 server-side idempotency and mutation tracking is implemented as a best-effort `sync_mutations` status record.
 Task 026.6 migration cache refresh is implemented.
+Task 026.6.1 starter-template de-duplication, append-only retry hardening, and migration ownership guard is implemented for local-to-cloud migration.
 
 ## What Is Complete
 
@@ -203,6 +204,13 @@ This is strong:
 
 - Same user + same local data maps to the same cloud IDs on retry.
 - Different users migrating identical local data get different cloud IDs.
+- Unchanged legacy starter-template rows map to existing cloud starter rows when present.
+- Duplicate upload conflict keys are collapsed before Supabase upsert batches are sent.
+- The migration panel now requires review before upload and warns when the cloud account already has user-created practice data.
+- Migration into an account that already has practice data is blocked by default.
+- Successful migration records a local completion marker by checksum and cloud user ID.
+- The same root legacy backup is blocked from being copied into a different cloud account after success.
+- Existing copied local custom groups can be archived through an explicit archive-only cleanup action.
 - Category/habit references are remapped.
 - Daily score maps and completion maps are remapped.
 - Audit entity IDs and known ID references inside audit JSON are remapped.
@@ -282,6 +290,13 @@ Strengths:
 
 - Product row IDs are deterministic.
 - Retrying the same migration does not create duplicate product rows.
+- Existing cloud starter-template rows are detected so unchanged legacy starter rows do not create duplicate active defaults.
+- Existing duplicate starter-template rows are repaired before upload and checked again after upload.
+- Audit log rows are append-only; retries insert missing audit rows and ignore existing audit IDs instead of attempting an update.
+- The local migration UX requires review before upload so custom legacy groups are not silently merged into an account.
+- A local completion marker prevents the same shared device backup from being offered to a different account after success.
+- Migration is blocked when the destination account already has user-created practice data.
+- Previously copied local custom groups can be archived without hard deletion.
 - Failed attempts are auditable through separate `import_jobs` rows.
 
 Limitations:
@@ -297,6 +312,10 @@ Limitations:
 LocalStorage migration:
 
 - Product rows are protected against duplicate creation by deterministic IDs and owner-scoped upserts.
+- Duplicate active starter-template rows are prevented and repaired by semantic starter matching.
+- Audit history is retry-safe under append-only RLS because existing audit IDs are ignored rather than updated.
+- The UX no longer performs one-click cloud upload; the first action shows review details and custom local group names.
+- A completed root backup is treated as claimed by the destination cloud account to reduce shared-device account mixing.
 - Each retry creates a new `import_jobs` row by design.
 
 JSON import:
@@ -459,6 +478,7 @@ Yes. `LocalMigrationPanel` appears in Settings > Account for signed-in users wit
 Partially.
 
 - Local migration product rows are retry-safe through deterministic IDs and upserts.
+- Local migration now also prevents and repairs duplicate active starter-template rows.
 - JSON import merge mode avoids duplicate category/audit IDs locally.
 - There is no server-side global import checksum or JSON import job deduplication.
 
@@ -689,6 +709,29 @@ Acceptance:
 
 Remaining related work is live browser validation with real legacy local data and a real Supabase account.
 
+### Task 026.6.1 - Local Migration Starter Template De-Dupe
+
+Status: **Implemented**.
+
+Task 026.6.1 fixes duplicate default categories when legacy local starter data is migrated into a cloud account that already has cloud starter rows.
+
+Acceptance:
+
+- Unchanged legacy starter categories map to existing cloud starter category IDs. Completed.
+- Legacy starter habit completions map to existing cloud starter habit IDs. Completed.
+- Duplicate upload conflict keys are collapsed before Supabase upsert batches. Completed.
+- First migration action performs review only and does not upload. Completed.
+- Review blocks upload if the target cloud account already has user-created practice data. Completed.
+- Successful migration records a local completion marker. Completed.
+- Same backup is blocked from being copied to a different cloud account after success. Completed.
+- Copied local custom groups can be archived through explicit cleanup. Completed.
+- Previously-created duplicate active starter rows are archived, not hard-deleted. Completed.
+- Existing duplicate starter rows are repaired before upload and checked again after upload. Completed.
+- The duplicate copy with daily usage is preserved. Completed.
+- Duplicate repair writes audit log entries. Completed.
+- Audit retry uses duplicate-ignore insert semantics to preserve append-only audit RLS. Completed.
+- Custom categories and custom habits still migrate. Completed.
+
 ### Task 026.7 - Cloud Import Job Tracking
 
 Record JSON imports in `import_jobs`, not only local audit.
@@ -753,7 +796,7 @@ Task 026 should be marked complete only when all of the following are true:
 | Frontend repository boundary | Strong foundation | App uses `appRepository` consistently |
 | Cloud write confidence | Partial | Failed writes are queued/replayed with snapshot conflict detection and best-effort server mutation tracking |
 | Local cache isolation | Partial to strong | User-scoped keys exist; live switching validation needed |
-| Migration retry safety | Good for product rows | Not transactional; active cache refresh now implemented |
+| Migration retry safety | Good for product rows and audit retry | Not transactional; active cache refresh and starter duplicate repair now implemented |
 | Export/import cloud awareness | Partial | Active repo used, but sync completion not guaranteed |
 | Sync error UX | Partial | App shell and Account screen show failure/offline/queued/conflict/retry state |
 | Conflict handling | Partial | Import conflicts and queued replay conflicts are visible; merge UX still missing |

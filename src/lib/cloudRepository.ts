@@ -117,6 +117,10 @@ export interface CloudDataGateway {
   recordMutationStatus(input: CloudMutationStatusInput): Promise<void>;
 }
 
+interface UpsertOptions {
+  ignoreDuplicates?: boolean;
+}
+
 export function mapCloudRowsToSnapshot(rows: CloudSnapshotRows): AppStateSnapshot {
   const habitsByCategory = new Map<string, CloudHabitRow[]>();
   rows.habits.forEach((habit) => {
@@ -258,7 +262,9 @@ export function createSupabaseCloudGateway(
       await upsertRows(client, 'journal_entries', mapJournalRows(entries, userId), 'user_id,entry_date');
     },
     async saveAuditLogs(auditLogs) {
-      await upsertRows(client, 'audit_log_entries', mapAuditRows(auditLogs, userId), 'user_id,id');
+      await upsertRows(client, 'audit_log_entries', mapAuditRows(auditLogs, userId), 'user_id,id', {
+        ignoreDuplicates: true,
+      });
     },
     async replaceSnapshot(snapshot) {
       await this.saveCategories(snapshot.categories);
@@ -321,10 +327,14 @@ async function upsertRows(
   table: string,
   rows: unknown[],
   onConflict: string,
+  options: UpsertOptions = {},
 ): Promise<void> {
   if (rows.length === 0) return;
 
-  const { error } = await client.from(table).upsert(rows, { onConflict });
+  const { error } = await client.from(table).upsert(rows, {
+    onConflict,
+    ignoreDuplicates: options.ignoreDuplicates,
+  });
   if (error) throw error;
 }
 
