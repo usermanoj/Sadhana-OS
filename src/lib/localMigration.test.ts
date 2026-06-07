@@ -10,6 +10,7 @@ import {
   getMigrationErrorMessage,
   hasCloudUserContent,
   hasMigratableLocalData,
+  hasMeaningfulLocalMigrationData,
   recordLocalMigrationCompletion,
   uploadLocalMigrationPlan,
 } from './localMigration';
@@ -92,6 +93,51 @@ describe('local migration planning', () => {
       journalEntries: {},
       auditLogs: [],
     })).toBe(false);
+  });
+
+  it('does not treat unchanged starter-only local data as meaningful migration data', () => {
+    const starterOnlySnapshot: AppStateSnapshot = {
+      version: '1.1',
+      categories: createSeedCategories({
+        timestamp: '2026-01-01T00:00:00.000Z',
+      }),
+      dailyEntries: {},
+      journalEntries: {},
+      auditLogs: [
+        {
+          id: 'seed-audit',
+          timestamp: '2026-01-01T00:00:00.000Z',
+          actionType: 'data_imported',
+          entityType: 'system',
+          entityId: 'system',
+          oldValue: null,
+          newValue: null,
+          note: 'Initial seed data',
+        },
+      ],
+    };
+
+    expect(hasMigratableLocalData(starterOnlySnapshot)).toBe(true);
+    expect(hasMeaningfulLocalMigrationData(starterOnlySnapshot)).toBe(false);
+  });
+
+  it('treats custom legacy categories and practice history as meaningful migration data', () => {
+    const starterSnapshot = createStarterTemplateSnapshot({
+      timestamp: '2026-06-01T00:00:00.000Z',
+      auditIdFactory: () => 'starter-audit',
+    });
+
+    expect(hasMeaningfulLocalMigrationData({
+      ...starterSnapshot,
+      categories: [
+        ...starterSnapshot.categories,
+        snapshot.categories[0]!,
+      ],
+    })).toBe(true);
+    expect(hasMeaningfulLocalMigrationData({
+      ...starterSnapshot,
+      dailyEntries: snapshot.dailyEntries,
+    })).toBe(true);
   });
 
   it('creates a stable checksum for the same snapshot', () => {

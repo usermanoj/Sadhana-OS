@@ -156,6 +156,23 @@ describe('LocalMigrationPanel', () => {
     expect(screen.getByText('Review Local Data')).toBeInTheDocument();
   });
 
+  it('does not render for unchanged starter-only root local data', () => {
+    appRepository.replaceSnapshot(createStarterTemplateSnapshot({
+      timestamp: '2026-06-01T00:00:00.000Z',
+      auditIdFactory: () => 'starter-audit',
+    }));
+
+    const { container } = render(
+      <AuthContext.Provider value={signedInAuthContext}>
+        <CloudSyncContext.Provider value={syncedCloudContext}>
+          <LocalMigrationPanel />
+        </CloudSyncContext.Provider>
+      </AuthContext.Provider>,
+    );
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it('loads review details before uploading local data', async () => {
     appRepository.replaceSnapshot({
       version: '1.1',

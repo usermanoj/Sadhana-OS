@@ -13,6 +13,7 @@ import {
   getLocalMigrationCompletion,
   getMigrationErrorMessage,
   hasCloudUserContent,
+  hasMeaningfulLocalMigrationData,
   hasMigratableLocalData,
   recordLocalMigrationCompletion,
   uploadLocalMigrationPlan,
@@ -48,7 +49,13 @@ export default function LocalMigrationPanel() {
   ), [auth.user, snapshot]);
   const completion = useMemo(() => getLocalMigrationCompletion(preview.checksum), [preview.checksum]);
 
-  if (!auth.isCloudConfigured || !auth.user || !hasMigratableLocalData(snapshot) || !plan) {
+  if (
+    !auth.isCloudConfigured
+    || !auth.user
+    || !hasMigratableLocalData(snapshot)
+    || !hasMeaningfulLocalMigrationData(snapshot)
+    || !plan
+  ) {
     return null;
   }
 

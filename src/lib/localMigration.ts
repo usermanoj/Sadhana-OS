@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AuditActionType, AuditEntityType, Category, DailyEntry, TrackingValue } from '../types';
-import { createSeedCategories } from './seed';
+import { createSeedCategories, STARTER_TEMPLATE_VERSION } from './seed';
 import type { AppStateSnapshot, StoredAuditLogEntry } from './repository';
 import { getItem, setItem } from './storage';
 
@@ -253,6 +253,17 @@ export const hasMigratableLocalData = (snapshot: AppStateSnapshot): boolean =>
   || Object.keys(snapshot.dailyEntries).length > 0
   || Object.keys(snapshot.journalEntries).length > 0
   || snapshot.auditLogs.length > 0;
+
+export function hasMeaningfulLocalMigrationData(snapshot: AppStateSnapshot): boolean {
+  const hasCustomCategories = snapshot.categories.some((category) => !isStarterTemplateCategory(category));
+  const dailyEntries = Object.values(snapshot.dailyEntries);
+
+  return hasCustomCategories
+    || dailyEntries.length > 0
+    || dailyEntries.some((entry) => Object.keys(entry.completions).length > 0)
+    || Object.keys(snapshot.journalEntries).length > 0
+    || snapshot.auditLogs.some((entry) => !isStarterOnlyAuditLog(entry));
+}
 
 export function createLocalMigrationPreview(snapshot: AppStateSnapshot): LocalMigrationPreview {
   const customCategoryNames = snapshot.categories
@@ -887,6 +898,33 @@ function habitMatchesStarterTemplate(
 
 function normalizeText(value: string): string {
   return value.trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function isStarterOnlyAuditLog(entry: StoredAuditLogEntry): boolean {
+  const actionType = entry.actionType ?? entry.action;
+  const note = normalizeText(entry.note ?? entry.description ?? '');
+  const isSystemSeedEvent = actionType === 'data_imported'
+    && entry.entityType === 'system'
+    && entry.entityId === 'system';
+
+  if (!isSystemSeedEvent) {
+    return false;
+  }
+
+  if (
+    note === 'initial seed data'
+    || note === normalizeText(`Applied starter template ${STARTER_TEMPLATE_VERSION}`)
+    || note.startsWith('migrated schema from 1.0 to 1.1')
+  ) {
+    return true;
+  }
+
+  const importedValue = 'newValue' in entry ? entry.newValue : entry.after;
+  return Boolean(
+    importedValue
+    && typeof importedValue === 'object'
+    && (importedValue as Record<string, unknown>).starterTemplateVersion === STARTER_TEMPLATE_VERSION,
+  );
 }
 
 function summarizeRows(rows: LocalMigrationPlan['rows']): LocalMigrationSummary {
