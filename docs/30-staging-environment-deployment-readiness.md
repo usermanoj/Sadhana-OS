@@ -6,6 +6,12 @@ Purpose: define the environment and deployment readiness model for moving Sadhan
 
 This document does not mark the app production-ready. It creates the environment contract and checklist required before staging and production validation.
 
+For the manual setup runbook, see:
+
+```text
+docs/31-staging-environment-setup-guide.md
+```
+
 ## Recommendation
 
 Use three separate runtime environments:
