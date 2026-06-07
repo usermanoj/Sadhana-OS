@@ -21,9 +21,21 @@ Recommended backend:
 Frontend:
 
 ```text
+VITE_SADHANA_APP_ENV
 VITE_SUPABASE_URL
 VITE_SUPABASE_ANON_KEY
 ```
+
+Allowed `VITE_SADHANA_APP_ENV` values:
+
+```text
+local
+development
+staging
+production
+```
+
+Non-production values show a small in-app environment badge. Production does not show the badge.
 
 Supabase Edge Functions:
 
@@ -54,6 +66,7 @@ Apply migrations in order:
 
 ```text
 supabase/migrations/20260601000000_initial_schema.sql
+supabase/migrations/20260603000000_add_sync_mutations.sql
 ```
 
 Before production launch:

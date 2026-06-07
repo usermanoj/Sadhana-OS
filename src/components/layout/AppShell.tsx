@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { TabId } from '../../types';
 import CloudSyncStatusBanner from '../cloud/CloudSyncStatusBanner';
 import BottomTabBar from './BottomTabBar';
+import EnvironmentBadge from './EnvironmentBadge';
 import Sidebar from './Sidebar';
 
 interface AppShellProps {
@@ -25,6 +26,7 @@ export default function AppShell({ activeTab, onTabChange, children }: AppShellP
           key={activeTab}
           className="motion-safe:animate-pageFade w-full max-w-[1720px] px-4 py-5 sm:px-6 md:py-8 lg:px-8 xl:px-10 2xl:px-10"
         >
+          <EnvironmentBadge />
           <CloudSyncStatusBanner />
           {children}
         </div>
