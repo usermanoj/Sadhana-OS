@@ -21,6 +21,7 @@ import {
   type LocalMigrationPreview,
   type CopiedLocalCategory,
 } from '../../lib/localMigration';
+import { reportError, trackEvent } from '../../lib/observability';
 import { getSupabaseClient } from '../../lib/supabaseClient';
 
 type MigrationStatus = {
@@ -81,7 +82,7 @@ export default function LocalMigrationPanel() {
         copiedLocalCustomCategories: findCopiedLocalCustomCategories(snapshot, currentUserId, cloudSnapshot),
       });
     } catch (error) {
-      console.error('Local data migration review failed', error);
+      reportError(error, 'local_migration_review_failed');
       const message = getMigrationErrorMessage(error, 'Migration review failed.');
       setStatus({
         tone: 'error',
@@ -121,6 +122,10 @@ export default function LocalMigrationPanel() {
 
       setIsMigrating(true);
       setStatus(null);
+      trackEvent('local_migration_started', {
+        starterGroups: preview.starterCategoryCount,
+        customGroups: preview.customCategoryNames.length,
+      });
       const cloudGateway = createSupabaseCloudGateway(client, user.id);
       const existingCloudSnapshot = review.cloudSnapshot;
       const preUploadRepair = await repairStarterTemplateDuplicates(cloudGateway, existingCloudSnapshot);
@@ -159,9 +164,15 @@ export default function LocalMigrationPanel() {
           ? `Local data was copied to your cloud account.${archivedDuplicateCount > 0 ? ' Duplicate starter rows were archived.' : ''} Your cloud view has been refreshed. The local copy remains on this device.`
           : `Local data was copied to your cloud account.${archivedDuplicateCount > 0 ? ' Duplicate starter rows were archived.' : ''} Cloud refresh did not complete; use Retry sync if migrated data is not visible. The local copy remains on this device.`,
       });
+      trackEvent('local_migration_succeeded', {
+        starterGroups: preview.starterCategoryCount,
+        customGroups: preview.customCategoryNames.length,
+        refreshedCloudCache,
+      });
       setReview(null);
     } catch (error) {
-      console.error('Local data migration failed', error);
+      trackEvent('local_migration_failed');
+      reportError(error, 'local_migration_failed');
       const message = getMigrationErrorMessage(error);
       setStatus({
         tone: 'error',
@@ -205,7 +216,7 @@ export default function LocalMigrationPanel() {
         text: `${cleanup.archivedCategoryIds.length} copied local ${cleanup.archivedCategoryIds.length === 1 ? 'group was' : 'groups were'} archived. Your cloud view has been refreshed.`,
       });
     } catch (error) {
-      console.error('Local migration cleanup failed', error);
+      reportError(error, 'local_migration_cleanup_failed');
       const message = getMigrationErrorMessage(error, 'Cleanup failed.');
       setStatus({
         tone: 'error',
