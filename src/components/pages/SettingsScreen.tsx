@@ -1,6 +1,11 @@
 import { Settings } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useCategories } from '../../hooks/useCategories';
+import {
+  getSettingsSectionFromHash,
+  setHashRoute,
+  type SettingsSectionId,
+} from '../../lib/navigation';
 import AuditLogScreen from '../settings/AuditLogScreen';
 import AccountScreen from '../settings/AccountScreen';
 import CategoryForm from '../settings/CategoryForm';
@@ -9,7 +14,7 @@ import DataScreen from '../settings/DataScreen';
 import PrivacyScreen from '../settings/PrivacyScreen';
 
 type SettingsMode = 'list' | 'add' | 'edit';
-type SettingsSection = 'categories' | 'audit' | 'data' | 'account' | 'privacy';
+type SettingsSection = SettingsSectionId;
 
 const settingsSections: Array<{ id: SettingsSection; label: string }> = [
   { id: 'categories', label: 'Categories' },
@@ -35,7 +40,7 @@ export default function SettingsScreen() {
   } = useCategories();
 
   const [mode, setMode] = useState<SettingsMode>('list');
-  const [section, setSection] = useState<SettingsSection>('categories');
+  const [section, setSection] = useState<SettingsSection>(() => getCurrentSettingsSection());
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
   const selectedCategory = useMemo(
@@ -47,6 +52,18 @@ export default function SettingsScreen() {
     setMode('list');
     setSelectedCategoryId(null);
   };
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setSection(getCurrentSettingsSection());
+      setMode('list');
+      setSelectedCategoryId(null);
+    };
+
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   return (
     <div id="page-settings" className="flex w-full flex-col gap-5 pb-4 lg:gap-7">
@@ -72,6 +89,7 @@ export default function SettingsScreen() {
               aria-label={item.label}
               onClick={() => {
                 setSection(item.id);
+                setHashRoute('settings', item.id);
                 showList();
               }}
               className={`min-h-[44px] flex-shrink-0 rounded-md px-4 py-2 text-body font-medium shadow-sm ${
@@ -135,4 +153,9 @@ export default function SettingsScreen() {
       )}
     </div>
   );
+}
+
+function getCurrentSettingsSection(): SettingsSection {
+  if (typeof window === 'undefined') return 'categories';
+  return getSettingsSectionFromHash(window.location.hash);
 }

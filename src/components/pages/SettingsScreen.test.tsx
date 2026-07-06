@@ -6,6 +6,7 @@ import SettingsScreen from './SettingsScreen';
 
 describe('SettingsScreen', () => {
   beforeEach(() => {
+    window.location.hash = '';
     localStorage.clear();
     seedIfNeeded();
   });
@@ -58,10 +59,19 @@ describe('SettingsScreen', () => {
     render(<SettingsScreen />);
     fireEvent.click(screen.getByRole('button', { name: 'Data' }));
 
+    expect(window.location.hash).toBe('#/settings/data');
     expect(screen.getByRole('heading', { name: 'Data' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Export JSON' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Export CSV' })).toBeInTheDocument();
     expect(screen.getByLabelText('Import JSON file')).toBeInTheDocument();
+  });
+
+  it('opens the settings section from the hash route', () => {
+    window.location.hash = '#/settings/data';
+
+    render(<SettingsScreen />);
+
+    expect(screen.getByRole('heading', { name: 'Data' })).toBeInTheDocument();
   });
 
   it('shows account and privacy sections from Settings', () => {
@@ -72,6 +82,7 @@ describe('SettingsScreen', () => {
     expect(screen.getByText('Local-only mode')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Privacy' }));
+    expect(window.location.hash).toBe('#/settings/privacy');
     expect(screen.getByRole('heading', { name: 'Privacy' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Export JSON Backup' })).toBeInTheDocument();
   });
