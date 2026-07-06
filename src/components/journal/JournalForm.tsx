@@ -40,6 +40,9 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
     setLocalEntry(entry);
     setSaveStatus('idle');
     clearSavedTimer();
+    // Reset the editor only when the selected date changes; including the full
+    // entry object clears the saved indicator during autosave rerenders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entry.date]);
 
   useEffect(() => () => {

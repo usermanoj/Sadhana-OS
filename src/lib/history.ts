@@ -112,7 +112,17 @@ export function buildPracticeHistory(
       if (categorySort !== 0) return categorySort;
       return a.habitOrder - b.habitOrder;
     })
-    .map(({ categoryOrder, habitOrder, ...row }) => row);
+    .map((row) => ({
+      id: row.id,
+      date: row.date,
+      categoryId: row.categoryId,
+      categoryName: row.categoryName,
+      habitId: row.habitId,
+      habitName: row.habitName,
+      value: row.value,
+      score: row.score,
+      notes: row.notes,
+    }));
 }
 
 export function buildJournalHistory(
