@@ -1,17 +1,10 @@
 import { AlertTriangle, Cloud, CloudOff, RefreshCw } from 'lucide-react';
-import { useCloudSync, type CloudSyncStatus } from '../../cloud/CloudSyncProvider';
-
-const statusCopy: Record<CloudSyncStatus, { title: string; action?: string }> = {
-  localOnly: { title: 'Local practice' },
-  preparing: { title: 'Preparing cloud data' },
-  synced: { title: 'Cloud synced' },
-  syncing: { title: 'Syncing practice data' },
-  queued: { title: 'Unsynced changes pending', action: 'Retry' },
-  conflict: { title: 'Cloud changes need review' },
-  offline: { title: 'Offline' },
-  failed: { title: 'Cloud sync needs attention', action: 'Retry' },
-  retrying: { title: 'Retrying cloud sync' },
-};
+import { useCloudSync } from '../../cloud/CloudSyncProvider';
+import {
+  getCloudSyncActionLabel,
+  getCloudSyncStatusLabel,
+  isCloudSyncProblemStatus,
+} from '../../lib/cloudSyncStatusCopy';
 
 export default function CloudSyncStatusBanner() {
   const sync = useCloudSync();
@@ -20,10 +13,7 @@ export default function CloudSyncStatusBanner() {
     return null;
   }
 
-  const isProblem = sync.status === 'failed'
-    || sync.status === 'offline'
-    || sync.status === 'queued'
-    || sync.status === 'conflict';
+  const isProblem = isCloudSyncProblemStatus(sync.status);
   const Icon = sync.status === 'offline'
     ? CloudOff
     : isProblem
@@ -31,7 +21,7 @@ export default function CloudSyncStatusBanner() {
       : sync.status === 'retrying'
         ? RefreshCw
         : Cloud;
-  const copy = statusCopy[sync.status];
+  const actionLabel = getCloudSyncActionLabel(sync.status);
 
   return (
     <section
@@ -56,7 +46,7 @@ export default function CloudSyncStatusBanner() {
           />
         </span>
         <div className="min-w-0">
-          <p className="font-medium text-text-primary">{copy.title}</p>
+          <p className="font-medium text-text-primary">{getCloudSyncStatusLabel(sync.status)}</p>
           {sync.message ? (
             <p className="mt-0.5 text-caption text-text-secondary">{sync.message}</p>
           ) : null}
@@ -68,7 +58,7 @@ export default function CloudSyncStatusBanner() {
         </div>
       </div>
 
-      {sync.canRetry && copy.action ? (
+      {sync.canRetry && actionLabel ? (
         <button
           type="button"
           onClick={() => {
@@ -78,7 +68,7 @@ export default function CloudSyncStatusBanner() {
           className="flex min-h-[40px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-body font-medium text-text-primary shadow-sm disabled:opacity-60"
         >
           <RefreshCw size={16} aria-hidden="true" />
-          {copy.action}
+          {actionLabel}
         </button>
       ) : null}
     </section>

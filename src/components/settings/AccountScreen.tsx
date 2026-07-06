@@ -11,9 +11,14 @@ import {
   UserRound,
 } from 'lucide-react';
 import { useAuth } from '../../auth/AuthProvider';
-import { useCloudSync, type CloudSyncStatus } from '../../cloud/CloudSyncProvider';
+import { useCloudSync } from '../../cloud/CloudSyncProvider';
 import { getAuthCooldownRemainingSeconds, startAuthCooldown } from '../../lib/authCooldown';
 import { getFriendlyAuthError } from '../../lib/authErrors';
+import {
+  getCloudSyncActionLabel,
+  getCloudSyncStatusLabel,
+  isCloudSyncProblemStatus,
+} from '../../lib/cloudSyncStatusCopy';
 import LocalMigrationPanel from './LocalMigrationPanel';
 
 type StatusMessage = {
@@ -222,10 +227,7 @@ function AccountField({ label, value }: { label: string; value: string }) {
 
 function CloudSyncAccountPanel() {
   const sync = useCloudSync();
-  const isProblem = sync.status === 'failed'
-    || sync.status === 'offline'
-    || sync.status === 'queued'
-    || sync.status === 'conflict';
+  const isProblem = isCloudSyncProblemStatus(sync.status);
   const Icon = sync.status === 'offline'
     ? CloudOff
     : isProblem
@@ -233,6 +235,7 @@ function CloudSyncAccountPanel() {
       : sync.status === 'retrying'
         ? RefreshCw
         : Cloud;
+  const actionLabel = getCloudSyncActionLabel(sync.status);
 
   return (
     <div
@@ -258,7 +261,7 @@ function CloudSyncAccountPanel() {
             />
           </span>
           <div className="min-w-0">
-            <p className="text-caption font-medium text-text-secondary">Cloud Sync</p>
+            <p className="text-caption font-medium text-text-secondary">Cloud sync</p>
             <p className="mt-1 text-body font-medium text-text-primary">
               {getCloudSyncStatusLabel(sync.status)}
             </p>
@@ -278,7 +281,7 @@ function CloudSyncAccountPanel() {
           </div>
         </div>
 
-        {sync.canRetry ? (
+        {sync.canRetry && actionLabel ? (
           <button
             type="button"
             onClick={() => {
@@ -288,7 +291,7 @@ function CloudSyncAccountPanel() {
             className="flex min-h-[40px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-body font-medium text-text-primary shadow-sm disabled:opacity-60"
           >
             <RefreshCw size={16} aria-hidden="true" />
-            Retry cloud sync
+            {actionLabel}
           </button>
         ) : null}
       </div>
@@ -309,18 +312,6 @@ function StatusBanner({ status }: { status: NonNullable<StatusMessage> }) {
       {status.text}
     </p>
   );
-}
-
-function getCloudSyncStatusLabel(status: CloudSyncStatus): string {
-  if (status === 'preparing') return 'Preparing cloud data';
-  if (status === 'synced') return 'Synced';
-  if (status === 'syncing') return 'Syncing';
-  if (status === 'queued') return 'Unsynced changes pending';
-  if (status === 'conflict') return 'Cloud changes need review';
-  if (status === 'offline') return 'Offline';
-  if (status === 'failed') return 'Sync failed';
-  if (status === 'retrying') return 'Retrying';
-  return 'Local only';
 }
 
 function formatSyncTimestamp(value: string): string {

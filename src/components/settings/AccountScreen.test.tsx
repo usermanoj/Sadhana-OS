@@ -108,10 +108,10 @@ describe('AccountScreen', () => {
       retry,
     });
 
-    expect(screen.getByRole('alert', { name: 'Cloud sync' })).toHaveTextContent('Sync failed');
+    expect(screen.getByRole('alert', { name: 'Cloud sync' })).toHaveTextContent('Needs retry');
     expect(screen.getByText(/did not reach cloud storage/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Retry cloud sync' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Retry sync' }));
 
     expect(retry).toHaveBeenCalledTimes(1);
   });
@@ -125,10 +125,10 @@ describe('AccountScreen', () => {
     });
 
     expect(screen.getByRole('alert', { name: 'Cloud sync' })).toHaveTextContent(
-      'Unsynced changes pending',
+      'Needs retry',
     );
     expect(screen.getByText('1 pending change')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Retry cloud sync' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Retry sync' })).toBeInTheDocument();
   });
 
   it('shows conflict cloud sync details for signed-in users', () => {
@@ -140,10 +140,10 @@ describe('AccountScreen', () => {
     });
 
     expect(screen.getByRole('alert', { name: 'Cloud sync' })).toHaveTextContent(
-      'Cloud changes need review',
+      'Needs review',
     );
     expect(screen.getByText(/will not overwrite newer cloud data/i)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Retry cloud sync' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Review conflict' })).not.toBeInTheDocument();
   });
 
   it('sends a magic link from the secondary account sign-in surface', async () => {

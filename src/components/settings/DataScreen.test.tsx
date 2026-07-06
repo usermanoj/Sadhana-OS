@@ -166,7 +166,7 @@ describe('DataScreen', () => {
       canRetry: true,
     });
 
-    expect(screen.getByText('Local cache has unconfirmed changes')).toBeInTheDocument();
+    expect(screen.getByText('Needs retry')).toBeInTheDocument();
     expect(screen.getByText('1 pending cloud change')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Refresh cloud data' })).toBeDisabled();
 
