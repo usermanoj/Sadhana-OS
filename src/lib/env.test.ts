@@ -6,7 +6,8 @@ describe('getSadhanaEnvironment', () => {
 
     expect(env).toEqual({
       name: 'local',
-      label: 'Local',
+      label: 'Local Dev',
+      description: 'Local development environment. This does not describe cloud sync status.',
       isProduction: false,
       showBadge: true,
     });
@@ -22,6 +23,7 @@ describe('getSadhanaEnvironment', () => {
     expect(env).toEqual({
       name: 'staging',
       label: 'Staging',
+      description: 'Staging environment. This does not describe cloud sync status.',
       isProduction: false,
       showBadge: true,
     });
