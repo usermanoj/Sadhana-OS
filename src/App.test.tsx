@@ -7,6 +7,7 @@ const tabLabels = ['Today', 'Dashboard', 'Journal', 'History', 'Settings'] as co
 
 describe('App', () => {
   beforeEach(() => {
+    window.location.hash = '';
     localStorage.clear();
     seedIfNeeded();
   });
@@ -56,8 +57,18 @@ describe('App', () => {
 
     fireEvent.click(journalButton);
 
+    expect(window.location.hash).toBe('#/journal');
     expect(screen.getByRole('heading', { name: 'Journal' })).toBeInTheDocument();
     expect(screen.getByText('Daily Reflection')).toBeInTheDocument();
+  });
+
+  it('opens the route from the current hash on mount', () => {
+    window.location.hash = '#/settings/data';
+
+    render(<App />);
+
+    expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Data' })).toBeInTheDocument();
   });
 
   it('switches to History tab', () => {
@@ -90,6 +101,7 @@ describe('App', () => {
     const [settingsButton] = screen.getAllByRole('button', { name: 'Settings' });
     fireEvent.click(settingsButton!);
 
+    expect(window.location.hash).toBe('#/settings/categories');
     expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Categories' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Add Category' })).toBeInTheDocument();
