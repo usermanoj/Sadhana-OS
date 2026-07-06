@@ -13,6 +13,7 @@ test('exported JSON can be imported after local data is cleared', async ({ page 
   await expect(page.getByText('Import Marker')).toBeVisible();
 
   await page.getByRole('button', { name: 'Data' }).click();
+  await expect(page.getByLabel('Backup cloud status')).toContainText('Local-only backup');
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export JSON' }).click();
   const download = await downloadPromise;
@@ -28,7 +29,7 @@ test('exported JSON can be imported after local data is cleared', async ({ page 
   await page.getByLabel('Import JSON file').setInputFiles(backupPath!);
   await expect(page.getByRole('dialog', { name: 'Import summary' })).toBeVisible();
   await page.getByRole('button', { name: 'Overwrite' }).click();
-  await expect(page.getByText('JSON backup imported.')).toBeVisible();
+  await expect(page.getByText('JSON backup imported on this device.')).toBeVisible();
 
   await page.getByRole('button', { name: 'Today' }).click();
   await expect(page.getByText('Import Marker')).toBeVisible();
