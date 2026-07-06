@@ -1,6 +1,10 @@
 import { AlertTriangle, Cloud, CloudOff, Download, FileJson, RefreshCw, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useCloudSync, type CloudSyncStatus } from '../../cloud/CloudSyncProvider';
+import {
+  CLOUD_SYNC_ACTION_LABELS,
+  getCloudSyncStatusLabel,
+} from '../../lib/cloudSyncStatusCopy';
 import { downloadCSV, downloadJSON, exportCSV, exportJSON } from '../../lib/export';
 import {
   applyImport,
@@ -248,7 +252,7 @@ function BackupTrustPanel({
         className="flex min-h-[40px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-body font-medium text-text-primary shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
       >
         <RefreshCw size={16} aria-hidden="true" className={isRefreshing ? 'motion-safe:animate-spin' : undefined} />
-        {isRefreshing ? 'Refreshing' : 'Refresh cloud data'}
+        {isRefreshing ? 'Refreshing' : CLOUD_SYNC_ACTION_LABELS.refresh}
       </button>
     </section>
   );
@@ -328,11 +332,7 @@ function isCloudPendingStatus(status: CloudSyncStatus): boolean {
 }
 
 function getPendingTrustTitle(status: CloudSyncStatus): string {
-  if (status === 'syncing' || status === 'preparing' || status === 'retrying') {
-    return 'Cloud sync in progress';
-  }
-
-  return 'Local cache has unconfirmed changes';
+  return getCloudSyncStatusLabel(status);
 }
 
 function getPendingTrustDescription(status: CloudSyncStatus): string {

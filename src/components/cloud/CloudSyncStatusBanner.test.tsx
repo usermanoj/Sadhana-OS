@@ -51,11 +51,11 @@ describe('CloudSyncStatusBanner', () => {
     });
 
     expect(screen.getByRole('alert', { name: 'Cloud sync status' })).toHaveTextContent(
-      'Cloud sync needs attention',
+      'Needs retry',
     );
     expect(screen.getByText(/did not reach cloud storage/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Retry sync' }));
 
     expect(retry).toHaveBeenCalledTimes(1);
   });
@@ -69,7 +69,7 @@ describe('CloudSyncStatusBanner', () => {
     });
 
     expect(screen.getByRole('alert', { name: 'Cloud sync status' })).toHaveTextContent(
-      'Unsynced changes pending',
+      'Needs retry',
     );
     expect(screen.getByText('1 pending change')).toBeInTheDocument();
   });
@@ -83,9 +83,9 @@ describe('CloudSyncStatusBanner', () => {
     });
 
     expect(screen.getByRole('alert', { name: 'Cloud sync status' })).toHaveTextContent(
-      'Cloud changes need review',
+      'Needs review',
     );
     expect(screen.getByText(/will not overwrite newer cloud data/i)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Review conflict' })).not.toBeInTheDocument();
   });
 });

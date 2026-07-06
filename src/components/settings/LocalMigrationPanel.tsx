@@ -157,7 +157,7 @@ export default function LocalMigrationPanel() {
         tone: 'success',
         text: refreshedCloudCache
           ? `Local data was copied to your cloud account.${archivedDuplicateCount > 0 ? ' Duplicate starter rows were archived.' : ''} Your cloud view has been refreshed. The local copy remains on this device.`
-          : `Local data was copied to your cloud account.${archivedDuplicateCount > 0 ? ' Duplicate starter rows were archived.' : ''} Cloud refresh did not complete; use Retry cloud sync if migrated data is not visible. The local copy remains on this device.`,
+          : `Local data was copied to your cloud account.${archivedDuplicateCount > 0 ? ' Duplicate starter rows were archived.' : ''} Cloud refresh did not complete; use Retry sync if migrated data is not visible. The local copy remains on this device.`,
       });
       setReview(null);
     } catch (error) {
