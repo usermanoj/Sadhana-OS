@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { getSupabaseEnvironment } from '../lib/env';
 import { getSupabaseClient } from '../lib/supabaseClient';
@@ -20,6 +20,7 @@ import {
 import AuthScreen from '../components/auth/AuthScreen';
 import OnboardingScreen from '../components/onboarding/OnboardingScreen';
 import ResetPasswordScreen from '../components/auth/ResetPasswordScreen';
+import { reportError, trackEvent } from '../lib/observability';
 
 export type AuthStatus = 'unconfigured' | 'loading' | 'signedOut' | 'signedIn' | 'passwordRecovery' | 'error';
 
@@ -82,6 +83,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<AuthProfile | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const pendingSignInMethodRef = useRef<string | null>(null);
 
   const loadProfile = useCallback(async (nextUser: User | null): Promise<void> => {
     if (!supabase || !nextUser) {
@@ -127,6 +129,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (isMounted) setStatus('signedIn');
       } catch (error) {
         if (!isMounted) return;
+        reportError(error, 'auth_profile_load_failed');
         setErrorMessage(error instanceof Error ? error.message : 'Profile sync failed.');
         setStatus('error');
       }
@@ -152,8 +155,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       setStatus('loading');
       void loadProfile(nextUser)
-        .then(() => setStatus('signedIn'))
+        .then(() => {
+          if (event === 'SIGNED_IN') {
+            trackEvent('sign_in_succeeded', {
+              method: pendingSignInMethodRef.current ?? 'session',
+            });
+            pendingSignInMethodRef.current = null;
+          }
+          setStatus('signedIn');
+        })
         .catch((error: unknown) => {
+          reportError(error, 'auth_profile_refresh_failed');
           setErrorMessage(error instanceof Error ? error.message : 'Profile sync failed.');
           setStatus('error');
         });
@@ -185,7 +197,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signInWithPassword: async (email: string, password: string) => {
       if (!supabase) return unavailable();
       setErrorMessage(null);
-      await signInWithPassword(supabase, email, password);
+      pendingSignInMethodRef.current = 'password';
+      try {
+        await signInWithPassword(supabase, email, password);
+      } catch (error) {
+        pendingSignInMethodRef.current = null;
+        throw error;
+      }
     },
     signUpWithPassword: async (email: string, password: string) => {
       if (!supabase) return unavailable();
@@ -209,7 +227,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signInWithProvider: async (provider: SupportedOAuthProvider) => {
       if (!supabase) return unavailable();
       setErrorMessage(null);
-      await signInWithOAuth(supabase, provider);
+      pendingSignInMethodRef.current = provider;
+      try {
+        await signInWithOAuth(supabase, provider);
+      } catch (error) {
+        pendingSignInMethodRef.current = null;
+        throw error;
+      }
     },
     signOut: async () => {
       if (!supabase) return unavailable();
@@ -228,6 +252,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setErrorMessage(null);
       await completeCloudOnboarding(supabase, user.id, input);
       await loadProfile(user);
+      trackEvent('onboarding_completed');
       setStatus('signedIn');
     },
   };

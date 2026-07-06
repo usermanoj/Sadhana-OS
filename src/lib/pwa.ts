@@ -1,3 +1,5 @@
+import { reportError } from './observability';
+
 interface PwaEnv {
   PROD?: boolean;
 }
@@ -16,7 +18,9 @@ export function registerPwaServiceWorker(): void {
 
   window.addEventListener('load', () => {
     void navigator.serviceWorker.register('/sw.js').catch((error: unknown) => {
-      console.error('PWA service worker registration failed:', error);
+      reportError(error, 'pwa_service_worker_registration_failed', {
+        severity: 'warning',
+      });
     });
   });
 }

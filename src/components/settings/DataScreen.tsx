@@ -13,6 +13,7 @@ import {
   type ConflictSummary,
   type ImportMode,
 } from '../../lib/import';
+import { reportError, trackEvent } from '../../lib/observability';
 import type { ExportPayload } from '../../types';
 import ConflictDialog from './ConflictDialog';
 
@@ -32,10 +33,12 @@ export default function DataScreen() {
 
   const handleExportJSON = () => {
     try {
+      trackEvent('export_json_started', { trust: exportTrust.kind });
       const payload = exportJSON();
       downloadJSON(payload);
       setStatus({ tone: 'success', text: getJsonExportSuccessMessage(exportTrust.kind) });
-    } catch {
+    } catch (error) {
+      reportError(error, 'json_export_failed');
       setStatus({ tone: 'error', text: 'JSON export failed.' });
     }
   };
@@ -45,7 +48,8 @@ export default function DataScreen() {
       const csv = exportCSV();
       downloadCSV(csv);
       setStatus({ tone: 'success', text: getCsvExportSuccessMessage(exportTrust.kind) });
-    } catch {
+    } catch (error) {
+      reportError(error, 'csv_export_failed');
       setStatus({ tone: 'error', text: 'CSV export failed.' });
     }
   };
@@ -59,6 +63,7 @@ export default function DataScreen() {
         text: 'Cloud data refreshed. Exports now use the latest confirmed cloud data.',
       });
     } catch (error) {
+      reportError(error, 'cloud_data_refresh_failed');
       setStatus({
         tone: 'error',
         text: error instanceof Error ? error.message : 'Cloud refresh failed. Exports may use local cache.',
@@ -77,6 +82,7 @@ export default function DataScreen() {
       setConflictSummary(detectConflicts(payload));
       setStatus(null);
     } catch (error) {
+      reportError(error, 'json_import_parse_failed');
       setPendingPayload(null);
       setConflictSummary(null);
       setStatus({
@@ -99,6 +105,7 @@ export default function DataScreen() {
       setPendingPayload(null);
       setConflictSummary(null);
     } catch (error) {
+      reportError(error, 'json_import_apply_failed');
       setStatus({
         tone: 'error',
         text: error instanceof Error ? error.message : 'Import failed.',

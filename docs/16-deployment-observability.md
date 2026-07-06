@@ -80,6 +80,12 @@ Before production launch:
 
 The app includes a small privacy-safe instrumentation layer in `src/lib/observability.ts`.
 
+The production observability foundation is detailed in:
+
+```text
+docs/33-production-observability-foundation.md
+```
+
 Allowed events:
 
 - `sign_in_succeeded`
@@ -102,6 +108,8 @@ Private content must never be sent:
 ## Future Vendor Integration
 
 Sentry, PostHog, or another provider can be added later behind the observability layer.
+
+Task 038 adds the vendor adapter seam through `setObservabilityClient`; vendor SDKs should be connected there rather than imported directly into screens, hooks, repositories, auth modules, or sync modules.
 
 Do not add a vendor SDK until:
 
