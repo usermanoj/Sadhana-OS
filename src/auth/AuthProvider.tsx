@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { getSupabaseEnvironment } from '../lib/env';
 import { getSupabaseClient } from '../lib/supabaseClient';
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [profile, setProfile] = useState<AuthProfile | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const loadProfile = async (nextUser: User | null): Promise<void> => {
+  const loadProfile = useCallback(async (nextUser: User | null): Promise<void> => {
     if (!supabase || !nextUser) {
       setProfile(null);
       return;
@@ -91,7 +91,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const nextProfile = await fetchAuthProfile(supabase, nextUser);
     setProfile(nextProfile);
-  };
+  }, [supabase]);
 
   useEffect(() => {
     if (!environment.isConfigured || !supabase) {
@@ -163,7 +163,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isMounted = false;
       authListener.subscription.unsubscribe();
     };
-  }, [environment.isConfigured, supabase]);
+  }, [environment.isConfigured, loadProfile, supabase]);
 
   const value: AuthContextValue = {
     isCloudConfigured: environment.isConfigured,

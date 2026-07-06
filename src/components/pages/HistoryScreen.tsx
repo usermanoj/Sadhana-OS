@@ -44,26 +44,29 @@ export default function HistoryScreen() {
   const [entries] = useState(loadEntries);
   const [journal] = useState(loadJournal);
 
-  const filters = {
-    date: dateFilter || undefined,
-    categoryId: categoryFilter || undefined,
-  };
+  const filters = useMemo(
+    () => ({
+      date: dateFilter || undefined,
+      categoryId: categoryFilter || undefined,
+    }),
+    [categoryFilter, dateFilter],
+  );
 
   const practiceRows = useMemo(
     () => buildPracticeHistory(entries, categories, filters),
-    [entries, categories, filters.date, filters.categoryId],
+    [entries, categories, filters],
   );
   const journalRows = useMemo(
     () => buildJournalHistory(journal, { date: filters.date }),
-    [journal, filters.date],
+    [journal, filters],
   );
   const archivedItems = useMemo(
     () => buildArchivedItems(categories, { categoryId: filters.categoryId }),
-    [categories, filters.categoryId],
+    [categories, filters],
   );
   const auditRows = useMemo(
     () => filterAuditLogs(getAuditLogs({ newestFirst: true }), categories, filters),
-    [categories, filters.date, filters.categoryId],
+    [categories, filters],
   );
 
   return (
