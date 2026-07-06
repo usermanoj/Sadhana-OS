@@ -5,8 +5,8 @@ interface EnvironmentBadgeProps {
 }
 
 const badgeClasses: Record<SadhanaEnvironment['name'], string> = {
-  local: 'border-accent-primary/20 bg-accent-primary/10 text-accent-primary',
-  development: 'border-accent-primary/20 bg-accent-primary/10 text-accent-primary',
+  local: 'border-border bg-muted/70 text-text-secondary',
+  development: 'border-border bg-muted/70 text-text-secondary',
   staging: 'border-accent-warning/30 bg-accent-warning/10 text-amber-700',
   production: 'border-transparent bg-transparent text-transparent',
 };
@@ -21,9 +21,11 @@ export default function EnvironmentBadge({
   return (
     <div className="mb-3 flex justify-end">
       <span
-        aria-label={`Environment: ${environment.label}`}
-        className={`inline-flex min-h-7 items-center rounded-sm border px-2.5 text-[11px] font-medium uppercase tracking-normal ${badgeClasses[environment.name]}`}
+        aria-label={`App environment: ${environment.description}`}
+        title={environment.description}
+        className={`inline-flex min-h-6 items-center rounded-sm border px-2 text-[10px] font-medium uppercase tracking-normal ${badgeClasses[environment.name]}`}
       >
+        <span className="mr-1 text-text-secondary/70">ENV</span>
         {environment.label}
       </span>
     </div>

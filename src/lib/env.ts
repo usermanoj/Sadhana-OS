@@ -10,6 +10,7 @@ export type SadhanaRuntimeEnvironment = 'local' | 'development' | 'staging' | 'p
 export interface SadhanaEnvironment {
   name: SadhanaRuntimeEnvironment;
   label: string;
+  description: string;
   isProduction: boolean;
   showBadge: boolean;
 }
@@ -26,10 +27,17 @@ type EnvSource = {
 const normalizeEnvValue = (value: string | undefined): string => value?.trim() ?? '';
 
 const runtimeEnvironmentLabels: Record<SadhanaRuntimeEnvironment, string> = {
-  local: 'Local',
+  local: 'Local Dev',
   development: 'Development',
   staging: 'Staging',
   production: 'Production',
+};
+
+const runtimeEnvironmentDescriptions: Record<SadhanaRuntimeEnvironment, string> = {
+  local: 'Local development environment. This does not describe cloud sync status.',
+  development: 'Development environment. This does not describe cloud sync status.',
+  staging: 'Staging environment. This does not describe cloud sync status.',
+  production: 'Production environment. This does not describe cloud sync status.',
 };
 
 const isRuntimeEnvironment = (value: string): value is SadhanaRuntimeEnvironment =>
@@ -50,6 +58,7 @@ export function getSadhanaEnvironment(env: EnvSource = import.meta.env): Sadhana
   return {
     name,
     label: runtimeEnvironmentLabels[name],
+    description: runtimeEnvironmentDescriptions[name],
     isProduction: name === 'production',
     showBadge: name !== 'production',
   };
