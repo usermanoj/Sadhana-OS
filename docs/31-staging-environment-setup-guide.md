@@ -6,6 +6,12 @@ Purpose: provide the manual execution guide for creating and validating the firs
 
 This guide is for staging only. Do not use production customer data in staging.
 
+After setup, run the verification checklist in:
+
+```text
+docs/35-staging-deployment-verification.md
+```
+
 ## Recommended Outcome
 
 At the end of this setup, Sadhana OS should have:
@@ -336,10 +342,18 @@ Also confirm:
 
 ## Step 13 - Record Validation Results
 
-Create a validation artifact after the first staging run:
+Create a validation artifact after the first staging run.
+
+Recommended generator:
+
+```powershell
+npm run create:staging-report
+```
+
+Default output:
 
 ```text
-docs/32-staging-validation-results.md
+docs/36-staging-deployment-verification-results.md
 ```
 
 Record:

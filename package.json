@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "validate:staging-env": "node scripts/validate-staging-env.mjs",
+    "create:staging-report": "node scripts/create-staging-verification-report.mjs",
     "validate:cloud-rls": "node scripts/validate-cloud-rls.mjs",
     "typecheck": "tsc -b && tsc -p tsconfig.test.json --noEmit",
     "lint": "eslint ."
