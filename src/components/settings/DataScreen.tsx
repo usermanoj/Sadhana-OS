@@ -160,7 +160,9 @@ export default function DataScreen() {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           aria-label="Import JSON"
-          className="flex min-h-[132px] flex-col justify-between rounded-md border border-border bg-surface p-4 text-left shadow-sm transition-colors duration-150 hover:bg-muted/40 lg:min-h-[170px] lg:p-6"
+          className="flex min-h-[132px] flex-col justify-between rounded-md border border-border bg-surface p-4 text-left shadow-sm
+                     transition-[background-color,border-color,box-shadow] duration-150 hover:border-accent-primary/20 hover:bg-muted/40
+                     focus-visible:ring-2 focus-visible:ring-accent-primary/30 lg:min-h-[170px] lg:p-6"
         >
           <span className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-12 lg:w-12">
@@ -256,7 +258,8 @@ function BackupTrustPanel({
         type="button"
         onClick={onRefresh}
         disabled={!trust.canRefresh || isRefreshing}
-        className="flex min-h-[40px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-body font-medium text-text-primary shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex min-h-[40px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-body font-medium text-text-primary shadow-sm
+                   focus-visible:ring-2 focus-visible:ring-accent-primary/30 disabled:cursor-not-allowed disabled:opacity-60"
       >
         <RefreshCw size={16} aria-hidden="true" className={isRefreshing ? 'motion-safe:animate-spin' : undefined} />
         {isRefreshing ? 'Refreshing' : CLOUD_SYNC_ACTION_LABELS.refresh}
@@ -278,7 +281,9 @@ function DataAction({ title, description, icon: Icon, onClick }: DataActionProps
       type="button"
       onClick={onClick}
       aria-label={title}
-      className="flex min-h-[132px] flex-col justify-between rounded-md border border-border bg-surface p-4 text-left shadow-sm transition-colors duration-150 hover:bg-muted/40 lg:min-h-[170px] lg:p-6"
+      className="flex min-h-[132px] flex-col justify-between rounded-md border border-border bg-surface p-4 text-left shadow-sm
+                 transition-[background-color,border-color,box-shadow] duration-150 hover:border-accent-primary/20 hover:bg-muted/40
+                 focus-visible:ring-2 focus-visible:ring-accent-primary/30 lg:min-h-[170px] lg:p-6"
     >
       <span className="flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-12 lg:w-12">

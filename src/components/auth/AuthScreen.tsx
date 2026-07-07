@@ -142,7 +142,7 @@ export default function AuthScreen() {
               <Sparkles size={24} aria-hidden="true" />
             </span>
             <div className="flex flex-col gap-3">
-              <p className="text-caption font-medium uppercase tracking-[0.08em] text-text-secondary">
+              <p className="text-caption font-medium uppercase tracking-normal text-text-secondary">
                 Sadhana OS
               </p>
               <h1 className="max-w-2xl text-[2rem] font-semibold leading-tight text-text-primary sm:text-[2.5rem] lg:text-[3rem]">

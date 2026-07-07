@@ -12,6 +12,7 @@ import {
 } from '../../lib/history';
 import { appRepository } from '../../lib/repository';
 import { useCategories } from '../../hooks/useCategories';
+import ScreenHeader from '../ui/ScreenHeader';
 
 type HistorySection = 'practice' | 'journal' | 'audit' | 'archived';
 
@@ -72,15 +73,11 @@ export default function HistoryScreen() {
   return (
     <div id="page-history" className="flex w-full flex-col gap-5 pb-4 lg:gap-7">
       <header className="flex flex-col gap-4">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-11 lg:w-11">
-            <CalendarDays size={22} />
-          </span>
-          <div>
-            <h1 className="text-heading text-text-primary">History</h1>
-            <p className="text-caption text-text-secondary">Practice, journal, audit, and archive records</p>
-          </div>
-        </div>
+        <ScreenHeader
+          icon={CalendarDays}
+          title="History"
+          subtitle="Practice, journal, audit, and archive records"
+        />
 
         <div 
           className="flex gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden" 

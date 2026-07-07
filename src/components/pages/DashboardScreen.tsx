@@ -23,6 +23,7 @@ import CategoryBarChart from '../dashboard/CategoryBarChart';
 import MetricCard from '../dashboard/MetricCard';
 import StreakCard from '../dashboard/StreakCard';
 import TrendChart from '../dashboard/TrendChart';
+import ScreenHeader from '../ui/ScreenHeader';
 
 const ranges = [7, 30, 90] as const;
 
@@ -70,17 +71,11 @@ export default function DashboardScreen() {
 
   return (
     <div id="page-dashboard" className="flex flex-col gap-5 pb-4 lg:gap-7">
-      <header className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-11 lg:w-11">
-          <Activity size={22} aria-hidden="true" />
-        </span>
-        <div>
-          <h1 className="text-heading text-text-primary">Analytics</h1>
-          <p className="text-caption text-text-secondary">
-            Good Life score, balance, and practice patterns
-          </p>
-        </div>
-      </header>
+      <ScreenHeader
+        icon={Activity}
+        title="Analytics"
+        subtitle="Good Life score, balance, and practice patterns"
+      />
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:gap-5">
         <MetricCard

@@ -127,7 +127,8 @@ export default function AccountScreen() {
                   });
                 });
               }}
-              className="flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-body font-medium text-text-primary shadow-sm"
+              className="flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-body font-medium text-text-primary shadow-sm
+                         focus-visible:ring-2 focus-visible:ring-accent-primary/30"
             >
               <LogOut size={18} aria-hidden="true" />
               Sign Out
@@ -181,7 +182,8 @@ export default function AccountScreen() {
             void sendMagicLink();
           }}
           disabled={isSubmitting || magicLinkCooldown > 0}
-          className="mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-accent-primary px-4 py-2 text-body font-medium text-white shadow-sm disabled:opacity-60 sm:w-auto"
+          className="mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-accent-primary px-4 py-2 text-body font-medium text-white shadow-sm
+                     focus-visible:ring-2 focus-visible:ring-accent-primary/30 disabled:opacity-60 sm:w-auto"
         >
           <Mail size={18} aria-hidden="true" />
           {isSubmitting ? 'Sending Link' : magicLinkCooldown > 0 ? `Wait ${magicLinkCooldown}s` : 'Send Sign-In Link'}
@@ -288,7 +290,8 @@ function CloudSyncAccountPanel() {
               void sync.retry();
             }}
             disabled={sync.status === 'retrying'}
-            className="flex min-h-[40px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-body font-medium text-text-primary shadow-sm disabled:opacity-60"
+            className="flex min-h-[40px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-body font-medium text-text-primary shadow-sm
+                       focus-visible:ring-2 focus-visible:ring-accent-primary/30 disabled:opacity-60"
           >
             <RefreshCw size={16} aria-hidden="true" />
             {actionLabel}

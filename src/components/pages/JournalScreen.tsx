@@ -3,6 +3,7 @@ import { useJournal } from '../../hooks/useJournal';
 import DateNavigator from '../today/DateNavigator';
 import JournalForm from '../journal/JournalForm';
 import JournalHistory from '../journal/JournalHistory';
+import ScreenHeader from '../ui/ScreenHeader';
 
 export default function JournalScreen() {
   const {
@@ -16,35 +17,30 @@ export default function JournalScreen() {
 
   return (
     <div id="page-journal" className="flex w-full flex-col gap-5 pb-4 lg:gap-7">
-      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-11 lg:w-11">
-            <BookOpen size={22} aria-hidden="true" />
-          </span>
-          <div>
-            <h1 className="text-heading text-text-primary">Journal</h1>
-            <p className="text-caption text-text-secondary">Reflective notes and daily insight</p>
-          </div>
-        </div>
-
-        <div className="rounded-md border border-border bg-surface px-2 py-1 shadow-sm md:min-w-80">
-          <DateNavigator
-            selectedDate={selectedDate}
-            onPrev={() => {
-              const d = new Date(selectedDate);
-              d.setDate(d.getDate() - 1);
-              goToDate(d);
-            }}
-            onNext={() => {
-              const d = new Date(selectedDate);
-              d.setDate(d.getDate() + 1);
-              if (d <= new Date()) {
+      <ScreenHeader
+        icon={BookOpen}
+        title="Journal"
+        subtitle="Reflective notes and daily insight"
+        actions={(
+          <div className="rounded-md border border-border bg-surface px-2 py-1 shadow-sm md:min-w-80">
+            <DateNavigator
+              selectedDate={selectedDate}
+              onPrev={() => {
+                const d = new Date(selectedDate);
+                d.setDate(d.getDate() - 1);
                 goToDate(d);
-              }
-            }}
-          />
-        </div>
-      </header>
+              }}
+              onNext={() => {
+                const d = new Date(selectedDate);
+                d.setDate(d.getDate() + 1);
+                if (d <= new Date()) {
+                  goToDate(d);
+                }
+              }}
+            />
+          </div>
+        )}
+      />
 
       <div className="grid flex-1 grid-cols-1 gap-5 lg:grid-cols-[minmax(0,2.1fr)_minmax(20rem,0.9fr)] 2xl:gap-6">
         {/* Main Editor */}

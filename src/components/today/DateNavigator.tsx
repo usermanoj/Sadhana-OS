@@ -13,11 +13,12 @@ export default function DateNavigator({ selectedDate, onPrev, onNext }: DateNavi
   return (
     <div id="date-navigator" className="flex w-full items-center justify-between gap-2">
       <button
+        type="button"
         id="date-prev"
         onClick={onPrev}
-        className="flex items-center justify-center w-11 h-11 rounded-full
+        className="flex h-11 w-11 items-center justify-center rounded-full
                    text-text-secondary hover:text-text-primary hover:bg-muted
-                   transition-colors duration-150"
+                   transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-accent-primary/30"
         aria-label="Previous day"
       >
         <ChevronLeft size={20} />
@@ -30,11 +31,12 @@ export default function DateNavigator({ selectedDate, onPrev, onNext }: DateNavi
       </div>
 
       <button
+        type="button"
         id="date-next"
         onClick={onNext}
         disabled={atToday}
-        className={`flex items-center justify-center w-11 h-11 rounded-full
-                    transition-colors duration-150
+        className={`flex h-11 w-11 items-center justify-center rounded-full
+                    transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-accent-primary/30
                     ${atToday
                       ? 'text-border cursor-default'
                       : 'text-text-secondary hover:text-text-primary hover:bg-muted'
