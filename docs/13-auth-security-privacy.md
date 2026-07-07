@@ -214,12 +214,20 @@ Cloud account deletion is requested from Settings > Privacy.
 Deletion rules:
 
 - The user must be signed in.
-- The user must explicitly confirm the request.
+- The user must acknowledge backup/no-backup risk.
+- The user must type the exact confirmation phrase before the deletion action is enabled.
 - The browser client calls the `delete-account` Supabase Edge Function.
 - The Edge Function uses the service-role key server-side.
 - The service-role key must never be exposed to the browser.
 - Deleting the Supabase Auth user cascades user-owned table rows through foreign keys.
 - Local browser data is not cleared automatically; local deletion should be a separate explicit action.
+- Provider backup and legal retention windows may still apply and must be described in the production privacy policy.
+
+Task 040 documents the hardened frontend flow in:
+
+```text
+docs/34-privacy-account-safety-hardening.md
+```
 
 ## Production vs Development
 
