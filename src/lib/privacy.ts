@@ -4,6 +4,11 @@ export interface AccountDeletionResult {
   requestedAt: string;
 }
 
+export const ACCOUNT_DELETION_CONFIRMATION_PHRASE = 'DELETE MY ACCOUNT';
+
+export const accountDeletionSafetyNotice =
+  'Export a JSON backup before requesting deletion. Cloud account data is removed by the server-side deletion flow; provider backup and legal retention windows may still apply. Local browser data remains on this device until cleared separately.';
+
 export async function requestCloudAccountDeletion(
   client: SupabaseClient,
 ): Promise<AccountDeletionResult> {
@@ -24,3 +29,14 @@ export async function requestCloudAccountDeletion(
 
 export const privateContentAnalyticsNotice =
   'Journal content, habit names, category names, and practice values must not be sent to analytics.';
+
+export function canRequestAccountDeletion({
+  backupAcknowledged,
+  confirmationText,
+}: {
+  backupAcknowledged: boolean;
+  confirmationText: string;
+}): boolean {
+  return backupAcknowledged
+    && confirmationText.trim() === ACCOUNT_DELETION_CONFIRMATION_PHRASE;
+}

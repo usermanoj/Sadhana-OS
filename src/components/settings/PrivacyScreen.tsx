@@ -1,8 +1,14 @@
 import { useState } from 'react';
-import { Download, ShieldCheck, Trash2 } from 'lucide-react';
+import { AlertTriangle, Download, ShieldCheck, Trash2 } from 'lucide-react';
 import { useAuth } from '../../auth/AuthProvider';
 import { downloadJSON, exportJSON } from '../../lib/export';
-import { requestCloudAccountDeletion } from '../../lib/privacy';
+import {
+  ACCOUNT_DELETION_CONFIRMATION_PHRASE,
+  accountDeletionSafetyNotice,
+  canRequestAccountDeletion,
+  requestCloudAccountDeletion,
+} from '../../lib/privacy';
+import { reportError, trackEvent } from '../../lib/observability';
 import { getSupabaseClient } from '../../lib/supabaseClient';
 
 type StatusMessage = {
@@ -12,15 +18,22 @@ type StatusMessage = {
 
 export default function PrivacyScreen() {
   const auth = useAuth();
-  const [confirmDeletion, setConfirmDeletion] = useState(false);
+  const [backupAcknowledged, setBackupAcknowledged] = useState(false);
+  const [deletionConfirmation, setDeletionConfirmation] = useState('');
   const [status, setStatus] = useState<StatusMessage>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const canDelete = canRequestAccountDeletion({
+    backupAcknowledged,
+    confirmationText: deletionConfirmation,
+  });
 
   const exportBackup = () => {
     try {
       downloadJSON(exportJSON());
-      setStatus({ tone: 'success', text: 'JSON backup exported.' });
-    } catch {
+      setBackupAcknowledged(true);
+      setStatus({ tone: 'success', text: 'JSON backup exported. Keep it somewhere safe before requesting account deletion.' });
+    } catch (error) {
+      reportError(error, 'privacy_json_export_failed');
       setStatus({ tone: 'error', text: 'JSON export failed.' });
     }
   };
@@ -35,12 +48,16 @@ export default function PrivacyScreen() {
     try {
       setIsDeleting(true);
       const result = await requestCloudAccountDeletion(client);
+      trackEvent('account_deletion_requested');
       setStatus({
         tone: 'success',
         text: `Account deletion requested at ${new Date(result.requestedAt).toLocaleString()}.`,
       });
+      setBackupAcknowledged(false);
+      setDeletionConfirmation('');
       await auth.signOut().catch(() => undefined);
     } catch (error) {
+      reportError(error, 'account_deletion_request_failed');
       setStatus({
         tone: 'error',
         text: error instanceof Error ? error.message : 'Account deletion request failed.',
@@ -67,6 +84,9 @@ export default function PrivacyScreen() {
         <p className="mt-1 text-body text-text-secondary">
           JSON export includes tracker configuration, daily entries, journal entries, and audit history.
         </p>
+        <p className="mt-2 text-caption text-text-secondary">
+          Export a backup before account deletion if you want to keep a personal copy of your practice history.
+        </p>
         <button
           type="button"
           onClick={exportBackup}
@@ -92,21 +112,35 @@ export default function PrivacyScreen() {
             <p className="text-body text-text-secondary">
               This requests deletion of your cloud account and cloud data. Your local browser data is not cleared automatically.
             </p>
+            <div className="flex items-start gap-3 rounded-md border border-accent-warning/30 bg-accent-warning/10 p-3 text-body text-amber-800">
+              <AlertTriangle size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
+              <p>{accountDeletionSafetyNotice}</p>
+            </div>
             <label className="flex items-start gap-3 text-body text-text-primary">
               <input
                 type="checkbox"
-                checked={confirmDeletion}
-                onChange={(event) => setConfirmDeletion(event.target.checked)}
+                checked={backupAcknowledged}
+                onChange={(event) => setBackupAcknowledged(event.target.checked)}
                 className="mt-1 h-4 w-4 rounded border-border text-accent-primary focus:ring-accent-primary"
               />
-              I understand this deletes my cloud account.
+              I have exported a backup, or I intentionally want to continue without one.
+            </label>
+            <label className="flex flex-col gap-1 text-caption font-medium text-text-secondary" htmlFor="account-deletion-confirmation">
+              Type {ACCOUNT_DELETION_CONFIRMATION_PHRASE} to confirm
+              <input
+                id="account-deletion-confirmation"
+                value={deletionConfirmation}
+                onChange={(event) => setDeletionConfirmation(event.target.value)}
+                autoComplete="off"
+                className="min-h-[44px] rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-danger/30"
+              />
             </label>
             <button
               type="button"
               onClick={() => {
                 void requestDeletion();
               }}
-              disabled={!confirmDeletion || isDeleting}
+              disabled={!canDelete || isDeleting}
               className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md border border-accent-danger/30 bg-accent-danger px-4 py-2 text-body font-medium text-white shadow-sm disabled:opacity-50 sm:w-auto"
             >
               <Trash2 size={18} aria-hidden="true" />
