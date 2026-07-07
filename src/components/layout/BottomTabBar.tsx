@@ -24,9 +24,8 @@ export default function BottomTabBar({ activeTab, onTabChange }: BottomTabBarPro
   return (
     <nav
       id="bottom-tab-bar"
-      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around
-                 border-t border-border bg-surface/95 px-1 shadow-lg backdrop-blur-md
-                 h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 flex h-[calc(4.25rem+env(safe-area-inset-bottom))] items-center justify-around
+                 border-t border-border bg-surface/95 px-1.5 pb-[env(safe-area-inset-bottom)] shadow-lg backdrop-blur-md lg:hidden"
       aria-label="Main navigation"
     >
       {tabs.map(({ id, label, icon: Icon }) => {
@@ -36,8 +35,8 @@ export default function BottomTabBar({ activeTab, onTabChange }: BottomTabBarPro
             key={id}
             id={`tab-${id}`}
             onClick={() => onTabChange(id)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1
-                        min-w-[44px] min-h-[44px] rounded-md transition-colors duration-150
+            className={`flex min-h-[48px] min-w-[44px] flex-1 flex-col items-center justify-center gap-0.5
+                        rounded-md transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-accent-primary/30
                         touch-manipulation
                         ${isActive
                           ? 'bg-accent-primary/10 text-accent-primary'

@@ -24,19 +24,16 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   return (
     <aside
       id="sidebar"
-      className="hidden lg:flex fixed left-0 top-0 bottom-0 z-50
-                 w-72 flex-col border-r border-border bg-surface/95 shadow-sm"
+      className="fixed bottom-0 left-0 top-0 z-50 hidden w-72 flex-col border-r border-border bg-surface/95 shadow-sm backdrop-blur-sm lg:flex"
     >
-      {/* Brand */}
       <div className="flex items-center gap-3 px-6 py-7">
-        <div className="w-9 h-9 rounded-md bg-accent-primary flex items-center justify-center shadow-sm">
-          <span className="text-white text-sm font-semibold">SO</span>
+        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-accent-primary shadow-sm">
+          <span className="text-sm font-semibold text-white">SO</span>
         </div>
-        <h1 className="text-heading text-text-primary">Sadhana OS</h1>
+        <p className="text-heading text-text-primary">Sadhana OS</p>
       </div>
 
-      {/* Nav items */}
-      <nav className="flex-1 flex flex-col gap-1.5 px-4" aria-label="Main navigation">
+      <nav className="flex flex-1 flex-col gap-1.5 px-4" aria-label="Main navigation">
         {tabs.map(({ id, label, icon: Icon }) => {
           const isActive = activeTab === id;
           return (
@@ -45,11 +42,11 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
               id={`sidebar-${id}`}
               onClick={() => onTabChange(id)}
               aria-label={label}
-              className={`flex items-center gap-3 px-3.5 py-3 rounded-md text-left
-                          min-h-[44px] transition-colors duration-150
+              className={`flex min-h-[44px] items-center gap-3 rounded-md px-3.5 py-3 text-left
+                          transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-accent-primary/30
                           ${isActive
-                            ? 'bg-accent-primary/10 text-accent-primary font-medium'
-                            : 'text-text-secondary hover:bg-muted hover:text-text-primary'
+                            ? 'bg-accent-primary/10 font-medium text-accent-primary shadow-sm'
+                            : 'text-text-secondary hover:bg-muted/70 hover:text-text-primary'
                           }`}
               aria-current={isActive ? 'page' : undefined}
             >
@@ -60,8 +57,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="px-5 py-4 border-t border-border">
+      <div className="border-t border-border px-5 py-4">
         <p className="text-caption text-text-secondary">v0.1.0</p>
       </div>
     </aside>

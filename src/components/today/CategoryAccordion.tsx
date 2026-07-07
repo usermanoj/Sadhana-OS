@@ -31,21 +31,20 @@ export default function CategoryAccordion({
   return (
     <div
       id={`category-${category.id}`}
-      className="bg-surface border border-border rounded-md shadow-sm overflow-hidden
-                 transition-shadow duration-200 hover:shadow-md"
+      className="overflow-hidden rounded-md border border-border bg-surface shadow-sm
+                 transition-[border-color,box-shadow] duration-200 hover:border-accent-primary/20 hover:shadow-md"
     >
-      {/* Header */}
       <button
         id={`category-header-${category.id}`}
         onClick={() => setIsOpen((o) => !o)}
-        className="w-full flex items-center gap-3 px-4 py-3 min-h-[56px] lg:min-h-[70px] lg:px-6
-                   text-left transition-colors duration-150 hover:bg-muted/30"
+        className="flex min-h-[60px] w-full items-center gap-3 px-4 py-3 text-left
+                   transition-colors duration-150 hover:bg-muted/30 focus-visible:ring-2
+                   focus-visible:ring-inset focus-visible:ring-accent-primary/30 lg:min-h-[70px] lg:px-6"
         aria-expanded={isOpen}
         aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${category.name}`}
       >
-        {/* Category icon */}
         <span
-          className="flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0 lg:h-11 lg:w-11"
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md lg:h-11 lg:w-11"
           style={{ backgroundColor: `${category.color}15` }}
         >
           <DynamicCategoryIcon
@@ -55,20 +54,17 @@ export default function CategoryAccordion({
           />
         </span>
 
-        {/* Name */}
-        <span className="flex-1 text-subheading text-text-primary truncate">
+        <span className="flex-1 truncate text-subheading text-text-primary">
           {category.name}
         </span>
 
-        {/* Completed badge */}
-        <span className="text-caption text-text-secondary tabular-nums flex-shrink-0">
+        <span className="flex-shrink-0 text-caption tabular-nums text-text-secondary">
           {stats.completed}/{stats.total}
         </span>
 
-        {/* Chevron */}
         <ChevronDown
           size={16}
-          className={`text-text-secondary flex-shrink-0 transition-transform duration-200
+          className={`flex-shrink-0 text-text-secondary transition-transform duration-200
                       ${isOpen ? 'rotate-180' : 'rotate-0'}`}
         />
       </button>
@@ -81,7 +77,7 @@ export default function CategoryAccordion({
       {/* Body — sub-components */}
       {isOpen ? (
         <div className="overflow-hidden transition-all duration-200 ease-in-out">
-          <div className="px-4 pb-3 divide-y divide-border/50 lg:px-6 lg:pb-5">
+          <div className="divide-y divide-border/50 px-4 pb-3 lg:px-6 lg:pb-5">
             {activeSubs.length === 0 ? (
               <p className="py-3 text-body text-text-secondary">No active practices</p>
             ) : (

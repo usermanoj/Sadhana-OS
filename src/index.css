@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /*
- * Sadhana OS — Design System Foundation
+ * Sadhana OS - Design System Foundation
  * Based on docs/06-design-system.md
  *
  * Philosophy: Calm. Premium. Spiritual. Uncluttered.
@@ -24,25 +24,27 @@
 }
 
 * {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 
 html {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.5;
-  color: var(--text-primary);
-  background-color: var(--bg-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   min-height: 100vh;
   min-height: 100dvh;
   overflow-x: hidden;
+  background: var(--bg-primary);
 }
 
 #root {
@@ -50,8 +52,8 @@ body {
   min-height: 100dvh;
 }
 
-/* Smooth transitions globally */
-button, a {
+button,
+a {
   transition: opacity 100ms ease, transform 100ms ease;
 }
 
@@ -66,6 +68,11 @@ textarea {
   font: inherit;
 }
 
+::selection {
+  background: color-mix(in srgb, var(--accent-primary) 16%, transparent);
+  color: var(--text-primary);
+}
+
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
@@ -75,7 +82,7 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 
-/* Scrollbar styling — subtle and calm */
+/* Scrollbar styling: subtle and calm */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -87,82 +94,4 @@ textarea:focus-visible {
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 9999px;
-}
-
-/*
- * Desktop reading scale.
- * Mobile keeps the compact design-system tokens from docs/06. On laptop
- * screens, the same tokens need a slightly larger optical size so wide
- * cards do not feel zoomed out.
- */
-@media (min-width: 1024px) {
-  #main-content .text-heading {
-    font-size: 1.875rem;
-    line-height: 2.375rem;
-  }
-
-  #main-content .text-subheading {
-    font-size: 1.3125rem;
-    line-height: 1.875rem;
-  }
-
-  #main-content .text-body,
-  #sidebar .text-body {
-    font-size: 1.0625rem;
-    line-height: 1.65rem;
-  }
-
-  #main-content .text-caption,
-  #sidebar .text-caption {
-    font-size: 0.9375rem;
-    line-height: 1.35rem;
-  }
-}
-
-@media (min-width: 1536px) {
-  #main-content .text-heading {
-    font-size: 2.125rem;
-    line-height: 2.625rem;
-  }
-
-  #main-content .text-subheading {
-    font-size: 1.5rem;
-    line-height: 2.125rem;
-  }
-
-  #main-content .text-body,
-  #sidebar .text-body {
-    font-size: 1.125rem;
-    line-height: 1.75rem;
-  }
-
-  #main-content .text-caption,
-  #sidebar .text-caption {
-    font-size: 1rem;
-    line-height: 1.5rem;
-  }
-}
-
-@media (min-width: 1800px) {
-  #main-content .text-heading {
-    font-size: 2.25rem;
-    line-height: 2.75rem;
-  }
-
-  #main-content .text-subheading {
-    font-size: 1.625rem;
-    line-height: 2.25rem;
-  }
-
-  #main-content .text-body,
-  #sidebar .text-body {
-    font-size: 1.1875rem;
-    line-height: 1.85rem;
-  }
-
-  #main-content .text-caption,
-  #sidebar .text-caption {
-    font-size: 1.0625rem;
-    line-height: 1.55rem;
-  }
 }

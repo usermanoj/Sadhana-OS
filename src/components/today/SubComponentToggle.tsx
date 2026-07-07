@@ -1,3 +1,4 @@
+import { Minus, Plus } from 'lucide-react';
 import type { Habit, TrackingValue } from '../../types';
 
 interface SubComponentToggleProps {
@@ -146,6 +147,7 @@ function BooleanToggle({
 }) {
   return (
     <button
+      type="button"
       id={`toggle-${id}`}
       role="switch"
       aria-checked={checked}
@@ -193,9 +195,10 @@ function ScaleInput({
       {Array.from({ length: max }, (_, i) => i + 1).map((n) => (
         <button
           key={n}
+          type="button"
           onClick={() => onChange(id, value === n ? 0 : n)}
           className={`flex h-11 w-11 items-center justify-center rounded-full text-caption font-medium
-                      transition-all duration-150
+                      transition-all duration-150 focus-visible:ring-2 focus-visible:ring-accent-primary/30
                       ${n <= value
                         ? 'scale-105 bg-accent-primary text-white shadow-sm'
                         : 'bg-muted text-text-secondary hover:bg-border'
@@ -225,13 +228,14 @@ function NumberInput({
   return (
     <div className="flex items-center gap-1.5 md:gap-2">
       <button
+        type="button"
         onClick={() => onChange(id, Math.max(0, value - 1))}
         className="flex h-11 w-11 items-center justify-center rounded-full bg-muted
                    text-body font-medium text-text-secondary transition-colors duration-150
-                   hover:bg-border md:text-subheading"
+                   hover:bg-border focus-visible:ring-2 focus-visible:ring-accent-primary/30 md:text-subheading"
         aria-label={`Decrease ${label}`}
       >
-        -
+        <Minus size={18} aria-hidden="true" />
       </button>
       <input
         type="number"
@@ -252,13 +256,14 @@ function NumberInput({
         <span className="min-w-[20px] text-body text-text-secondary">{unit}</span>
       )}
       <button
+        type="button"
         onClick={() => onChange(id, value + 1)}
         className="flex h-11 w-11 items-center justify-center rounded-full bg-muted
                    text-body font-medium text-text-secondary transition-colors duration-150
-                   hover:bg-border md:text-subheading"
+                   hover:bg-border focus-visible:ring-2 focus-visible:ring-accent-primary/30 md:text-subheading"
         aria-label={`Increase ${label}`}
       >
-        +
+        <Plus size={18} aria-hidden="true" />
       </button>
     </div>
   );

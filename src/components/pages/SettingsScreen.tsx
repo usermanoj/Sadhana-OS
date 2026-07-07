@@ -12,6 +12,7 @@ import CategoryForm from '../settings/CategoryForm';
 import CategoryListScreen from '../settings/CategoryListScreen';
 import DataScreen from '../settings/DataScreen';
 import PrivacyScreen from '../settings/PrivacyScreen';
+import ScreenHeader from '../ui/ScreenHeader';
 
 type SettingsMode = 'list' | 'add' | 'edit';
 type SettingsSection = SettingsSectionId;
@@ -68,18 +69,14 @@ export default function SettingsScreen() {
   return (
     <div id="page-settings" className="flex w-full flex-col gap-5 pb-4 lg:gap-7">
       <header className="flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-11 lg:w-11">
-            <Settings size={22} aria-hidden="true" />
-          </span>
-          <div>
-            <h1 className="text-heading text-text-primary">Settings</h1>
-            <p className="text-caption text-text-secondary">Tracker Management</p>
-          </div>
-        </div>
+        <ScreenHeader
+          icon={Settings}
+          title="Settings"
+          subtitle="Tracker management"
+        />
 
         <div
-          className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex gap-2 overflow-x-auto rounded-md border border-border bg-surface p-1 shadow-sm [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           aria-label="Settings sections"
         >
           {settingsSections.map((item) => (
@@ -92,10 +89,10 @@ export default function SettingsScreen() {
                 setHashRoute('settings', item.id);
                 showList();
               }}
-              className={`min-h-[44px] flex-shrink-0 rounded-md px-4 py-2 text-body font-medium shadow-sm ${
+              className={`min-h-[44px] flex-shrink-0 rounded-sm px-4 py-2 text-body font-medium transition-colors duration-150 ${
                 section === item.id
-                  ? 'bg-accent-primary text-white'
-                  : 'border border-border bg-surface text-text-secondary'
+                  ? 'bg-accent-primary text-white shadow-sm'
+                  : 'text-text-secondary hover:bg-muted/70 hover:text-text-primary'
               }`}
               aria-current={section === item.id ? 'page' : undefined}
             >

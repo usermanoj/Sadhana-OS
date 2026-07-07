@@ -33,10 +33,10 @@ export default {
         lg: '0 8px 24px rgba(0,0,0,0.12)',
       },
       fontSize: {
-        heading: ['1.25rem', { lineHeight: '1.4', fontWeight: '600' }],
-        subheading: ['1rem', { lineHeight: '1.5', fontWeight: '500' }],
-        body: ['0.875rem', { lineHeight: '1.43', fontWeight: '400' }],
-        caption: ['0.75rem', { lineHeight: '1.33', fontWeight: '400' }],
+        heading: ['1.75rem', { lineHeight: '1.28', fontWeight: '600' }],
+        subheading: ['1.25rem', { lineHeight: '1.42', fontWeight: '500' }],
+        body: ['1rem', { lineHeight: '1.5', fontWeight: '400' }],
+        caption: ['0.875rem', { lineHeight: '1.4', fontWeight: '400' }],
       },
       keyframes: {
         pageFade: {
