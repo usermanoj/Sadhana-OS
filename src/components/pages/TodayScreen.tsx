@@ -1,4 +1,4 @@
-import { CalendarDays, CheckCircle2, Flame, Sunrise } from 'lucide-react';
+import { CalendarDays, CheckCircle2, Flame, Sparkles, Sunrise } from 'lucide-react';
 import { useDailyEntry } from '../../hooks/useDailyEntry';
 import DateNavigator from '../today/DateNavigator';
 import ScoreBar from '../today/ScoreBar';
@@ -23,6 +23,7 @@ export default function TodayScreen() {
     const stats = categoryStats[cat.id];
     return stats && stats.total > 0 && stats.completed === stats.total;
   }).length;
+  const isFullDayComplete = totalHabits > 0 && totalCompleted === totalHabits;
   const remainingHabits = Math.max(totalHabits - totalCompleted, 0);
   const hasOpenFocus = categories.some((cat) => {
     const stats = categoryStats[cat.id];
@@ -106,6 +107,25 @@ export default function TodayScreen() {
           </div>
         </div>
       </section>
+
+      {isFullDayComplete ? (
+        <section
+          className="animate-completionPulse rounded-lg border border-accent-success/25 bg-accent-success/10 px-4 py-3 shadow-card sm:px-5"
+          aria-live="polite"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-success/15 text-accent-success">
+              <Sparkles size={21} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="text-subheading text-text-primary">Full Day Complete</h2>
+              <p className="text-caption text-text-secondary">
+                Every active practice has been recorded for this day.
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="sadhana-surface px-4 py-4 sm:px-5 lg:px-7 lg:py-6" aria-labelledby="daily-score-heading">
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">

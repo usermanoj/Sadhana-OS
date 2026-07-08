@@ -36,10 +36,11 @@ export default function ScoreBar({
         aria-label={`Score: ${clampedScore}%`}
       >
         <div
-          className="h-full rounded-full transition-all duration-300 ease-out"
+          className="h-full rounded-full transition-[width,filter] duration-500 ease-out"
           style={{
             width: `${clampedScore}%`,
             background: 'linear-gradient(90deg, var(--accent-danger) 0%, var(--accent-warning) 50%, var(--accent-success) 100%)',
+            filter: clampedScore === 100 ? 'saturate(1.12)' : undefined,
           }}
         />
       </div>

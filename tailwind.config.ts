@@ -46,9 +46,15 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(4px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        completionPulse: {
+          '0%': { boxShadow: '0 0 0 0 rgba(14, 159, 110, 0.22)' },
+          '70%': { boxShadow: '0 0 0 10px rgba(14, 159, 110, 0)' },
+          '100%': { boxShadow: 'var(--shadow-card)' },
+        },
       },
       animation: {
         pageFade: 'pageFade 150ms ease-out',
+        completionPulse: 'completionPulse 900ms ease-out',
       },
     },
   },

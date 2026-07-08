@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { CheckCircle2, ChevronDown } from 'lucide-react';
 import type { Category, TrackingValue } from '../../types';
 import type { CategoryStats } from '../../hooks/useDailyEntry';
 import ScoreBar from './ScoreBar';
@@ -30,13 +30,20 @@ export default function CategoryAccordion({
   const statusLabel = getStatusLabel(stats.completed, stats.total);
   const categoryTint = `${category.color}12`;
   const categoryBorder = `${category.color}28`;
+  const isComplete = stats.total > 0 && stats.completed === stats.total;
 
   return (
     <div
       id={`category-${category.id}`}
-      className="group relative overflow-hidden rounded-lg border border-border bg-surface shadow-card
-                 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-lifted"
-      style={{ borderColor: isOpen ? categoryBorder : undefined }}
+      data-complete={isComplete ? 'true' : 'false'}
+      className={`group relative overflow-hidden rounded-lg border border-border bg-surface shadow-card
+                 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-lifted
+                 ${isComplete ? 'animate-completionPulse' : ''}`}
+      style={{
+        borderColor: isComplete
+          ? 'color-mix(in srgb, var(--accent-success) 35%, var(--border))'
+          : isOpen ? categoryBorder : undefined,
+      }}
     >
       <span
         className="absolute inset-y-0 left-0 w-1 opacity-90"
@@ -73,8 +80,16 @@ export default function CategoryAccordion({
           </span>
         </span>
 
-        <span className="inline-flex flex-shrink-0 rounded-full border border-border bg-muted/45 px-2.5 py-1 text-caption tabular-nums text-text-secondary">
-          {stats.completed}/{stats.total}
+        <span className="flex flex-shrink-0 items-center gap-2">
+          {isComplete ? (
+            <span className="hidden items-center gap-1 rounded-full border border-accent-success/25 bg-accent-success/10 px-2.5 py-1 text-caption font-medium text-accent-success sm:inline-flex">
+              <CheckCircle2 size={14} aria-hidden="true" />
+              Complete
+            </span>
+          ) : null}
+          <span className="inline-flex rounded-full border border-border bg-muted/45 px-2.5 py-1 text-caption tabular-nums text-text-secondary">
+            {stats.completed}/{stats.total}
+          </span>
         </span>
 
         <ChevronDown
