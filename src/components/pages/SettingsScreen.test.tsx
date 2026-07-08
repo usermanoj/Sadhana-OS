@@ -15,6 +15,13 @@ describe('SettingsScreen', () => {
     render(<SettingsScreen />);
 
     expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByText('Sadhana Control Center')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Control Areas' })).toBeInTheDocument();
+    expect(screen.getAllByText('Practice Setup').length).toBeGreaterThan(0);
+    expect(screen.getByText('Data & Backup')).toBeInTheDocument();
+    expect(screen.getByText('Account & Sync')).toBeInTheDocument();
+    expect(screen.getByText('Privacy & Safety')).toBeInTheDocument();
+    expect(screen.getByText('Audit Trail')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Categories' })).toBeInTheDocument();
     expect(screen.getByText('8 Limbs of Yoga')).toBeInTheDocument();
 
@@ -28,6 +35,9 @@ describe('SettingsScreen', () => {
 
   it('keeps archived categories out of the active list', () => {
     render(<SettingsScreen />);
+
+    expect(screen.getByText('Active groups')).toBeInTheDocument();
+    expect(screen.getByText('Active practices')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Archive Family' }));
 

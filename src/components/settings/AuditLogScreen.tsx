@@ -27,8 +27,11 @@ export default function AuditLogScreen() {
   return (
     <section className="flex flex-col gap-4" aria-label="Audit Log">
       <div>
-        <h2 className="text-heading text-text-primary">Audit Log</h2>
-        <p className="text-caption text-text-secondary">Configuration changes, newest first</p>
+        <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-text-secondary">
+          Audit Trail
+        </p>
+        <h2 className="mt-1 text-heading text-text-primary">Audit Log</h2>
+        <p className="mt-1 text-body text-text-secondary">Configuration changes, newest first</p>
       </div>
 
       {entries.length === 0 ? (

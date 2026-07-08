@@ -74,7 +74,10 @@ export default function PrivacyScreen() {
           <ShieldCheck size={21} aria-hidden="true" />
         </span>
         <div>
-          <h2 className="text-heading text-text-primary">Privacy</h2>
+          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-text-secondary">
+            Privacy & Safety
+          </p>
+          <h2 className="mt-1 text-heading text-text-primary">Privacy</h2>
           <p className="text-caption text-text-secondary">Export, retention, and account controls</p>
         </div>
       </div>
