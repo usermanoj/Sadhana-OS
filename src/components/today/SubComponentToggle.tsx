@@ -1,4 +1,4 @@
-import { Minus, Plus } from 'lucide-react';
+import { Check, Minus, Plus } from 'lucide-react';
 import type { Habit, TrackingValue } from '../../types';
 
 interface SubComponentToggleProps {
@@ -151,12 +151,13 @@ function BooleanToggle({
       id={`toggle-${id}`}
       role="switch"
       aria-checked={checked}
-      aria-label={label}
+      aria-label={`${label} ${checked ? 'completed' : 'not completed'}`}
+      data-complete={checked ? 'true' : 'false'}
       onClick={() => onToggle(id)}
       className="relative flex h-11 w-14 flex-shrink-0 items-center justify-center rounded-full
                   transition-colors duration-200 ease-in-out focus:outline-none
                   focus-visible:ring-2 focus-visible:ring-accent-primary/50
-                  touch-manipulation"
+                  touch-manipulation active:scale-100"
     >
       <span
         className={`relative h-6 w-11 rounded-full transition-colors duration-200 ease-in-out ${
@@ -167,7 +168,15 @@ function BooleanToggle({
           className={`absolute left-[2px] top-[2px] h-5 w-5 rounded-full bg-white shadow-sm
                       transition-transform duration-200 ease-in-out
                       ${checked ? 'translate-x-[20px]' : 'translate-x-0'}`}
-        />
+        >
+          <Check
+            size={12}
+            aria-hidden="true"
+            className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-accent-success transition-opacity duration-150 ${
+              checked ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        </span>
       </span>
     </button>
   );

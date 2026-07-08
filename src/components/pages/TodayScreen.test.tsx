@@ -1,9 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import TodayScreen from './TodayScreen';
-import { seedIfNeeded } from '../../lib/seed';
+import { createSeedCategories, seedIfNeeded } from '../../lib/seed';
 import { getItem } from '../../lib/storage';
 import type { Category, DailyEntry } from '../../types';
+import { appRepository } from '../../lib/repository';
+import { computeAllScores } from '../../lib/scoring';
+import { formatDateKey } from '../../hooks/useDailyEntry';
 
 describe('TodayScreen', () => {
   beforeEach(() => {
@@ -74,12 +77,69 @@ describe('TodayScreen', () => {
     // Toggle it on
     fireEvent.click(yamaToggle!);
     expect(yamaToggle).toHaveAttribute('aria-checked', 'true');
+    expect(yamaToggle).toHaveAccessibleName('Yama completed');
 
     // Verify it persisted to localStorage
     const entries = getItem<Record<string, DailyEntry>>('entries', {});
     const todayKey = Object.keys(entries)[0];
     expect(todayKey).toBeDefined();
     expect(Object.values(entries[todayKey!]!.completions).some(v => v === true)).toBe(true);
+  });
+
+  it('shows premium feedback when a category is complete', () => {
+    const categories = getItem<Category[]>('categories', []);
+    const yoga = categories.find((category) => category.name === '8 Limbs of Yoga');
+    if (!yoga) throw new Error('Yoga category missing');
+    const completions = Object.fromEntries(
+      yoga.subComponents.map((sub) => [sub.id, true]),
+    );
+    const { categoryScores, overallScore } = computeAllScores(completions, categories);
+    appRepository.setDailyEntries({
+      [formatDateKey(new Date())]: {
+        date: formatDateKey(new Date()),
+        completions,
+        categoryScores,
+        overallScore,
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    render(<TodayScreen />);
+
+    const category = document.getElementById(`category-${yoga.id}`);
+    expect(category).toBeInTheDocument();
+    expect(category).toHaveTextContent('Complete for today');
+    expect(category).toHaveTextContent('Complete');
+    expect(category).toHaveAttribute('data-complete', 'true');
+  });
+
+  it('shows a full-day completion moment when every active practice is complete', () => {
+    const categories = createSeedCategories();
+    const completions = Object.fromEntries(
+      categories.flatMap((category) =>
+        category.subComponents.map((sub) => [
+          sub.id,
+          sub.trackingType === 'text' ? 'Done' : sub.trackingType === 'boolean' ? true : 1,
+        ]),
+      ),
+    );
+    const { categoryScores, overallScore } = computeAllScores(completions, categories);
+    appRepository.setCategories(categories);
+    appRepository.setDailyEntries({
+      [formatDateKey(new Date())]: {
+        date: formatDateKey(new Date()),
+        completions,
+        categoryScores,
+        overallScore,
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    render(<TodayScreen />);
+
+    expect(screen.getByText('Full Day Complete')).toBeInTheDocument();
+    expect(screen.getByText('All groups complete')).toBeInTheDocument();
+    expect(screen.getAllByRole('progressbar', { name: /Daily Score: 100%|Score: 100%/i }).length).toBeGreaterThan(0);
   });
 
   it('does not render archived categories', () => {

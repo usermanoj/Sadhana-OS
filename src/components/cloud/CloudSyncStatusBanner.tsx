@@ -3,13 +3,14 @@ import { useCloudSync } from '../../cloud/CloudSyncProvider';
 import {
   getCloudSyncActionLabel,
   getCloudSyncStatusLabel,
+  isCloudSyncInProgressStatus,
   isCloudSyncProblemStatus,
 } from '../../lib/cloudSyncStatusCopy';
 
 export default function CloudSyncStatusBanner() {
   const sync = useCloudSync();
 
-  if (sync.status === 'localOnly' || sync.status === 'synced') {
+  if (sync.status === 'localOnly' || sync.status === 'synced' || isCloudSyncInProgressStatus(sync.status)) {
     return null;
   }
 

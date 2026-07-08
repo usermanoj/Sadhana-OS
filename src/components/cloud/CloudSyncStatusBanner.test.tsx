@@ -39,6 +39,16 @@ describe('CloudSyncStatusBanner', () => {
     expect(screen.queryByLabelText('Cloud sync status')).not.toBeInTheDocument();
   });
 
+  it('stays hidden during routine background syncing to avoid page jumps', () => {
+    renderBanner({
+      status: 'syncing',
+      message: 'Saving changes to cloud...',
+      pendingWrites: 1,
+    });
+
+    expect(screen.queryByLabelText('Cloud sync status')).not.toBeInTheDocument();
+  });
+
   it('shows failed cloud sync state and calls retry', () => {
     const retry = vi.fn(async () => undefined);
     renderBanner({
