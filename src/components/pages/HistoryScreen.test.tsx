@@ -116,10 +116,24 @@ describe('HistoryScreen', () => {
     render(<HistoryScreen />);
 
     expect(screen.getByRole('heading', { name: 'History' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'A calm record of change' })).toBeInTheDocument();
+    expect(screen.getByText('Practice Archive')).toBeInTheDocument();
+    expect(screen.getByText('Timeline filters')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Practice History' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Journal History' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Audit Log' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Archived Items' })).toBeInTheDocument();
+  });
+
+  it('shows premium summary counts for every history area', () => {
+    render(<HistoryScreen />);
+
+    expect(screen.getAllByText('Practice')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Journal')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Audit')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Archived')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('2').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('1').length).toBeGreaterThan(0);
   });
 
   it('shows practice history with date, category, habit, value, score, and notes', () => {
@@ -150,6 +164,11 @@ describe('HistoryScreen', () => {
     expect(within(section).getByText('Family')).toBeInTheDocument();
     expect(within(section).getByText('Call parents')).toBeInTheDocument();
     expect(within(section).queryByText('Yama')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+
+    expect(screen.getByLabelText('Filter by date')).toHaveValue('');
+    expect(screen.getByLabelText('Filter by category')).toHaveValue('');
   });
 
   it('shows journal history entries', () => {
