@@ -17,20 +17,25 @@ interface BalanceWheelChartProps {
 export default function BalanceWheelChart({ data, hasScores }: BalanceWheelChartProps) {
   if (!hasScores) {
     return (
-      <div className="flex h-80 items-center justify-center rounded-md border border-border bg-muted/50 px-4 text-center text-body text-text-secondary lg:h-[380px] 2xl:h-[440px]">
-        Complete a few daily entries to reveal the balance wheel.
+      <div className="flex h-80 items-center justify-center rounded-lg border border-border bg-muted/45 px-4 text-center lg:h-[380px] 2xl:h-[440px]">
+        <div>
+          <p className="text-subheading text-text-primary">Balance wheel is waiting</p>
+          <p className="mt-1 max-w-sm text-caption text-text-secondary">
+            Complete a few daily entries to reveal category balance.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-80 w-full rounded-md bg-surface lg:h-[380px] 2xl:h-[440px]">
+    <div className="h-80 w-full rounded-lg bg-surface lg:h-[380px] 2xl:h-[440px]">
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart data={data} outerRadius="68%">
-          <PolarGrid stroke="var(--border)" />
+          <PolarGrid stroke="var(--border)" strokeOpacity={0.8} />
           <PolarAngleAxis
             dataKey="category"
-            tick={{ fontSize: 12, fill: 'var(--text-secondary)' }}
+            tick={{ fontSize: 12, fill: 'var(--text-secondary)', fontWeight: 500 }}
           />
           <PolarRadiusAxis
             angle={90}
@@ -41,9 +46,9 @@ export default function BalanceWheelChart({ data, hasScores }: BalanceWheelChart
           <Tooltip
             contentStyle={{
               backgroundColor: 'var(--bg-surface)',
-              borderRadius: '12px',
+              borderRadius: '8px',
               border: '1px solid var(--border)',
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+              boxShadow: 'var(--shadow-card)',
             }}
             formatter={(value) => [`${Math.round(Number(value))}%`, 'Average']}
           />

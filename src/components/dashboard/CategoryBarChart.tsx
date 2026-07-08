@@ -17,27 +17,32 @@ interface CategoryBarChartProps {
 export default function CategoryBarChart({ data }: CategoryBarChartProps) {
   if (data.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-md border border-border bg-muted/50 px-4 text-center text-body text-text-secondary">
-        Add daily entries to compare category scores.
+      <div className="flex h-64 items-center justify-center rounded-lg border border-border bg-muted/45 px-4 text-center">
+        <div>
+          <p className="text-subheading text-text-primary">No category comparison yet</p>
+          <p className="mt-1 max-w-sm text-caption text-text-secondary">
+            Add daily entries to compare category scores.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full rounded-md bg-surface" style={{ height: Math.max(360, data.length * 52) }}>
+    <div className="w-full rounded-lg bg-surface" style={{ height: Math.max(360, data.length * 52) }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
           layout="vertical"
-          margin={{ top: 12, right: 24, left: 8, bottom: 12 }}
+          margin={{ top: 12, right: 22, left: 4, bottom: 12 }}
           barCategoryGap={16}
         >
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
+          <CartesianGrid strokeDasharray="4 6" horizontal={false} stroke="var(--border)" strokeOpacity={0.72} />
           <XAxis
             type="number"
             domain={[0, 100]}
             tickFormatter={(value) => `${value}%`}
-            tick={{ fontSize: 13, fill: 'var(--text-secondary)' }}
+            tick={{ fontSize: 12, fill: 'var(--text-secondary)' }}
             axisLine={false}
             tickLine={false}
           />
@@ -45,16 +50,16 @@ export default function CategoryBarChart({ data }: CategoryBarChartProps) {
             type="category"
             dataKey="shortName"
             width={150}
-            tick={{ fontSize: 13, fill: 'var(--text-secondary)' }}
+            tick={{ fontSize: 12, fill: 'var(--text-secondary)', fontWeight: 500 }}
             axisLine={false}
             tickLine={false}
           />
           <Tooltip
             contentStyle={{
               backgroundColor: 'var(--bg-surface)',
-              borderRadius: '12px',
+              borderRadius: '8px',
               border: '1px solid var(--border)',
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+              boxShadow: 'var(--shadow-card)',
             }}
             formatter={(value) => [`${Math.round(Number(value))}%`, 'Average']}
           />
