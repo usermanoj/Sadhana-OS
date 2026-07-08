@@ -29,8 +29,7 @@ export default function CategoryListScreen({
         <button
           type="button"
           onClick={onAddCategory}
-          className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-accent-primary px-4
-                     py-2 text-body font-medium text-white shadow-sm transition-colors duration-150 sm:w-auto"
+          className="sadhana-button-primary w-full sm:w-auto"
         >
           <Plus size={18} />
           Add Category
@@ -83,7 +82,7 @@ function CategorySection({
       </div>
 
       {categories.length === 0 ? (
-        <div className="rounded-md border border-border bg-surface px-4 py-5 text-body text-text-secondary shadow-sm">
+        <div className="sadhana-surface px-4 py-5 text-body text-text-secondary">
           No {title.toLowerCase()} categories
         </div>
       ) : (
@@ -123,13 +122,13 @@ function CategoryRow({
   const totalPracticeCount = category.subComponents.length;
 
   return (
-    <div className="rounded-md border border-border bg-surface p-3 shadow-sm lg:p-4">
+    <div className="sadhana-surface p-3 lg:p-4">
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={() => onEditCategory(category.id)}
           aria-label={`Edit ${category.name}`}
-          className="flex min-w-0 flex-1 items-center gap-3 rounded-md py-1 pr-2 text-left transition-colors duration-150 hover:bg-muted/60"
+          className="flex min-w-0 flex-1 items-center gap-3 rounded-md py-1 pr-2 text-left transition-colors duration-150 hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-accent-primary/30"
         >
           <span
             className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md"
@@ -155,8 +154,7 @@ function CategoryRow({
               : onArchiveCategory(category.id)
           )}
           aria-label={`${archived ? 'Restore' : 'Archive'} ${category.name}`}
-          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md border
-                     border-border text-text-secondary transition-colors duration-150 hover:bg-muted"
+          className="sadhana-button-secondary h-11 w-11 flex-shrink-0 px-0"
         >
           {archived ? <RotateCcw size={18} /> : <Archive size={18} />}
         </button>

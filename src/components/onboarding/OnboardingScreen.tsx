@@ -38,7 +38,7 @@ export default function OnboardingScreen() {
   return (
     <main className="min-h-screen min-h-dvh bg-ivory px-4 py-6 sm:px-6">
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-3xl flex-col justify-center">
-        <section className="rounded-md border border-border bg-surface p-4 shadow-sm sm:p-6">
+        <section className="sadhana-surface p-4 sm:p-6">
           <div className="mb-6 flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary">
               <CheckCircle2 size={22} aria-hidden="true" />
@@ -58,7 +58,7 @@ export default function OnboardingScreen() {
                   id="onboarding-name"
                   value={displayName}
                   onChange={(event) => setDisplayName(event.target.value)}
-                  className="min-h-[44px] w-full rounded-md border border-border bg-ivory px-10 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
+                  className="sadhana-input w-full px-10"
                 />
               </span>
             </label>
@@ -71,7 +71,7 @@ export default function OnboardingScreen() {
                   id="onboarding-timezone"
                   value={timezone}
                   onChange={(event) => setTimezone(event.target.value)}
-                  className="min-h-[44px] w-full rounded-md border border-border bg-ivory px-10 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
+                  className="sadhana-input w-full px-10"
                 />
               </span>
             </label>
@@ -84,7 +84,7 @@ export default function OnboardingScreen() {
                   id="onboarding-week-start"
                   value={weekStartsOn}
                   onChange={(event) => setWeekStartsOn(event.target.value)}
-                  className="min-h-[44px] w-full rounded-md border border-border bg-ivory px-10 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
+                  className="sadhana-input w-full px-10"
                 >
                   <option value="0">Sunday</option>
                   <option value="1">Monday</option>
@@ -105,7 +105,7 @@ export default function OnboardingScreen() {
                 void save();
               }}
               disabled={isSaving}
-              className="flex min-h-[44px] items-center justify-center gap-2 rounded-md bg-accent-primary px-4 py-2 text-body font-medium text-white shadow-sm disabled:opacity-60"
+              className="sadhana-button-primary"
             >
               <CheckCircle2 size={18} aria-hidden="true" />
               {isSaving ? 'Saving' : 'Begin Practice'}

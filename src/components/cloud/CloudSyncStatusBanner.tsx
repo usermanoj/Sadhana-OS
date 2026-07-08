@@ -27,7 +27,7 @@ export default function CloudSyncStatusBanner() {
     <section
       aria-label="Cloud sync status"
       role={isProblem ? 'alert' : 'status'}
-      className={`mb-4 flex flex-col gap-3 rounded-md border px-4 py-3 text-body shadow-sm sm:flex-row sm:items-center sm:justify-between ${
+      className={`mb-4 flex flex-col gap-3 rounded-md border px-4 py-3 text-body shadow-card sm:flex-row sm:items-center sm:justify-between ${
         isProblem
           ? 'border-accent-warning/30 bg-accent-warning/10 text-text-primary'
           : 'border-border bg-surface text-text-secondary'
@@ -65,8 +65,7 @@ export default function CloudSyncStatusBanner() {
             void sync.retry();
           }}
           disabled={sync.status === 'retrying'}
-          className="flex min-h-[40px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-body font-medium text-text-primary shadow-sm
-                     focus-visible:ring-2 focus-visible:ring-accent-primary/30 disabled:opacity-60"
+          className="sadhana-button-secondary min-h-[40px] px-3"
         >
           <RefreshCw size={16} aria-hidden="true" />
           {actionLabel}

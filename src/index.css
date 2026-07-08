@@ -10,17 +10,19 @@
  */
 
 :root {
-  --bg-primary: #FDFAF6;
-  --bg-surface: #FFFFFF;
-  --bg-muted: #F5F0EB;
-  --text-primary: #1A1A1A;
-  --text-secondary: #6B6B6B;
-  --accent-primary: #7C3AED;
-  --accent-secondary: #F59E0B;
-  --accent-success: #10B981;
-  --accent-warning: #F59E0B;
-  --accent-danger: #EF4444;
-  --border: #E5E0DB;
+  --bg-primary: #FAF7F1;
+  --bg-surface: #FFFDFC;
+  --bg-muted: #F2EDE6;
+  --text-primary: #171412;
+  --text-secondary: #6E6258;
+  --accent-primary: #6D4AFF;
+  --accent-secondary: #C66A1B;
+  --accent-success: #0E9F6E;
+  --accent-warning: #D97706;
+  --accent-danger: #DC2626;
+  --border: #E6DED2;
+  --shadow-card: 0 10px 30px rgba(36, 28, 20, 0.06), 0 1px 2px rgba(36, 28, 20, 0.05);
+  --shadow-lifted: 0 18px 44px rgba(36, 28, 20, 0.1), 0 2px 6px rgba(36, 28, 20, 0.06);
 }
 
 * {
@@ -94,4 +96,48 @@ textarea:focus-visible {
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 9999px;
+}
+
+@layer components {
+  .sadhana-surface {
+    @apply rounded-md border border-border bg-surface;
+    box-shadow: var(--shadow-card);
+  }
+
+  .sadhana-surface-soft {
+    @apply rounded-md border border-border bg-muted/45;
+  }
+
+  .sadhana-interactive-surface {
+    @apply rounded-md border border-border bg-surface transition-[background-color,border-color,box-shadow,transform] duration-150 hover:border-accent-primary/20 hover:bg-white focus-visible:ring-2 focus-visible:ring-accent-primary/30;
+    box-shadow: var(--shadow-card);
+  }
+
+  .sadhana-interactive-surface:hover {
+    box-shadow: var(--shadow-lifted);
+  }
+
+  .sadhana-icon-tile {
+    @apply flex shrink-0 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary;
+  }
+
+  .sadhana-button-primary {
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md bg-accent-primary px-4 py-2 text-body font-medium text-white shadow-sm transition-[background-color,box-shadow,transform] duration-150 hover:bg-[#5E3EEB] focus-visible:ring-2 focus-visible:ring-accent-primary/30 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .sadhana-button-primary:hover {
+    box-shadow: var(--shadow-card);
+  }
+
+  .sadhana-button-secondary {
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-body font-medium text-text-primary shadow-sm transition-[background-color,border-color,box-shadow] duration-150 hover:border-accent-primary/20 hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-accent-primary/30 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .sadhana-button-ghost {
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md px-3 py-2 text-body font-medium text-text-secondary transition-colors duration-150 hover:bg-muted/70 hover:text-text-primary focus-visible:ring-2 focus-visible:ring-accent-primary/30 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .sadhana-input {
+    @apply min-h-[44px] rounded-md border border-border bg-surface px-3 text-body text-text-primary shadow-sm outline-none transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-text-secondary/60 focus:border-accent-primary/40 focus:bg-white focus:ring-2 focus:ring-accent-primary/20;
+  }
 }

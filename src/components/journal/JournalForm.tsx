@@ -77,7 +77,7 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
   };
 
   return (
-    <div className="space-y-5 rounded-md border border-border bg-surface p-4 shadow-sm md:p-5 lg:p-6 2xl:p-7">
+    <div className="sadhana-surface space-y-5 p-4 md:p-5 lg:p-6 2xl:p-7">
       <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
         <h2 className="text-subheading text-text-primary">Daily Reflection</h2>
         <div className="flex min-h-5 items-center text-caption" aria-live="polite" aria-atomic="true">
@@ -103,7 +103,7 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
             id="journal-mood"
             type="text" 
             placeholder="How are you feeling today?"
-            className="min-h-[44px] w-full rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
+            className="sadhana-input w-full"
             value={localEntry.mood || ''}
             onChange={(e) => handleChange('mood', e.target.value)}
             onBlur={handleBlur}
@@ -118,7 +118,7 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
             id="journal-gratitude"
             type="text" 
             placeholder="What are you grateful for?"
-            className="min-h-[44px] w-full rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
+            className="sadhana-input w-full"
             value={localEntry.gratitude || ''}
             onChange={(e) => handleChange('gratitude', e.target.value)}
             onBlur={handleBlur}
@@ -133,7 +133,7 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
             id="journal-spiritual-insight"
             type="text" 
             placeholder="Any profound thoughts or realizations?"
-            className="min-h-[44px] w-full rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
+            className="sadhana-input w-full"
             value={localEntry.spiritualInsight || ''}
             onChange={(e) => handleChange('spiritualInsight', e.target.value)}
             onBlur={handleBlur}
@@ -148,7 +148,7 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
             id="journal-lesson-learned"
             type="text" 
             placeholder="What did you learn today?"
-            className="min-h-[44px] w-full rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
+            className="sadhana-input w-full"
             value={localEntry.lessonLearned || ''}
             onChange={(e) => handleChange('lessonLearned', e.target.value)}
             onBlur={handleBlur}
@@ -164,7 +164,7 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
           id="journal-trigger-observed"
           type="text" 
           placeholder="Any mental or emotional triggers you noticed?"
-          className="min-h-[44px] w-full rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
+          className="sadhana-input w-full"
           value={localEntry.triggerObserved || ''}
           onChange={(e) => handleChange('triggerObserved', e.target.value)}
           onBlur={handleBlur}
@@ -178,7 +178,7 @@ export default function JournalForm({ entry, onSave }: JournalFormProps) {
         <textarea 
           id="journal-content"
           placeholder="Write your thoughts here..."
-          className="min-h-[300px] w-full resize-y rounded-md border border-border bg-ivory px-3 py-3 text-body leading-relaxed text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30 lg:min-h-[340px]"
+          className="sadhana-input min-h-[300px] w-full resize-y py-3 leading-relaxed lg:min-h-[340px]"
           value={localEntry.content || ''}
           onChange={(e) => handleChange('content', e.target.value)}
           onBlur={handleBlur}

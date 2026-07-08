@@ -25,7 +25,7 @@ export default function ScreenHeader({
     <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-center gap-3">
         <span
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md lg:h-11 lg:w-11 ${toneClasses[tone]}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md shadow-sm lg:h-11 lg:w-11 ${toneClasses[tone]}`}
         >
           <Icon size={22} aria-hidden="true" />
         </span>

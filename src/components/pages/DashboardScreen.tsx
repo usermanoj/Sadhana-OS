@@ -141,7 +141,7 @@ export default function DashboardScreen() {
         />
       </section>
 
-      <section className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-6 2xl:p-7">
+      <section className="sadhana-surface p-4 lg:p-6 2xl:p-7">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-subheading text-text-primary">Good Life Score Over Time</h2>
@@ -154,8 +154,7 @@ export default function DashboardScreen() {
             </label>
             <select
               id="dashboard-category-filter"
-              className="min-h-[44px] w-full rounded-md border border-border bg-surface px-3 text-body
-                         text-text-secondary outline-none focus:ring-2 focus:ring-accent-primary/25 sm:w-56"
+              className="sadhana-input w-full text-text-secondary sm:w-56"
               value={categoryFilter}
               onChange={(event) => setCategoryFilter(event.target.value)}
             >
@@ -192,7 +191,7 @@ export default function DashboardScreen() {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2 2xl:gap-5">
-        <div className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-6 2xl:p-7">
+        <div className="sadhana-surface p-4 lg:p-6 2xl:p-7">
           <div className="mb-5">
             <h2 className="text-subheading text-text-primary">9-Category Balance Wheel</h2>
             <p className="text-caption text-text-secondary">Average category balance for this range.</p>
@@ -200,7 +199,7 @@ export default function DashboardScreen() {
           <BalanceWheelChart data={balanceWheelData} hasScores={hasCategoryAverageScores} />
         </div>
 
-        <div className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-6 2xl:p-7">
+        <div className="sadhana-surface p-4 lg:p-6 2xl:p-7">
           <div className="mb-5">
             <h2 className="text-subheading text-text-primary">Category Scores</h2>
             <p className="text-caption text-text-secondary">Average score by active category.</p>
@@ -209,7 +208,7 @@ export default function DashboardScreen() {
         </div>
       </section>
 
-      <section className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-6 2xl:p-7">
+      <section className="sadhana-surface p-4 lg:p-6 2xl:p-7">
         <div className="mb-5 flex items-center gap-2">
           <TrendingUp size={20} className="text-accent-primary" aria-hidden="true" />
           <h2 className="text-subheading text-text-primary">Category Average Scores</h2>

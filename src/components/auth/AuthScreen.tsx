@@ -154,7 +154,7 @@ export default function AuthScreen() {
             </div>
           </div>
 
-          <div className="rounded-md border border-border bg-surface p-4 shadow-sm sm:p-5 lg:p-6">
+          <div className="sadhana-surface p-4 sm:p-5 lg:p-6">
             <div className="mb-5 flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-secondary/15 text-amber-700">
                 <ShieldCheck size={20} aria-hidden="true" />
@@ -166,7 +166,7 @@ export default function AuthScreen() {
             </div>
 
             {!auth.isCloudConfigured ? (
-              <div className="rounded-md border border-border bg-muted/50 p-4 text-body text-text-secondary">
+              <div className="sadhana-surface-soft p-4 text-body text-text-secondary">
                 Cloud accounts are not configured for this environment.
               </div>
             ) : (
@@ -178,7 +178,7 @@ export default function AuthScreen() {
                       void submitProvider('google');
                     }}
                     disabled={pendingAction !== null}
-                    className="flex min-h-[44px] items-center justify-center gap-2 rounded-md bg-accent-primary px-4 py-2 text-body font-medium text-white shadow-sm disabled:opacity-60"
+                    className="sadhana-button-primary w-full"
                   >
                     <Chrome size={18} aria-hidden="true" />
                     {pendingAction === 'google' ? 'Opening Google' : 'Continue with Google'}
@@ -219,7 +219,7 @@ export default function AuthScreen() {
                     autoComplete="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    className="min-h-[44px] rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
+                    className="sadhana-input"
                   />
                 </label>
 
@@ -231,7 +231,7 @@ export default function AuthScreen() {
                     autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    className="min-h-[44px] rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
+                    className="sadhana-input"
                   />
                 </label>
 
@@ -241,7 +241,7 @@ export default function AuthScreen() {
                     void submitPassword();
                   }}
                   disabled={pendingAction !== null}
-                  className="flex min-h-[44px] items-center justify-center gap-2 rounded-md bg-accent-primary px-4 py-2 text-body font-medium text-white shadow-sm disabled:opacity-60"
+                  className="sadhana-button-primary"
                 >
                   <KeyRound size={18} aria-hidden="true" />
                   {pendingAction === 'password' ? 'Working' : getPasswordActionLabel(mode)}
@@ -255,7 +255,7 @@ export default function AuthScreen() {
                       setShowMagicLink(false);
                       setStatus(null);
                     }}
-                    className="text-left text-caption font-medium text-accent-primary"
+                    className="text-left text-caption font-medium text-accent-primary hover:text-[#5E3EEB]"
                   >
                     Forgot password?
                   </button>
@@ -266,7 +266,7 @@ export default function AuthScreen() {
                       setShowPasswordReset(false);
                       setStatus(null);
                     }}
-                    className="text-left text-caption font-medium text-accent-primary"
+                    className="text-left text-caption font-medium text-accent-primary hover:text-[#5E3EEB]"
                   >
                     Use magic link instead
                   </button>
@@ -325,14 +325,14 @@ function EmailActionPanel({
   const isDisabled = pendingAction !== null || cooldown > 0;
 
   return (
-    <div className="rounded-md border border-border bg-muted/40 p-3">
+    <div className="sadhana-surface-soft p-3">
       <button
         type="button"
         onClick={() => {
           void onSubmit(action);
         }}
         disabled={isDisabled}
-        className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-body font-medium text-text-primary shadow-sm disabled:opacity-60"
+        className="sadhana-button-secondary w-full"
       >
         <Icon size={18} aria-hidden="true" />
         {isPending ? 'Sending' : cooldown > 0 ? `Wait ${cooldown}s` : title}
@@ -345,7 +345,7 @@ function StatusMessage({ status }: { status: NonNullable<FormStatus> }) {
   return (
     <p
       role="status"
-      className={`rounded-md border px-3 py-2 text-body ${
+      className={`rounded-md border px-3 py-2 text-body shadow-card ${
         status.tone === 'success'
           ? 'border-accent-success/20 bg-accent-success/10 text-green-700'
           : 'border-accent-danger/20 bg-accent-danger/10 text-red-700'

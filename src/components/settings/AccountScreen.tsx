@@ -84,10 +84,10 @@ export default function AccountScreen() {
           title="Account"
           subtitle="Local-only mode"
         />
-        <div className="max-w-3xl rounded-md border border-border bg-surface p-4 text-body text-text-secondary shadow-sm lg:p-5">
+        <div className="sadhana-surface max-w-3xl p-4 text-body text-text-secondary lg:p-5">
           Cloud accounts are not configured in this environment. Your MVP data remains on this device and export/import stays available.
         </div>
-        <div className="max-w-3xl rounded-md border border-border bg-muted/50 p-4 text-caption text-text-secondary">
+        <div className="sadhana-surface-soft max-w-3xl p-4 text-caption text-text-secondary">
           Missing: {auth.missingConfigKeys.join(', ')}
         </div>
       </section>
@@ -103,7 +103,7 @@ export default function AccountScreen() {
           subtitle="Cloud identity"
         />
 
-        <div className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-5">
+        <div className="sadhana-surface p-4 lg:p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary">
@@ -127,8 +127,7 @@ export default function AccountScreen() {
                   });
                 });
               }}
-              className="flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-body font-medium text-text-primary shadow-sm
-                         focus-visible:ring-2 focus-visible:ring-accent-primary/30"
+              className="sadhana-button-secondary"
             >
               <LogOut size={18} aria-hidden="true" />
               Sign Out
@@ -163,7 +162,7 @@ export default function AccountScreen() {
         subtitle="Sign in to enable cloud sync"
       />
 
-      <div className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-5">
+      <div className="sadhana-surface p-4 lg:p-5">
         <label className="flex flex-col gap-1 text-caption font-medium text-text-secondary" htmlFor="account-email">
           Email
           <input
@@ -172,7 +171,7 @@ export default function AccountScreen() {
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="min-h-[44px] rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
+            className="sadhana-input"
           />
         </label>
 
@@ -182,8 +181,7 @@ export default function AccountScreen() {
             void sendMagicLink();
           }}
           disabled={isSubmitting || magicLinkCooldown > 0}
-          className="mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-accent-primary px-4 py-2 text-body font-medium text-white shadow-sm
-                     focus-visible:ring-2 focus-visible:ring-accent-primary/30 disabled:opacity-60 sm:w-auto"
+          className="sadhana-button-primary mt-3 w-full sm:w-auto"
         >
           <Mail size={18} aria-hidden="true" />
           {isSubmitting ? 'Sending Link' : magicLinkCooldown > 0 ? `Wait ${magicLinkCooldown}s` : 'Send Sign-In Link'}
@@ -217,7 +215,7 @@ function SectionHeader({ icon: Icon, title, subtitle }: SectionHeaderProps) {
 
 function AccountField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md bg-muted/50 px-3 py-2">
+    <div className="sadhana-surface-soft px-3 py-2">
       <dt className="text-caption font-medium text-text-secondary">{label}</dt>
       <dd className="mt-1 flex items-center gap-2 text-body text-text-primary">
         <CheckCircle2 size={16} className="text-accent-success" aria-hidden="true" />
@@ -243,7 +241,7 @@ function CloudSyncAccountPanel() {
     <div
       aria-label="Cloud sync"
       role={isProblem ? 'alert' : 'status'}
-      className={`mt-5 rounded-md border px-3 py-3 ${
+      className={`mt-5 rounded-md border px-3 py-3 shadow-card ${
         isProblem
           ? 'border-accent-warning/30 bg-accent-warning/10'
           : 'border-border bg-muted/50'
@@ -290,8 +288,7 @@ function CloudSyncAccountPanel() {
               void sync.retry();
             }}
             disabled={sync.status === 'retrying'}
-            className="flex min-h-[40px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-body font-medium text-text-primary shadow-sm
-                       focus-visible:ring-2 focus-visible:ring-accent-primary/30 disabled:opacity-60"
+            className="sadhana-button-secondary min-h-[40px] px-3"
           >
             <RefreshCw size={16} aria-hidden="true" />
             {actionLabel}
@@ -306,7 +303,7 @@ function StatusBanner({ status }: { status: NonNullable<StatusMessage> }) {
   return (
     <p
       role="status"
-      className={`rounded-md border px-4 py-3 text-body shadow-sm ${
+      className={`rounded-md border px-4 py-3 text-body shadow-card ${
         status.tone === 'success'
           ? 'border-accent-success/20 bg-accent-success/10 text-green-700'
           : 'border-accent-danger/20 bg-accent-danger/10 text-red-700'

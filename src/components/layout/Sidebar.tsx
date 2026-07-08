@@ -24,10 +24,10 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   return (
     <aside
       id="sidebar"
-      className="fixed bottom-0 left-0 top-0 z-50 hidden w-72 flex-col border-r border-border bg-surface/95 shadow-sm backdrop-blur-sm lg:flex"
+      className="fixed bottom-0 left-0 top-0 z-50 hidden w-72 flex-col border-r border-border bg-surface/95 shadow-nav backdrop-blur-sm lg:flex"
     >
       <div className="flex items-center gap-3 px-6 py-7">
-        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-accent-primary shadow-sm">
+        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary shadow-card">
           <span className="text-sm font-semibold text-white">SO</span>
         </div>
         <p className="text-heading text-text-primary">Sadhana OS</p>
@@ -42,10 +42,10 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
               id={`sidebar-${id}`}
               onClick={() => onTabChange(id)}
               aria-label={label}
-              className={`flex min-h-[44px] items-center gap-3 rounded-md px-3.5 py-3 text-left
+              className={`flex min-h-[46px] items-center gap-3 rounded-md px-3.5 py-3 text-left
                           transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-accent-primary/30
                           ${isActive
-                            ? 'bg-accent-primary/10 font-medium text-accent-primary shadow-sm'
+                            ? 'bg-accent-primary/10 font-medium text-accent-primary shadow-sm ring-1 ring-accent-primary/10'
                             : 'text-text-secondary hover:bg-muted/70 hover:text-text-primary'
                           }`}
               aria-current={isActive ? 'page' : undefined}

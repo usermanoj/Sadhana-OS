@@ -24,14 +24,14 @@ export default function MetricCard({
   tone = 'primary',
 }: MetricCardProps) {
   return (
-    <section className="min-h-[148px] rounded-md border border-border bg-surface p-4 shadow-sm lg:p-6 2xl:min-h-[170px]">
+    <section className="min-h-[148px] rounded-md border border-border bg-surface p-4 shadow-card lg:p-6 2xl:min-h-[170px]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-caption font-medium text-text-secondary">{title}</p>
           <p className="mt-2 break-words text-heading text-text-primary tabular-nums">{value}</p>
           <p className="mt-1 text-caption text-text-secondary">{subtitle}</p>
         </div>
-        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md lg:h-12 lg:w-12 ${toneClasses[tone]}`}>
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md shadow-sm lg:h-12 lg:w-12 ${toneClasses[tone]}`}>
           <Icon size={22} aria-hidden="true" />
         </div>
       </div>

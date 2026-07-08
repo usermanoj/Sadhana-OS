@@ -9,8 +9,8 @@ export default function StreakCard({ streak }: StreakCardProps) {
 
   return (
     <section
-      className={`flex min-h-[148px] items-center justify-between rounded-md border p-5 shadow-sm lg:p-6 2xl:min-h-[170px] ${
-        isActive ? 'border-accent-primary/20 bg-accent-primary/10' : 'border-border bg-surface'
+      className={`flex min-h-[148px] items-center justify-between rounded-md border p-5 lg:p-6 2xl:min-h-[170px] ${
+        isActive ? 'border-accent-primary/20 bg-accent-primary/10 shadow-card' : 'border-border bg-surface shadow-card'
       }`}
       aria-label="Current streak"
     >
@@ -24,7 +24,7 @@ export default function StreakCard({ streak }: StreakCardProps) {
       </div>
 
       <div
-        className={`flex h-12 w-12 items-center justify-center rounded-full ${
+        className={`flex h-12 w-12 items-center justify-center rounded-full shadow-sm ${
           isActive ? 'bg-accent-warning text-white' : 'bg-muted text-text-secondary'
         }`}
       >

@@ -44,7 +44,7 @@ export default function ResetPasswordScreen() {
           <Sparkles size={24} aria-hidden="true" />
         </span>
 
-        <section className="rounded-md border border-border bg-surface p-4 shadow-sm sm:p-5" aria-label="Reset password">
+        <section className="sadhana-surface p-4 sm:p-5" aria-label="Reset password">
           <div className="mb-5 flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-secondary/15 text-amber-700">
               <ShieldCheck size={20} aria-hidden="true" />
@@ -64,7 +64,7 @@ export default function ResetPasswordScreen() {
                 autoComplete="new-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="min-h-[44px] rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
+                className="sadhana-input"
               />
             </label>
 
@@ -76,7 +76,7 @@ export default function ResetPasswordScreen() {
                 autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
-                className="min-h-[44px] rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/30"
+                className="sadhana-input"
               />
             </label>
 
@@ -86,7 +86,7 @@ export default function ResetPasswordScreen() {
                 void submit();
               }}
               disabled={isSubmitting}
-              className="flex min-h-[44px] items-center justify-center gap-2 rounded-md bg-accent-primary px-4 py-2 text-body font-medium text-white shadow-sm disabled:opacity-60"
+              className="sadhana-button-primary"
             >
               <KeyRound size={18} aria-hidden="true" />
               {isSubmitting ? 'Updating' : 'Update Password'}
