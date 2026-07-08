@@ -24,8 +24,8 @@ export default function BottomTabBar({ activeTab, onTabChange }: BottomTabBarPro
   return (
     <nav
       id="bottom-tab-bar"
-      className="fixed bottom-0 left-0 right-0 z-50 flex h-[calc(4.25rem+env(safe-area-inset-bottom))] items-center justify-around
-                 border-t border-border bg-surface/95 px-1.5 pb-[env(safe-area-inset-bottom)] shadow-nav backdrop-blur-md lg:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 flex h-[calc(4.75rem+env(safe-area-inset-bottom))] items-center justify-around
+                 border-t border-border bg-surface/95 px-[calc(0.375rem+env(safe-area-inset-left))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pr-[calc(0.375rem+env(safe-area-inset-right))] shadow-nav backdrop-blur-md lg:hidden"
       aria-label="Main navigation"
     >
       {tabs.map(({ id, label, icon: Icon }) => {
