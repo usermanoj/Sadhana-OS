@@ -70,7 +70,7 @@ export default function PrivacyScreen() {
   return (
     <section className="flex flex-col gap-4" aria-label="Privacy">
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-11 lg:w-11">
+        <span className="sadhana-icon-tile h-10 w-10 lg:h-11 lg:w-11">
           <ShieldCheck size={21} aria-hidden="true" />
         </span>
         <div>
@@ -79,7 +79,7 @@ export default function PrivacyScreen() {
         </div>
       </div>
 
-      <div className="max-w-4xl rounded-md border border-border bg-surface p-4 shadow-sm lg:p-5">
+      <div className="sadhana-surface max-w-4xl p-4 lg:p-5">
         <h3 className="text-subheading text-text-primary">Portable Data</h3>
         <p className="mt-1 text-body text-text-secondary">
           JSON export includes tracker configuration, daily entries, journal entries, and audit history.
@@ -90,14 +90,14 @@ export default function PrivacyScreen() {
         <button
           type="button"
           onClick={exportBackup}
-          className="mt-4 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-accent-primary px-4 py-2 text-body font-medium text-white shadow-sm sm:w-auto"
+          className="sadhana-button-primary mt-4 w-full sm:w-auto"
         >
           <Download size={18} aria-hidden="true" />
           Export JSON Backup
         </button>
       </div>
 
-      <div className="max-w-4xl rounded-md border border-border bg-surface p-4 shadow-sm lg:p-5">
+      <div className="sadhana-surface max-w-4xl p-4 lg:p-5">
         <h3 className="text-subheading text-text-primary">Account Deletion</h3>
         {!auth.isCloudConfigured ? (
           <p className="mt-1 text-body text-text-secondary">
@@ -132,7 +132,7 @@ export default function PrivacyScreen() {
                 value={deletionConfirmation}
                 onChange={(event) => setDeletionConfirmation(event.target.value)}
                 autoComplete="off"
-                className="min-h-[44px] rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-danger/30"
+                className="sadhana-input focus:border-accent-danger/40 focus:ring-accent-danger/20"
               />
             </label>
             <button
@@ -141,7 +141,7 @@ export default function PrivacyScreen() {
                 void requestDeletion();
               }}
               disabled={!canDelete || isDeleting}
-              className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md border border-accent-danger/30 bg-accent-danger px-4 py-2 text-body font-medium text-white shadow-sm disabled:opacity-50 sm:w-auto"
+              className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md border border-accent-danger/30 bg-accent-danger px-4 py-2 text-body font-medium text-white shadow-card transition-[opacity,box-shadow,transform] duration-150 hover:shadow-lifted focus-visible:ring-2 focus-visible:ring-accent-danger/30 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
               <Trash2 size={18} aria-hidden="true" />
               {isDeleting ? 'Requesting Deletion' : 'Request Account Deletion'}
@@ -153,7 +153,7 @@ export default function PrivacyScreen() {
       {status ? (
         <p
           role="status"
-          className={`rounded-md border px-4 py-3 text-body shadow-sm ${
+          className={`rounded-md border px-4 py-3 text-body shadow-card ${
             status.tone === 'success'
               ? 'border-accent-success/20 bg-accent-success/10 text-green-700'
               : 'border-accent-danger/20 bg-accent-danger/10 text-red-700'

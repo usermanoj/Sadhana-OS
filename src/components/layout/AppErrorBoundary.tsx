@@ -37,7 +37,7 @@ export default class AppErrorBoundary extends Component<AppErrorBoundaryProps, A
     return (
       <main className="flex min-h-screen min-h-dvh items-center justify-center bg-ivory px-4 py-8">
         <section
-          className="w-full max-w-md rounded-md border border-border bg-surface p-5 shadow-sm"
+          className="sadhana-surface w-full max-w-md p-5"
           aria-labelledby="app-error-title"
         >
           <div className="flex items-start gap-3">
@@ -56,7 +56,7 @@ export default class AppErrorBoundary extends Component<AppErrorBoundaryProps, A
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="mt-5 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-accent-primary px-4 py-2 text-body font-medium text-white shadow-sm"
+            className="sadhana-button-primary mt-5 w-full"
           >
             <RefreshCw size={18} aria-hidden="true" />
             Refresh app

@@ -73,7 +73,7 @@ export default function CategoryForm({
     <div className="flex flex-col gap-5">
       <form
         onSubmit={handleSubmit}
-        className="rounded-md border border-border bg-surface p-4 shadow-sm"
+        className="sadhana-surface p-4"
       >
         <div className="mb-4">
           <h2 className="text-heading text-text-primary">
@@ -91,9 +91,7 @@ export default function CategoryForm({
               id="category-name"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="min-h-[44px] rounded-md border border-border bg-surface px-3 text-body
-                         text-text-primary outline-none transition-shadow duration-150
-                         focus:ring-2 focus:ring-accent-primary/25"
+              className="sadhana-input"
             />
           </div>
 
@@ -117,15 +115,13 @@ export default function CategoryForm({
             <button
               type="button"
               onClick={onCancel}
-              className="min-h-[44px] rounded-md border border-border px-4 py-2 text-body
-                         font-medium text-text-secondary transition-colors duration-150 hover:bg-muted"
+              className="sadhana-button-secondary"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="min-h-[44px] rounded-md bg-accent-primary px-4 py-2 text-body
-                         font-medium text-white shadow-sm transition-colors duration-150"
+              className="sadhana-button-primary"
             >
               Save Category
             </button>
@@ -189,7 +185,7 @@ function PracticeManager({
   };
 
   return (
-    <section className="rounded-md border border-border bg-surface p-4 shadow-sm" aria-label="Practices">
+    <section className="sadhana-surface p-4" aria-label="Practices">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-subheading text-text-primary">Practices</h3>
         <span className="text-caption text-text-secondary tabular-nums">
@@ -230,7 +226,7 @@ function PracticeManager({
 
         <form
           onSubmit={handleAddPractice}
-          className="rounded-md border border-border bg-muted/40 p-3"
+          className="sadhana-surface-soft p-3"
         >
           <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end">
             <div className="flex flex-col gap-1.5">
@@ -241,8 +237,7 @@ function PracticeManager({
                 id="new-practice-name"
                 value={newPracticeName}
                 onChange={(event) => setNewPracticeName(event.target.value)}
-                className="min-h-[44px] rounded-md border border-border bg-surface px-3 text-body
-                           text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/25"
+                className="sadhana-input"
               />
             </div>
 
@@ -255,8 +250,7 @@ function PracticeManager({
 
             <button
               type="submit"
-              className="min-h-[44px] rounded-md bg-accent-primary px-4 py-2 text-body
-                         font-medium text-white shadow-sm"
+              className="sadhana-button-primary"
             >
               Add Practice
             </button>
@@ -301,7 +295,7 @@ function PracticeSection({
       </h4>
 
       {subComponents.length === 0 ? (
-        <p className="rounded-md border border-border bg-surface px-3 py-3 text-body text-text-secondary">
+        <p className="sadhana-surface px-3 py-3 text-body text-text-secondary">
           No practices
         </p>
       ) : (
@@ -344,7 +338,7 @@ function PracticeRow({
   const archived = subComponent.isArchived;
 
   return (
-    <div className="rounded-md border border-border bg-surface p-3">
+    <div className="sadhana-surface p-3">
       <div className="flex items-center gap-2">
         <div className="min-w-0 flex-1">
           <p className="truncate text-body text-text-primary">{subComponent.name}</p>
@@ -356,8 +350,7 @@ function PracticeRow({
           type="button"
           onClick={onEdit}
           aria-label={`Edit ${subComponent.name}`}
-          className="flex h-11 w-11 items-center justify-center rounded-md border border-border
-                     text-text-secondary transition-colors duration-150 hover:bg-muted"
+          className="sadhana-button-secondary h-11 w-11 px-0"
         >
           <Pencil size={17} />
         </button>
@@ -365,8 +358,7 @@ function PracticeRow({
           type="button"
           onClick={archived ? onRestore : onArchive}
           aria-label={`${archived ? 'Restore' : 'Archive'} ${subComponent.name}`}
-          className="flex h-11 w-11 items-center justify-center rounded-md border border-border
-                     text-text-secondary transition-colors duration-150 hover:bg-muted"
+          className="sadhana-button-secondary h-11 w-11 px-0"
         >
           {archived ? <RotateCcw size={17} /> : <Archive size={17} />}
         </button>
@@ -399,7 +391,7 @@ function PracticeEditRow({ subComponent, onCancel, onSave }: PracticeEditRowProp
   };
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-md border border-accent-primary/25 bg-muted/40 p-3">
+    <form onSubmit={handleSubmit} className="rounded-md border border-accent-primary/25 bg-muted/40 p-3 shadow-sm">
       <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end">
         <div className="flex flex-col gap-1.5">
           <label htmlFor={`practice-name-${subComponent.id}`} className="text-caption font-medium text-text-secondary">
@@ -409,8 +401,7 @@ function PracticeEditRow({ subComponent, onCancel, onSave }: PracticeEditRowProp
             id={`practice-name-${subComponent.id}`}
             value={name}
             onChange={(event) => setName(event.target.value)}
-            className="min-h-[44px] rounded-md border border-border bg-surface px-3 text-body
-                       text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/25"
+            className="sadhana-input"
           />
         </div>
 
@@ -424,8 +415,7 @@ function PracticeEditRow({ subComponent, onCancel, onSave }: PracticeEditRowProp
         <button
           type="submit"
           aria-label={`Save ${subComponent.name}`}
-          className="flex min-h-[44px] items-center justify-center gap-2 rounded-md bg-accent-primary
-                     px-3 py-2 text-body font-medium text-white"
+          className="sadhana-button-primary px-3"
         >
           <Check size={17} />
           Save
@@ -434,8 +424,7 @@ function PracticeEditRow({ subComponent, onCancel, onSave }: PracticeEditRowProp
           type="button"
           onClick={onCancel}
           aria-label={`Cancel editing ${subComponent.name}`}
-          className="flex min-h-[44px] items-center justify-center gap-2 rounded-md border
-                     border-border px-3 py-2 text-body font-medium text-text-secondary hover:bg-muted"
+          className="sadhana-button-secondary px-3"
         >
           <X size={17} />
           Cancel
@@ -473,8 +462,7 @@ function TrackingTypeSelect({
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value as TrackingType)}
-        className="min-h-[44px] rounded-md border border-border bg-surface px-3 text-body
-                   text-text-primary outline-none focus:ring-2 focus:ring-accent-primary/25"
+        className="sadhana-input"
       >
         {TRACKING_TYPE_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>

@@ -76,7 +76,7 @@ export default function SettingsScreen() {
         />
 
         <div
-          className="flex gap-2 overflow-x-auto rounded-md border border-border bg-surface p-1 shadow-sm [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="sadhana-surface flex gap-2 overflow-x-auto p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           aria-label="Settings sections"
         >
           {settingsSections.map((item) => (

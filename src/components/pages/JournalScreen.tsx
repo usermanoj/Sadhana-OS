@@ -22,7 +22,7 @@ export default function JournalScreen() {
         title="Journal"
         subtitle="Reflective notes and daily insight"
         actions={(
-          <div className="rounded-md border border-border bg-surface px-2 py-1 shadow-sm md:min-w-80">
+          <div className="sadhana-surface px-2 py-1 md:min-w-80">
             <DateNavigator
               selectedDate={selectedDate}
               onPrev={() => {

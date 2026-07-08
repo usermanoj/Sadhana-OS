@@ -123,7 +123,7 @@ export default function DataScreen() {
       {status ? (
         <div
           role="status"
-          className={`rounded-md border px-4 py-3 text-body shadow-sm ${
+          className={`rounded-md border px-4 py-3 text-body shadow-card ${
             status.tone === 'success'
               ? 'border-accent-success/20 bg-accent-success/10 text-green-700'
               : status.tone === 'warning'
@@ -160,9 +160,7 @@ export default function DataScreen() {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           aria-label="Import JSON"
-          className="flex min-h-[132px] flex-col justify-between rounded-md border border-border bg-surface p-4 text-left shadow-sm
-                     transition-[background-color,border-color,box-shadow] duration-150 hover:border-accent-primary/20 hover:bg-muted/40
-                     focus-visible:ring-2 focus-visible:ring-accent-primary/30 lg:min-h-[170px] lg:p-6"
+          className="sadhana-interactive-surface flex min-h-[132px] flex-col justify-between p-4 text-left lg:min-h-[170px] lg:p-6"
         >
           <span className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-12 lg:w-12">
@@ -229,7 +227,7 @@ function BackupTrustPanel({
   return (
     <section
       aria-label="Backup cloud status"
-      className={`flex flex-col gap-3 rounded-md border px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between ${
+      className={`flex flex-col gap-3 rounded-md border px-4 py-3 shadow-card sm:flex-row sm:items-center sm:justify-between ${
         isWarning
           ? 'border-accent-warning/30 bg-accent-warning/10'
           : 'border-border bg-surface'
@@ -258,8 +256,7 @@ function BackupTrustPanel({
         type="button"
         onClick={onRefresh}
         disabled={!trust.canRefresh || isRefreshing}
-        className="flex min-h-[40px] items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-body font-medium text-text-primary shadow-sm
-                   focus-visible:ring-2 focus-visible:ring-accent-primary/30 disabled:cursor-not-allowed disabled:opacity-60"
+        className="sadhana-button-secondary min-h-[40px] px-3"
       >
         <RefreshCw size={16} aria-hidden="true" className={isRefreshing ? 'motion-safe:animate-spin' : undefined} />
         {isRefreshing ? 'Refreshing' : CLOUD_SYNC_ACTION_LABELS.refresh}
@@ -281,9 +278,7 @@ function DataAction({ title, description, icon: Icon, onClick }: DataActionProps
       type="button"
       onClick={onClick}
       aria-label={title}
-      className="flex min-h-[132px] flex-col justify-between rounded-md border border-border bg-surface p-4 text-left shadow-sm
-                 transition-[background-color,border-color,box-shadow] duration-150 hover:border-accent-primary/20 hover:bg-muted/40
-                 focus-visible:ring-2 focus-visible:ring-accent-primary/30 lg:min-h-[170px] lg:p-6"
+      className="sadhana-interactive-surface flex min-h-[132px] flex-col justify-between p-4 text-left lg:min-h-[170px] lg:p-6"
     >
       <span className="flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary lg:h-12 lg:w-12">

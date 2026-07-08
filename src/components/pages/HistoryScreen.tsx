@@ -147,7 +147,7 @@ function HistoryFilterControls({
   onCategoryFilterChange,
 }: HistoryFilterControlsProps) {
   return (
-    <div className="grid gap-3 rounded-md border border-border bg-surface p-3 shadow-sm sm:grid-cols-2">
+    <div className="sadhana-surface grid gap-3 p-3 sm:grid-cols-2">
       <label className="flex flex-col gap-1 text-caption font-medium text-text-secondary" htmlFor="history-date-filter">
         Filter by date
         <input
@@ -155,7 +155,7 @@ function HistoryFilterControls({
           type="date"
           value={dateFilter}
           onChange={(event) => onDateFilterChange(event.target.value)}
-          className="min-h-[44px] rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary"
+          className="sadhana-input"
         />
       </label>
 
@@ -165,7 +165,7 @@ function HistoryFilterControls({
           id="history-category-filter"
           value={categoryFilter}
           onChange={(event) => onCategoryFilterChange(event.target.value)}
-          className="min-h-[44px] rounded-md border border-border bg-ivory px-3 text-body text-text-primary outline-none focus:ring-2 focus:ring-accent-primary"
+          className="sadhana-input"
         >
           <option value="">All categories</option>
           {categories.map((category) => (
@@ -198,7 +198,7 @@ function PracticeHistorySection({ rows }: { rows: PracticeHistoryRow[] }) {
 
 function PracticeHistoryCard({ row }: { row: PracticeHistoryRow }) {
   return (
-    <article className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-5">
+    <article className="sadhana-surface p-4 lg:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-caption font-medium text-text-secondary">{row.date}</p>
@@ -226,7 +226,7 @@ function JournalHistorySection({ entries }: { entries: JournalEntry[] }) {
       ) : (
         <div className="grid gap-3 xl:grid-cols-2">
           {entries.map((entry) => (
-            <article key={entry.date} className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-5">
+            <article key={entry.date} className="sadhana-surface p-4 lg:p-5">
               <p className="text-caption font-medium text-text-secondary">{entry.date}</p>
               <p className="mt-2 whitespace-pre-wrap text-body text-text-primary">{entry.content}</p>
               <JournalMeta entry={entry} />
@@ -270,7 +270,7 @@ function AuditHistorySection({ entries }: { entries: AuditLogEntry[] }) {
       ) : (
         <div className="flex flex-col gap-3">
           {entries.map((entry) => (
-            <article key={entry.id} className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-5">
+            <article key={entry.id} className="sadhana-surface p-4 lg:p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-caption font-medium text-text-secondary">{formatTimestamp(entry.timestamp)}</p>
@@ -314,7 +314,7 @@ function ArchivedItemsSection({
       ) : (
         <div className="grid gap-3 xl:grid-cols-2">
           {items.map((item) => (
-            <article key={item.id} className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-5">
+            <article key={item.id} className="sadhana-surface p-4 lg:p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <p className="text-caption font-medium capitalize text-text-secondary">{item.type}</p>
@@ -332,7 +332,7 @@ function ArchivedItemsSection({
                       onRestoreHabit(item.categoryId, item.habitId);
                     }
                   }}
-                  className="flex min-h-[44px] items-center gap-2 rounded-md bg-accent-primary px-4 py-2 text-body font-medium text-white shadow-sm transition-colors duration-150 hover:bg-accent-secondary"
+                  className="sadhana-button-primary"
                   aria-label={`Restore ${item.type} ${item.name}`}
                 >
                   <ArchiveRestore size={18} />
@@ -358,7 +358,7 @@ function SectionHeader({ title, count }: { title: string; count: number }) {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="rounded-md border border-border bg-surface px-4 py-5 text-body text-text-secondary shadow-sm">
+    <div className="sadhana-surface px-4 py-5 text-body text-text-secondary">
       {message}
     </div>
   );
@@ -379,7 +379,7 @@ function AuditValuePanel({ title, value }: { title: string; value: unknown }) {
     return (
       <div className="min-w-0">
         <h4 className="mb-1 text-caption font-medium text-text-secondary">{title}</h4>
-        <p className="rounded-md border border-border bg-ivory p-3 text-body text-text-primary">
+        <p className="sadhana-surface-soft p-3 text-body text-text-primary">
           {String(value)}
         </p>
       </div>
@@ -395,7 +395,7 @@ function AuditValuePanel({ title, value }: { title: string; value: unknown }) {
   return (
     <div className="min-w-0">
       <h4 className="mb-2 text-caption font-medium text-text-secondary">{title}</h4>
-      <dl className="grid gap-2 rounded-md border border-border bg-ivory p-3 text-caption">
+      <dl className="sadhana-surface-soft grid gap-2 p-3 text-caption">
         {entries.map(([k, v]) => (
           <div key={k} className="grid grid-cols-[1fr_2fr] gap-2 border-b border-border/50 pb-2 last:border-0 last:pb-0">
             <dt className="text-text-secondary capitalize">

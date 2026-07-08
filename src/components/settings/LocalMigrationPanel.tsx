@@ -234,7 +234,7 @@ export default function LocalMigrationPanel() {
   const primaryActionLabel = review ? 'Copy Reviewed Data' : 'Review Local Data';
 
   return (
-    <section className="rounded-md border border-border bg-surface p-4 shadow-sm lg:p-5" aria-label="Local data migration">
+    <section className="sadhana-surface p-4 lg:p-5" aria-label="Local data migration">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex min-w-0 gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent-secondary/15 text-amber-700">
@@ -255,7 +255,7 @@ export default function LocalMigrationPanel() {
               void migrate();
             }}
             disabled={isPrimaryActionBusy}
-            className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-accent-primary px-4 py-2 text-body font-medium text-white shadow-sm disabled:opacity-60 sm:w-auto"
+            className="sadhana-button-primary w-full sm:w-auto"
           >
             <CloudUpload size={18} aria-hidden="true" />
             {isMigrating ? 'Copying' : isPreparingReview ? 'Reviewing' : primaryActionLabel}
@@ -294,7 +294,7 @@ export default function LocalMigrationPanel() {
         />
       ) : null}
 
-      <div className="mt-4 flex items-start gap-2 rounded-md bg-muted/50 p-3 text-caption text-text-secondary">
+      <div className="sadhana-surface-soft mt-4 flex items-start gap-2 p-3 text-caption text-text-secondary">
         <ShieldCheck size={16} className="mt-0.5 shrink-0 text-accent-success" aria-hidden="true" />
         <p>Migration uses merge mode, keeps your local backup untouched, and should only be used for the account that owns this device backup.</p>
       </div>
@@ -320,11 +320,11 @@ function MigrationPreviewDetails({ preview }: { preview: LocalMigrationPreview }
 
   return (
     <div className="mt-4 grid gap-2 sm:grid-cols-2">
-      <div className="rounded-md bg-muted/50 px-3 py-2">
+      <div className="sadhana-surface-soft px-3 py-2">
         <p className="text-caption font-medium text-text-secondary">Starter Groups</p>
         <p className="mt-1 text-body font-medium tabular-nums text-text-primary">{preview.starterCategoryCount}</p>
       </div>
-      <div className="rounded-md bg-muted/50 px-3 py-2">
+      <div className="sadhana-surface-soft px-3 py-2">
         <p className="text-caption font-medium text-text-secondary">Custom Groups</p>
         <p className="mt-1 text-body font-medium tabular-nums text-text-primary">{customCount}</p>
       </div>
@@ -385,7 +385,7 @@ function MigrationReviewDetails({
             type="button"
             onClick={onCleanup}
             disabled={isMigrating}
-            className="min-h-[40px] rounded-md bg-accent-primary px-3 py-2 text-body font-medium text-white shadow-sm disabled:opacity-60"
+            className="sadhana-button-primary min-h-[40px] px-3"
           >
             Archive Copied Local Groups
           </button>
@@ -394,7 +394,7 @@ function MigrationReviewDetails({
           type="button"
           onClick={onCancel}
           disabled={isMigrating}
-          className="min-h-[40px] rounded-md border border-border bg-surface px-3 py-2 text-body font-medium text-text-primary shadow-sm disabled:opacity-60"
+          className="sadhana-button-secondary min-h-[40px] px-3"
         >
           Cancel Review
         </button>
@@ -457,7 +457,7 @@ function MigrationSummary({ summary }: { summary: LocalMigrationSummary }) {
   return (
     <dl className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
       {items.map(([label, value]) => (
-        <div key={label} className="rounded-md bg-muted/50 px-3 py-2">
+        <div key={label} className="sadhana-surface-soft px-3 py-2">
           <dt className="text-caption font-medium text-text-secondary">{label}</dt>
           <dd className="mt-1 text-body font-medium tabular-nums text-text-primary">{value}</dd>
         </div>

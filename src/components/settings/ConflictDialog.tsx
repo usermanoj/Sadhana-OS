@@ -26,7 +26,7 @@ export default function ConflictDialog({ summary, onApply, onCancel }: ConflictD
       aria-labelledby="import-summary-title"
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-4 sm:items-center"
     >
-      <div className="w-full max-w-lg rounded-md border border-border bg-surface p-5 shadow-lg">
+      <div className="sadhana-surface w-full max-w-lg p-5 shadow-lifted">
         <div className="flex flex-col gap-2">
           <h2 id="import-summary-title" className="text-heading text-text-primary">
             Import summary
@@ -44,7 +44,7 @@ export default function ConflictDialog({ summary, onApply, onCancel }: ConflictD
         </dl>
 
         {summary.settings ? (
-          <p className="mt-3 rounded-md bg-muted px-3 py-2 text-caption text-text-secondary">
+          <p className="sadhana-surface-soft mt-3 px-3 py-2 text-caption text-text-secondary">
             Backup schema settings differ from the current app settings.
           </p>
         ) : null}
@@ -54,7 +54,7 @@ export default function ConflictDialog({ summary, onApply, onCancel }: ConflictD
             type="button"
             aria-label="Merge"
             onClick={() => onApply('merge')}
-            className="min-h-[44px] rounded-md border border-border px-4 py-2 text-body font-medium text-text-primary transition-colors duration-150 hover:bg-muted"
+            className="sadhana-button-secondary"
           >
             Merge
           </button>
@@ -62,7 +62,7 @@ export default function ConflictDialog({ summary, onApply, onCancel }: ConflictD
             type="button"
             aria-label="Overwrite"
             onClick={() => onApply('overwrite')}
-            className="min-h-[44px] rounded-md bg-accent-primary px-4 py-2 text-body font-medium text-white shadow-sm"
+            className="sadhana-button-primary"
           >
             Overwrite
           </button>
@@ -70,7 +70,7 @@ export default function ConflictDialog({ summary, onApply, onCancel }: ConflictD
             type="button"
             aria-label="Cancel"
             onClick={onCancel}
-            className="min-h-[44px] rounded-md border border-border px-4 py-2 text-body font-medium text-text-secondary transition-colors duration-150 hover:bg-muted"
+            className="sadhana-button-secondary text-text-secondary"
           >
             Cancel
           </button>
@@ -82,7 +82,7 @@ export default function ConflictDialog({ summary, onApply, onCancel }: ConflictD
 
 function ConflictCount({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-md bg-muted/60 px-3 py-2">
+    <div className="sadhana-surface-soft px-3 py-2">
       <dt className="text-caption font-medium text-text-secondary">{label}</dt>
       <dd className="mt-1 text-subheading text-text-primary tabular-nums">{value}</dd>
     </div>

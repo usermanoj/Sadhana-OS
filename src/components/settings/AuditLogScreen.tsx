@@ -32,7 +32,7 @@ export default function AuditLogScreen() {
       </div>
 
       {entries.length === 0 ? (
-        <div className="rounded-md border border-border bg-surface px-4 py-5 text-body text-text-secondary shadow-sm">
+        <div className="sadhana-surface px-4 py-5 text-body text-text-secondary">
           No audit entries yet
         </div>
       ) : (
@@ -55,13 +55,13 @@ function AuditEntryCard({ entry }: AuditEntryCardProps) {
   const note = entry.note ?? formatActionLabel(entry.actionType);
 
   return (
-    <article className="overflow-hidden rounded-md border border-border bg-surface shadow-sm">
+    <article className="sadhana-surface overflow-hidden">
       <button
         type="button"
         aria-expanded={expanded}
         aria-label={`Audit entry ${note}`}
         onClick={() => setExpanded((current) => !current)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-150 hover:bg-muted/40"
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-150 hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-primary/30"
       >
         <span className="min-w-0 flex-1">
           <span className="mb-1 flex flex-wrap items-center gap-2">

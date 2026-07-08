@@ -20,7 +20,7 @@ function dateKeyToLocalDate(dateKey: string): Date {
 export default function JournalHistory({ history, onSelectDate, currentDateKey }: JournalHistoryProps) {
   if (history.length === 0) {
     return (
-      <div className="rounded-md border border-border bg-surface p-5 text-center shadow-sm">
+      <div className="sadhana-surface p-5 text-center">
         <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-md bg-accent-primary/10">
           <Calendar className="text-accent-primary" size={24} />
         </div>
@@ -31,8 +31,8 @@ export default function JournalHistory({ history, onSelectDate, currentDateKey }
   }
 
   return (
-    <div className="flex max-h-[600px] flex-col overflow-hidden rounded-md border border-border bg-surface shadow-sm">
-      <div className="border-b border-border bg-ivory p-4 lg:p-5">
+    <div className="sadhana-surface flex max-h-[600px] flex-col overflow-hidden">
+      <div className="border-b border-border bg-muted/45 p-4 lg:p-5">
         <h3 className="text-body font-medium text-text-primary flex items-center gap-2">
           <Calendar size={18} className="text-accent-primary" />
           Recent Entries
@@ -56,8 +56,8 @@ export default function JournalHistory({ history, onSelectDate, currentDateKey }
               aria-current={isSelected ? 'date' : undefined}
               className={`flex min-h-[56px] w-full items-center justify-between gap-3 rounded-md p-3 text-left transition-colors lg:min-h-[64px] ${
                 isSelected 
-                  ? 'bg-accent-primary/10 border border-accent-primary/20' 
-                  : 'hover:bg-muted border border-transparent'
+                  ? 'border border-accent-primary/20 bg-accent-primary/10 shadow-sm'
+                  : 'border border-transparent hover:bg-muted/70'
               }`}
             >
               <div className="min-w-0">

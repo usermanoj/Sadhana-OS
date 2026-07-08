@@ -201,7 +201,7 @@ function ScaleInput({
                       transition-all duration-150 focus-visible:ring-2 focus-visible:ring-accent-primary/30
                       ${n <= value
                         ? 'scale-105 bg-accent-primary text-white shadow-sm'
-                        : 'bg-muted text-text-secondary hover:bg-border'
+                        : 'bg-muted text-text-secondary shadow-sm hover:bg-border'
                       }`}
           aria-label={`${label}: ${n} of ${max}`}
         >
@@ -230,7 +230,7 @@ function NumberInput({
       <button
         type="button"
         onClick={() => onChange(id, Math.max(0, value - 1))}
-        className="flex h-11 w-11 items-center justify-center rounded-full bg-muted
+        className="flex h-11 w-11 items-center justify-center rounded-full bg-muted shadow-sm
                    text-body font-medium text-text-secondary transition-colors duration-150
                    hover:bg-border focus-visible:ring-2 focus-visible:ring-accent-primary/30 md:text-subheading"
         aria-label={`Decrease ${label}`}
@@ -246,9 +246,8 @@ function NumberInput({
           const num = parseFloat(e.target.value);
           onChange(id, Number.isNaN(num) ? 0 : Math.max(0, num));
         }}
-        className="h-11 w-16 rounded-md border border-border/50 bg-muted/60 text-center
-                   text-body font-medium focus:outline-none focus:ring-1
-                   focus:ring-accent-primary/30 md:w-20 [appearance:textfield]
+        className="sadhana-input h-11 w-16 text-center
+                   text-body font-medium md:w-20 [appearance:textfield]
                    [&::-webkit-inner-spin-button]:appearance-none
                    [&::-webkit-outer-spin-button]:appearance-none"
       />
@@ -258,7 +257,7 @@ function NumberInput({
       <button
         type="button"
         onClick={() => onChange(id, value + 1)}
-        className="flex h-11 w-11 items-center justify-center rounded-full bg-muted
+        className="flex h-11 w-11 items-center justify-center rounded-full bg-muted shadow-sm
                    text-body font-medium text-text-secondary transition-colors duration-150
                    hover:bg-border focus-visible:ring-2 focus-visible:ring-accent-primary/30 md:text-subheading"
         aria-label={`Increase ${label}`}
@@ -290,10 +289,9 @@ function TextInput({
         value={value}
         onChange={(e) => onChange(id, e.target.value)}
         placeholder="Write..."
-        className={`h-11 w-full rounded-md border bg-muted/60 px-3 text-body
-                    transition-colors duration-150 focus:outline-none
-                    focus:ring-1 focus:ring-accent-primary/30 sm:w-48
-                    ${hasValue ? 'border-accent-primary/30 text-text-primary' : 'border-border/50 text-text-secondary'}`}
+        className={`sadhana-input h-11 w-full sm:w-48 ${
+          hasValue ? 'border-accent-primary/30 text-text-primary' : 'text-text-secondary'
+        }`}
       />
     </div>
   );
