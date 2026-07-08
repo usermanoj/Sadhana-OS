@@ -206,7 +206,10 @@ function SectionHeader({ icon: Icon, title, subtitle }: SectionHeaderProps) {
         <Icon size={21} aria-hidden="true" />
       </span>
       <div>
-        <h2 className="text-heading text-text-primary">{title}</h2>
+        <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-text-secondary">
+          Account & Sync
+        </p>
+        <h2 className="mt-1 text-heading text-text-primary">{title}</h2>
         <p className="text-caption text-text-secondary">{subtitle}</p>
       </div>
     </div>

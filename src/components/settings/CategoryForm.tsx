@@ -1,4 +1,4 @@
-import { Archive, Check, Pencil, RotateCcw, X } from 'lucide-react';
+import { Archive, Check, Layers3, Pencil, Plus, RotateCcw, SlidersHorizontal, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { Category, SubComponent, TrackingType } from '../../types';
@@ -73,13 +73,37 @@ export default function CategoryForm({
     <div className="flex flex-col gap-5">
       <form
         onSubmit={handleSubmit}
-        className="sadhana-surface p-4"
+        className="relative overflow-hidden rounded-lg border border-border bg-surface p-4 shadow-card lg:p-5"
       >
-        <div className="mb-4">
-          <h2 className="text-heading text-text-primary">
-            {category ? 'Edit Category' : 'Add Category'}
-          </h2>
-          <p className="text-caption text-text-secondary">Categories shape the Today tracker.</p>
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent-primary via-accent-secondary to-accent-success" />
+
+        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-text-secondary">
+              {category ? 'Refine Group' : 'New Group'}
+            </p>
+            <h2 className="mt-1 text-heading text-text-primary">
+              {category ? 'Edit Category' : 'Add Category'}
+            </h2>
+            <p className="mt-1 max-w-2xl text-body text-text-secondary">
+              Categories shape the Today tracker. Keep the name clear, the icon familiar, and the color easy to recognize.
+            </p>
+          </div>
+
+          <div className="sadhana-surface-soft flex items-center gap-3 px-3 py-2">
+            <span
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
+              style={{ backgroundColor: `${color}18`, color }}
+            >
+              <Layers3 size={19} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-caption font-medium text-text-secondary">Preview</p>
+              <p className="truncate text-body font-semibold text-text-primary">
+                {name.trim() || 'Untitled category'}
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-col gap-4">
@@ -111,7 +135,7 @@ export default function CategoryForm({
             </p>
           )}
 
-          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={onCancel}
@@ -185,11 +209,19 @@ function PracticeManager({
   };
 
   return (
-    <section className="sadhana-surface p-4" aria-label="Practices">
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-subheading text-text-primary">Practices</h3>
-        <span className="text-caption text-text-secondary tabular-nums">
-          {activeSubComponents.length}/{activeSubComponents.length + archivedSubComponents.length}
+    <section className="sadhana-surface p-4 lg:p-5" aria-label="Practices">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary">
+            <SlidersHorizontal size={19} aria-hidden="true" />
+          </span>
+          <div>
+            <h3 className="text-subheading text-text-primary">Practices</h3>
+            <p className="text-caption text-text-secondary">Define what this group asks you to record.</p>
+          </div>
+        </div>
+        <span className="rounded-full border border-border bg-surface px-3 py-1 text-caption text-text-secondary shadow-sm tabular-nums">
+          {activeSubComponents.length}/{activeSubComponents.length + archivedSubComponents.length} active
         </span>
       </div>
 
@@ -226,7 +258,7 @@ function PracticeManager({
 
         <form
           onSubmit={handleAddPractice}
-          className="sadhana-surface-soft p-3"
+          className="sadhana-surface-soft p-3 lg:p-4"
         >
           <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end">
             <div className="flex flex-col gap-1.5">
@@ -252,6 +284,7 @@ function PracticeManager({
               type="submit"
               className="sadhana-button-primary"
             >
+              <Plus size={17} aria-hidden="true" />
               Add Practice
             </button>
           </div>

@@ -116,8 +116,13 @@ export default function DataScreen() {
   return (
     <section className="flex flex-col gap-4" aria-label="Data export and import">
       <div>
-        <h2 className="text-heading text-text-primary">Data</h2>
-        <p className="text-caption text-text-secondary">Backup, restore, and export daily records</p>
+        <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-text-secondary">
+          Data & Backup
+        </p>
+        <h2 className="mt-1 text-heading text-text-primary">Data</h2>
+        <p className="mt-1 max-w-2xl text-body text-text-secondary">
+          Export, restore, and verify whether backups are cloud-confirmed or currently using local cache.
+        </p>
       </div>
 
       {status ? (

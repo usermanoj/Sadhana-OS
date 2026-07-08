@@ -1,4 +1,4 @@
-import { Archive, Plus, RotateCcw } from 'lucide-react';
+import { Archive, CheckCircle2, Layers3, Plus, RotateCcw, Sparkles } from 'lucide-react';
 import type { Category } from '../../types';
 import { DynamicCategoryIcon } from '../today/CategoryIcon';
 
@@ -19,12 +19,26 @@ export default function CategoryListScreen({
   onArchiveCategory,
   onRestoreCategory,
 }: CategoryListScreenProps) {
+  const activePracticeCount = activeCategories.reduce(
+    (total, category) => total + category.subComponents.filter((sub) => !sub.isArchived).length,
+    0,
+  );
+  const archivedPracticeCount = [...activeCategories, ...archivedCategories].reduce(
+    (total, category) => total + category.subComponents.filter((sub) => sub.isArchived).length,
+    0,
+  );
+
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div>
-          <h2 className="text-heading text-text-primary">Categories</h2>
-          <p className="text-caption text-text-secondary">Tracker structure</p>
+          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-text-secondary">
+            Practice Setup
+          </p>
+          <h2 className="mt-1 text-heading text-text-primary">Categories</h2>
+          <p className="mt-1 max-w-2xl text-body text-text-secondary">
+            Organize the groups and practices that appear on Today. Archiving preserves history without cluttering daily tracking.
+          </p>
         </div>
         <button
           type="button"
@@ -34,6 +48,24 @@ export default function CategoryListScreen({
           <Plus size={18} />
           Add Category
         </button>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <SetupMetric
+          icon={Layers3}
+          label="Active groups"
+          value={String(activeCategories.length)}
+        />
+        <SetupMetric
+          icon={CheckCircle2}
+          label="Active practices"
+          value={String(activePracticeCount)}
+        />
+        <SetupMetric
+          icon={Archive}
+          label="Archived items"
+          value={String(archivedCategories.length + archivedPracticeCount)}
+        />
       </div>
 
       <CategorySection
@@ -53,6 +85,30 @@ export default function CategoryListScreen({
         onArchiveCategory={onArchiveCategory}
         onRestoreCategory={onRestoreCategory}
       />
+    </div>
+  );
+}
+
+function SetupMetric({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Layers3;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="sadhana-surface-soft px-4 py-3">
+      <div className="flex items-center gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary">
+          <Icon size={18} aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-caption font-medium text-text-secondary">{label}</p>
+          <p className="text-subheading tabular-nums text-text-primary">{value}</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -120,9 +176,10 @@ function CategoryRow({
 }: CategoryRowProps) {
   const activePracticeCount = category.subComponents.filter((sub) => !sub.isArchived).length;
   const totalPracticeCount = category.subComponents.length;
+  const isFullyArchived = activePracticeCount === 0 && totalPracticeCount > 0;
 
   return (
-    <div className="sadhana-surface p-3 lg:p-4">
+    <div className="sadhana-interactive-surface p-3 lg:p-4">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -137,11 +194,21 @@ function CategoryRow({
             <DynamicCategoryIcon iconName={category.icon} color={category.color} size={20} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-body font-medium text-text-primary">
+            <span className="block truncate text-body font-semibold text-text-primary">
               {category.name}
             </span>
-            <span className="block text-caption text-text-secondary">
-              {activePracticeCount}/{totalPracticeCount} practices
+            <span className="mt-1 flex flex-wrap items-center gap-2 text-caption text-text-secondary">
+              <span>{activePracticeCount}/{totalPracticeCount} practices</span>
+              {isFullyArchived ? (
+                <span className="rounded-full border border-accent-warning/20 bg-accent-warning/10 px-2 py-0.5 text-amber-700">
+                  Quiet
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full border border-accent-success/20 bg-accent-success/10 px-2 py-0.5 text-accent-success">
+                  <Sparkles size={12} aria-hidden="true" />
+                  Active
+                </span>
+              )}
             </span>
           </span>
         </button>
