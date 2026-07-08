@@ -1,13 +1,63 @@
 {
   "name": "Sadhana OS",
   "short_name": "Sadhana",
-  "description": "Premium spiritual wellness habit tracker for daily practice.",
-  "start_url": "/",
+  "id": "/",
+  "description": "Premium spiritual wellness habit tracker for daily practice, yoga, mindfulness, and holistic growth.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/#/today",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait-primary",
-  "background_color": "#FDFAF6",
-  "theme_color": "#7C3AED",
+  "background_color": "#FAF7F1",
+  "theme_color": "#FAF7F1",
+  "categories": ["health", "lifestyle", "productivity"],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Today",
+      "short_name": "Today",
+      "description": "Open today's practice tracker.",
+      "url": "/#/today",
+      "icons": [
+        {
+          "src": "/icons/icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml",
+          "purpose": "any"
+        }
+      ]
+    },
+    {
+      "name": "Journal",
+      "short_name": "Journal",
+      "description": "Open daily reflection.",
+      "url": "/#/journal",
+      "icons": [
+        {
+          "src": "/icons/icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml",
+          "purpose": "any"
+        }
+      ]
+    },
+    {
+      "name": "Insights",
+      "short_name": "Insights",
+      "description": "Open dashboard insights.",
+      "url": "/#/dashboard",
+      "icons": [
+        {
+          "src": "/icons/icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml",
+          "purpose": "any"
+        }
+      ]
+    }
+  ],
   "icons": [
     {
       "src": "/icons/icon.svg",

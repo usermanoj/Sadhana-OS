@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'sadhana-os-v0.2-app-shell';
+const CACHE_VERSION = 'sadhana-os-v0.3-app-shell';
 const APP_SHELL_ASSETS = [
   '/',
   '/manifest.webmanifest',
@@ -24,14 +24,16 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
 
-  if (requestUrl.hostname.includes('supabase.co')) {
-    return;
-  }
-
-  if (event.request.method !== 'GET') {
+  if (shouldBypassCache(event.request, requestUrl)) {
     return;
   }
 
@@ -46,3 +48,23 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((cached) => cached ?? fetch(event.request))
   );
 });
+
+function shouldBypassCache(request, requestUrl) {
+  if (request.method !== 'GET') {
+    return true;
+  }
+
+  if (requestUrl.hostname.includes('supabase.co')) {
+    return true;
+  }
+
+  if (requestUrl.origin !== self.location.origin) {
+    return true;
+  }
+
+  if (requestUrl.pathname.startsWith('/auth/')) {
+    return true;
+  }
+
+  return false;
+}
