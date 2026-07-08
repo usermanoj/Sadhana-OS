@@ -33,7 +33,15 @@ describe('DashboardScreen', () => {
   it('shows an empty state when there are no entries', () => {
     render(<DashboardScreen />);
 
+    expect(screen.getByText('Practice Intelligence')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Insight for the last 7 days' })).toBeInTheDocument();
+    expect(screen.getByText('Begin with one day')).toBeInTheDocument();
+    expect(screen.getByText('Range Avg')).toBeInTheDocument();
+    expect(screen.getByText('Active Days')).toBeInTheDocument();
+    expect(screen.getByText('Done')).toBeInTheDocument();
     expect(screen.getByText('No entries in this range')).toBeInTheDocument();
+    expect(screen.getByText('Balance wheel is waiting')).toBeInTheDocument();
+    expect(screen.getByText('No category comparison yet')).toBeInTheDocument();
     expect(screen.getByText('Today Good Life Score')).toBeInTheDocument();
     expect(screen.getAllByText('Not enough entries yet').length).toBeGreaterThan(0);
     expect(screen.getByText('Current Streak')).toBeInTheDocument();
@@ -50,6 +58,7 @@ describe('DashboardScreen', () => {
 
     expect(thirtyDays).toHaveAttribute('aria-pressed', 'true');
     expect(sevenDays).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('heading', { name: 'Insight for the last 30 days' })).toBeInTheDocument();
   });
 
   it('renders active categories in the category filter', () => {
@@ -73,6 +82,13 @@ describe('DashboardScreen', () => {
 
     render(<DashboardScreen />);
 
+    expect(screen.getByText('Practice Intelligence')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Insight for the last 7 days' })).toBeInTheDocument();
+    expect(screen.getByText('Current focus')).toBeInTheDocument();
+    expect(screen.getByText('Strongest Area')).toBeInTheDocument();
+    expect(screen.getByText('Needs Attention')).toBeInTheDocument();
+    expect(screen.getByText('Practice Rhythm')).toBeInTheDocument();
+    expect(screen.getByText('2/7')).toBeInTheDocument();
     expect(screen.getByText('Today Good Life Score')).toBeInTheDocument();
     expect(screen.getByText('Weekly Average')).toBeInTheDocument();
     expect(screen.getByText('Monthly Average')).toBeInTheDocument();

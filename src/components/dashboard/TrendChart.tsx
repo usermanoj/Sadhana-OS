@@ -9,38 +9,44 @@ interface TrendChartProps {
 export default function TrendChart({ data, color = '#7C3AED' }: TrendChartProps) {
   if (!data || data.length === 0 || !hasChartScores(data)) {
     return (
-      <div className="flex h-80 items-center justify-center rounded-md border border-border bg-muted/50 px-4 text-center text-body text-text-secondary lg:h-[360px] 2xl:h-[420px]">
-        No entries in this range
+      <div className="flex h-80 items-center justify-center rounded-lg border border-border bg-muted/45 px-4 text-center lg:h-[360px] 2xl:h-[420px]">
+        <div>
+          <p className="text-subheading text-text-primary">No entries in this range</p>
+          <p className="mt-1 max-w-sm text-caption text-text-secondary">
+            Track a few days to reveal the score trend.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-80 w-full rounded-md bg-surface lg:h-[360px] 2xl:h-[420px]">
+    <div className="h-80 w-full rounded-lg bg-surface lg:h-[360px] 2xl:h-[420px]">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+        <LineChart data={data} margin={{ top: 16, right: 16, left: -12, bottom: 8 }}>
+          <CartesianGrid strokeDasharray="4 6" vertical={false} stroke="var(--border)" strokeOpacity={0.72} />
           <XAxis 
             dataKey="date" 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fontSize: 14, fill: 'var(--text-secondary)' }} 
+            tick={{ fontSize: 13, fill: 'var(--text-secondary)' }}
             dy={10}
           />
           <YAxis 
             domain={[0, 100]} 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fontSize: 14, fill: 'var(--text-secondary)' }}
+            tick={{ fontSize: 13, fill: 'var(--text-secondary)' }}
+            width={42}
           />
           <Tooltip 
             contentStyle={{ 
               backgroundColor: 'var(--bg-surface)', 
-              borderRadius: '12px',
+              borderRadius: '8px',
               border: '1px solid var(--border)',
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+              boxShadow: 'var(--shadow-card)',
             }}
-            itemStyle={{ color: 'var(--text-primary)', fontWeight: 'bold' }}
+            itemStyle={{ color: 'var(--text-primary)', fontWeight: 600 }}
             labelStyle={{ color: 'var(--text-secondary)', marginBottom: '4px' }}
             formatter={(value: number) => [`${Math.round(value)}%`, 'Score']}
           />
