@@ -1,5 +1,5 @@
 import type { JournalEntry } from '../../types';
-import { Calendar, ChevronRight } from 'lucide-react';
+import { Calendar, ChevronRight, ScrollText } from 'lucide-react';
 
 interface JournalHistoryProps {
   history: JournalEntry[];
@@ -20,23 +20,26 @@ function dateKeyToLocalDate(dateKey: string): Date {
 export default function JournalHistory({ history, onSelectDate, currentDateKey }: JournalHistoryProps) {
   if (history.length === 0) {
     return (
-      <div className="sadhana-surface p-5 text-center">
-        <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-md bg-accent-primary/10">
-          <Calendar className="text-accent-primary" size={24} />
+      <div className="sadhana-surface p-5 text-center lg:sticky lg:top-6">
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-accent-primary/10">
+          <Calendar className="text-accent-primary" size={24} aria-hidden="true" />
         </div>
-        <h3 className="text-body font-medium text-text-primary mb-1">No History Yet</h3>
-        <p className="text-caption text-text-secondary">Your past journal entries will appear here.</p>
+        <h3 className="mb-1 text-subheading text-text-primary">No History Yet</h3>
+        <p className="text-caption text-text-secondary">
+          Your past reflections will appear here once you save a journal entry.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="sadhana-surface flex max-h-[600px] flex-col overflow-hidden">
+    <aside className="sadhana-surface flex max-h-[680px] flex-col overflow-hidden lg:sticky lg:top-6" aria-label="Recent journal entries">
       <div className="border-b border-border bg-muted/45 p-4 lg:p-5">
-        <h3 className="text-body font-medium text-text-primary flex items-center gap-2">
-          <Calendar size={18} className="text-accent-primary" />
-          Recent Entries
+        <h3 className="flex items-center gap-2 text-subheading text-text-primary">
+          <ScrollText size={18} className="text-accent-primary" aria-hidden="true" />
+          Recent Reflections
         </h3>
+        <p className="mt-1 text-caption text-text-secondary">{history.length} saved entries</p>
       </div>
       
       <div className="flex-1 space-y-2 overflow-y-auto p-2 lg:p-3">
@@ -48,16 +51,19 @@ export default function JournalHistory({ history, onSelectDate, currentDateKey }
             month: 'short',
             day: 'numeric'
           });
+          const preview = getEntryPreview(entry);
+          const sectionCount = getFilledSectionCount(entry);
           
           return (
             <button
               key={entry.date}
               onClick={() => onSelectDate(dateObj)}
               aria-current={isSelected ? 'date' : undefined}
-              className={`flex min-h-[56px] w-full items-center justify-between gap-3 rounded-md p-3 text-left transition-colors lg:min-h-[64px] ${
+              aria-label={`Open reflection for ${displayDate}`}
+              className={`flex min-h-[72px] w-full items-center justify-between gap-3 rounded-md border p-3 text-left transition-[background-color,border-color,box-shadow] duration-150 lg:min-h-[80px] ${
                 isSelected 
-                  ? 'border border-accent-primary/20 bg-accent-primary/10 shadow-sm'
-                  : 'border border-transparent hover:bg-muted/70'
+                  ? 'border-accent-primary/25 bg-accent-primary/10 shadow-sm'
+                  : 'border-transparent hover:border-border hover:bg-muted/70'
               }`}
             >
               <div className="min-w-0">
@@ -65,14 +71,45 @@ export default function JournalHistory({ history, onSelectDate, currentDateKey }
                   {displayDate}
                 </div>
                 <div className="mt-1 max-w-full truncate text-caption text-text-secondary">
-                  {entry.mood ? `Mood: ${entry.mood}` : entry.content ? entry.content.substring(0, 30) + '...' : 'Empty entry'}
+                  {preview}
+                </div>
+                <div className="mt-2 text-[0.72rem] font-medium uppercase tracking-[0.1em] text-text-secondary">
+                  {sectionCount}/6 sections
                 </div>
               </div>
-              <ChevronRight size={16} className={isSelected ? 'text-accent-primary' : 'text-text-secondary'} />
+              <ChevronRight size={16} className={isSelected ? 'text-accent-primary' : 'text-text-secondary'} aria-hidden="true" />
             </button>
           );
         })}
       </div>
-    </div>
+    </aside>
   );
+}
+
+function getEntryPreview(entry: JournalEntry): string {
+  const firstAvailable = entry.mood
+    || entry.gratitude
+    || entry.spiritualInsight
+    || entry.lessonLearned
+    || entry.triggerObserved
+    || entry.content;
+
+  if (!firstAvailable?.trim()) {
+    return 'Saved reflection';
+  }
+
+  return firstAvailable.trim().length > 52
+    ? `${firstAvailable.trim().slice(0, 49)}...`
+    : firstAvailable.trim();
+}
+
+function getFilledSectionCount(entry: JournalEntry): number {
+  return [
+    entry.mood,
+    entry.gratitude,
+    entry.spiritualInsight,
+    entry.lessonLearned,
+    entry.triggerObserved,
+    entry.content,
+  ].filter((value) => typeof value === 'string' && value.trim().length > 0).length;
 }
