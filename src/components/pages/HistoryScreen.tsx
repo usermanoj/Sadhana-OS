@@ -1,5 +1,16 @@
-import { ArchiveRestore, CalendarDays, ClipboardList, FileClock, ScrollText } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ComponentType } from 'react';
+import type { LucideProps } from 'lucide-react';
+import {
+  ArchiveRestore,
+  CalendarDays,
+  ClipboardList,
+  FileClock,
+  Filter,
+  History,
+  RotateCcw,
+  ScrollText,
+  ShieldCheck,
+} from 'lucide-react';
 import type { AuditLogEntry, Category, DailyEntry, DateKey, JournalEntry } from '../../types';
 import { getAuditLogs } from '../../lib/auditService';
 import {
@@ -16,15 +27,43 @@ import ScreenHeader from '../ui/ScreenHeader';
 
 type HistorySection = 'practice' | 'journal' | 'audit' | 'archived';
 
-const sectionTabs: Array<{
+interface HistoryTab {
   id: HistorySection;
   label: string;
-  icon: typeof ClipboardList;
-}> = [
-  { id: 'practice', label: 'Practice History', icon: ClipboardList },
-  { id: 'journal', label: 'Journal History', icon: ScrollText },
-  { id: 'audit', label: 'Audit Log', icon: FileClock },
-  { id: 'archived', label: 'Archived Items', icon: ArchiveRestore },
+  shortLabel: string;
+  icon: ComponentType<LucideProps>;
+  description: string;
+}
+
+const sectionTabs: HistoryTab[] = [
+  {
+    id: 'practice',
+    label: 'Practice History',
+    shortLabel: 'Practice',
+    icon: ClipboardList,
+    description: 'Daily values and scores',
+  },
+  {
+    id: 'journal',
+    label: 'Journal History',
+    shortLabel: 'Journal',
+    icon: ScrollText,
+    description: 'Reflections by date',
+  },
+  {
+    id: 'audit',
+    label: 'Audit Log',
+    shortLabel: 'Audit',
+    icon: FileClock,
+    description: 'Configuration changes',
+  },
+  {
+    id: 'archived',
+    label: 'Archived Items',
+    shortLabel: 'Archive',
+    icon: ArchiveRestore,
+    description: 'Restorable records',
+  },
 ];
 
 const loadEntries = (): Record<DateKey, DailyEntry> =>
@@ -69,6 +108,14 @@ export default function HistoryScreen() {
     () => filterAuditLogs(getAuditLogs({ newestFirst: true }), categories, filters),
     [categories, filters],
   );
+  const activeTab = sectionTabs.find((tab) => tab.id === activeSection) ?? sectionTabs[0]!;
+  const hasActiveFilters = Boolean(dateFilter || categoryFilter);
+  const summary = {
+    practice: practiceRows.length,
+    journal: journalRows.length,
+    audit: auditRows.length,
+    archived: archivedItems.length,
+  };
 
   return (
     <div id="page-history" className="flex w-full flex-col gap-5 pb-4 lg:gap-7">
@@ -79,27 +126,83 @@ export default function HistoryScreen() {
           subtitle="Practice, journal, audit, and archive records"
         />
 
-        <div 
-          className="flex gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden" 
-          aria-label="History sections" 
-          style={{ scrollbarWidth: 'none' }}
+        <section
+          className="relative overflow-hidden rounded-lg border border-border px-4 py-5 shadow-lifted sm:px-6 lg:px-8 lg:py-7"
+          style={{
+            background:
+              'linear-gradient(135deg, rgba(255,253,252,0.98) 0%, rgba(250,247,241,0.98) 54%, rgba(14,159,110,0.08) 100%)',
+          }}
+          aria-labelledby="history-hero-title"
         >
-          {sectionTabs.map(({ id, label, icon: Icon }) => {
-            const isActive = activeSection === id;
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent-secondary via-accent-primary to-accent-success" />
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)] lg:items-center">
+            <div className="min-w-0">
+              <div className="mb-4 flex items-center gap-3">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-accent-success/10 text-accent-success shadow-sm">
+                  <History size={24} aria-hidden="true" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-text-secondary">
+                    Practice Archive
+                  </p>
+                  <h2 id="history-hero-title" className="text-heading text-text-primary">
+                    A calm record of change
+                  </h2>
+                </div>
+              </div>
+              <p className="max-w-3xl text-body text-text-secondary lg:text-[1.08rem]">
+                Review what was practiced, reflected, changed, and archived without losing the audit trail.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <HistoryHeroMetric icon={ClipboardList} label="Practice" value={String(summary.practice)} />
+              <HistoryHeroMetric icon={ScrollText} label="Journal" value={String(summary.journal)} />
+              <HistoryHeroMetric icon={ShieldCheck} label="Audit" value={String(summary.audit)} />
+              <HistoryHeroMetric icon={ArchiveRestore} label="Archived" value={String(summary.archived)} />
+            </div>
+          </div>
+        </section>
+
+        <div
+          className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+          aria-label="History sections"
+        >
+          {sectionTabs.map((tab) => {
+            const isActive = activeSection === tab.id;
+            const count = summary[tab.id];
+            const Icon = tab.icon;
+
             return (
               <button
-                key={id}
+                key={tab.id}
                 type="button"
-                onClick={() => setActiveSection(id)}
-                className={`flex min-h-[44px] flex-shrink-0 items-center gap-2 rounded-md px-4 py-2 text-body font-medium shadow-sm ${
+                onClick={() => setActiveSection(tab.id)}
+                className={`min-h-[88px] rounded-lg border p-3 text-left shadow-sm transition-[background-color,border-color,box-shadow] duration-150 ${
                   isActive
-                    ? 'border border-transparent bg-accent-primary text-white'
-                    : 'border border-border bg-surface text-text-secondary hover:bg-muted/60'
+                    ? 'border-accent-primary/25 bg-accent-primary/10 shadow-card'
+                    : 'border-border bg-surface hover:border-accent-primary/20 hover:bg-muted/45'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
+                aria-label={tab.label}
               >
-                <Icon size={18} />
-                {label}
+                <span className="flex items-start justify-between gap-3">
+                  <span className="flex min-w-0 items-center gap-3">
+                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                      isActive ? 'bg-accent-primary text-white' : 'bg-accent-primary/10 text-accent-primary'
+                    }`}
+                    >
+                      <Icon size={19} aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-body font-medium text-text-primary">{tab.shortLabel}</span>
+                      <span className="mt-0.5 block text-caption text-text-secondary">{tab.description}</span>
+                    </span>
+                  </span>
+                  <span className="rounded-full border border-border bg-white/70 px-2.5 py-1 text-caption tabular-nums text-text-secondary">
+                    {count}
+                  </span>
+                </span>
               </button>
             );
           })}
@@ -109,20 +212,26 @@ export default function HistoryScreen() {
           categories={categories}
           dateFilter={dateFilter}
           categoryFilter={categoryFilter}
+          hasActiveFilters={hasActiveFilters}
           onDateFilterChange={setDateFilter}
           onCategoryFilterChange={setCategoryFilter}
+          onClearFilters={() => {
+            setDateFilter('');
+            setCategoryFilter('');
+          }}
         />
       </header>
 
       {activeSection === 'practice' ? (
-        <PracticeHistorySection rows={practiceRows} />
+        <PracticeHistorySection rows={practiceRows} activeTab={activeTab} />
       ) : activeSection === 'journal' ? (
-        <JournalHistorySection entries={journalRows} />
+        <JournalHistorySection entries={journalRows} activeTab={activeTab} />
       ) : activeSection === 'audit' ? (
-        <AuditHistorySection entries={auditRows} />
+        <AuditHistorySection entries={auditRows} activeTab={activeTab} />
       ) : (
         <ArchivedItemsSection
           items={archivedItems}
+          activeTab={activeTab}
           onRestoreCategory={restoreCategory}
           onRestoreHabit={restoreSubComponent}
         />
@@ -135,56 +244,89 @@ interface HistoryFilterControlsProps {
   categories: Category[];
   dateFilter: string;
   categoryFilter: string;
+  hasActiveFilters: boolean;
   onDateFilterChange: (value: string) => void;
   onCategoryFilterChange: (value: string) => void;
+  onClearFilters: () => void;
 }
 
 function HistoryFilterControls({
   categories,
   dateFilter,
   categoryFilter,
+  hasActiveFilters,
   onDateFilterChange,
   onCategoryFilterChange,
+  onClearFilters,
 }: HistoryFilterControlsProps) {
   return (
-    <div className="sadhana-surface grid gap-3 p-3 sm:grid-cols-2">
-      <label className="flex flex-col gap-1 text-caption font-medium text-text-secondary" htmlFor="history-date-filter">
-        Filter by date
-        <input
-          id="history-date-filter"
-          type="date"
-          value={dateFilter}
-          onChange={(event) => onDateFilterChange(event.target.value)}
-          className="sadhana-input"
-        />
-      </label>
+    <section className="sadhana-surface p-3 sm:p-4" aria-label="History filters">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary">
+            <Filter size={16} aria-hidden="true" />
+          </span>
+          <div>
+            <h2 className="text-body font-medium text-text-primary">Timeline filters</h2>
+            <p className="text-caption text-text-secondary">Narrow the archive by date or category.</p>
+          </div>
+        </div>
 
-      <label className="flex flex-col gap-1 text-caption font-medium text-text-secondary" htmlFor="history-category-filter">
-        Filter by category
-        <select
-          id="history-category-filter"
-          value={categoryFilter}
-          onChange={(event) => onCategoryFilterChange(event.target.value)}
-          className="sadhana-input"
-        >
-          <option value="">All categories</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-      </label>
-    </div>
+        {hasActiveFilters ? (
+          <button
+            type="button"
+            onClick={onClearFilters}
+            className="sadhana-button-secondary min-h-[40px] px-3"
+          >
+            <RotateCcw size={16} aria-hidden="true" />
+            Clear filters
+          </button>
+        ) : null}
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 text-caption font-medium text-text-secondary" htmlFor="history-date-filter">
+          Filter by date
+          <input
+            id="history-date-filter"
+            type="date"
+            value={dateFilter}
+            onChange={(event) => onDateFilterChange(event.target.value)}
+            className="sadhana-input"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1 text-caption font-medium text-text-secondary" htmlFor="history-category-filter">
+          Filter by category
+          <select
+            id="history-category-filter"
+            value={categoryFilter}
+            onChange={(event) => onCategoryFilterChange(event.target.value)}
+            className="sadhana-input"
+          >
+            <option value="">All categories</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+    </section>
   );
 }
 
-function PracticeHistorySection({ rows }: { rows: PracticeHistoryRow[] }) {
+function PracticeHistorySection({ rows, activeTab }: { rows: PracticeHistoryRow[]; activeTab: HistoryTab }) {
   return (
-    <section className="flex flex-col gap-3" aria-label="Practice History">
-      <SectionHeader title="Practice History" count={rows.length} />
+    <section className="flex flex-col gap-4" aria-label="Practice History">
+      <PremiumSectionHeader tab={activeTab} count={rows.length} />
       {rows.length === 0 ? (
-        <EmptyState message="No practice history matches these filters." />
+        <EmptyState
+          icon={ClipboardList}
+          title="No practice records found"
+          message="No practice history matches these filters."
+        />
       ) : (
         <div className="grid gap-3 xl:grid-cols-2">
           {rows.map((row) => (
@@ -198,38 +340,59 @@ function PracticeHistorySection({ rows }: { rows: PracticeHistoryRow[] }) {
 
 function PracticeHistoryCard({ row }: { row: PracticeHistoryRow }) {
   return (
-    <article className="sadhana-surface p-4 lg:p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-caption font-medium text-text-secondary">{row.date}</p>
-          <h3 className="text-subheading text-text-primary">{row.habitName}</h3>
-          <p className="text-caption text-text-secondary">{row.categoryName}</p>
-        </div>
-        <span className="rounded-full border border-accent-primary/20 bg-accent-primary/10 px-3 py-1 text-caption font-medium text-accent-primary">
-          {formatScore(row.score)}
-        </span>
-      </div>
+    <article className="sadhana-surface overflow-hidden">
+      <div className="flex">
+        <div className="w-1 shrink-0 bg-accent-primary/80" aria-hidden="true" />
+        <div className="min-w-0 flex-1 p-4 lg:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-caption font-medium text-text-secondary">{row.date}</p>
+              <h3 className="mt-1 break-words text-subheading text-text-primary">{row.habitName}</h3>
+              <p className="text-caption text-text-secondary">{row.categoryName}</p>
+            </div>
+            <span className="rounded-full border border-accent-primary/20 bg-accent-primary/10 px-3 py-1 text-caption font-medium text-accent-primary">
+              {formatScore(row.score)}
+            </span>
+          </div>
 
-      <div className="mt-4">
-        <HistoryField label="Recorded Value" value={row.value} />
+          <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+            <HistoryField label="Recorded Value" value={row.value} />
+            {row.notes ? (
+              <HistoryField label="Note" value={row.notes} />
+            ) : null}
+          </dl>
+        </div>
       </div>
     </article>
   );
 }
 
-function JournalHistorySection({ entries }: { entries: JournalEntry[] }) {
+function JournalHistorySection({ entries, activeTab }: { entries: JournalEntry[]; activeTab: HistoryTab }) {
   return (
-    <section className="flex flex-col gap-3" aria-label="Journal History">
-      <SectionHeader title="Journal History" count={entries.length} />
+    <section className="flex flex-col gap-4" aria-label="Journal History">
+      <PremiumSectionHeader tab={activeTab} count={entries.length} />
       {entries.length === 0 ? (
-        <EmptyState message="No journal history matches these filters." />
+        <EmptyState
+          icon={ScrollText}
+          title="No reflections found"
+          message="No journal history matches these filters."
+        />
       ) : (
         <div className="grid gap-3 xl:grid-cols-2">
           {entries.map((entry) => (
-            <article key={entry.date} className="sadhana-surface p-4 lg:p-5">
-              <p className="text-caption font-medium text-text-secondary">{entry.date}</p>
-              <p className="mt-2 whitespace-pre-wrap text-body text-text-primary">{entry.content}</p>
-              <JournalMeta entry={entry} />
+            <article key={entry.date} className="sadhana-surface overflow-hidden">
+              <div className="border-b border-border bg-muted/35 px-4 py-3 lg:px-5">
+                <p className="text-caption font-medium text-text-secondary">{entry.date}</p>
+                <h3 className="mt-1 text-subheading text-text-primary">{getJournalTitle(entry)}</h3>
+              </div>
+              <div className="p-4 lg:p-5">
+                {entry.content.trim() ? (
+                  <p className="whitespace-pre-wrap text-body text-text-primary">{entry.content}</p>
+                ) : (
+                  <p className="text-body text-text-secondary">Reflection fields saved without free-form notes.</p>
+                )}
+                <JournalMeta entry={entry} />
+              </div>
             </article>
           ))}
         </div>
@@ -261,31 +424,46 @@ function JournalMeta({ entry }: { entry: JournalEntry }) {
   );
 }
 
-function AuditHistorySection({ entries }: { entries: AuditLogEntry[] }) {
+function AuditHistorySection({ entries, activeTab }: { entries: AuditLogEntry[]; activeTab: HistoryTab }) {
   return (
-    <section className="flex flex-col gap-3" aria-label="Audit Log">
-      <SectionHeader title="Audit Log" count={entries.length} />
+    <section className="flex flex-col gap-4" aria-label="Audit Log">
+      <PremiumSectionHeader tab={activeTab} count={entries.length} />
       {entries.length === 0 ? (
-        <EmptyState message="No audit entries match these filters." />
+        <EmptyState
+          icon={FileClock}
+          title="No audit records found"
+          message="No audit entries match these filters."
+        />
       ) : (
         <div className="flex flex-col gap-3">
           {entries.map((entry) => (
-            <article key={entry.id} className="sadhana-surface p-4 lg:p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-caption font-medium text-text-secondary">{formatTimestamp(entry.timestamp)}</p>
-                  <h3 className="text-subheading text-text-primary">{formatActionLabel(entry.actionType)}</h3>
-                  <p className="text-caption text-text-secondary">
-                    {entry.entityType} - {entry.entityId}
-                  </p>
+            <article key={entry.id} className="sadhana-surface overflow-hidden">
+              <div className="flex border-b border-border">
+                <div className="w-1 shrink-0 bg-accent-secondary/80" aria-hidden="true" />
+                <div className="min-w-0 flex-1 px-4 py-3 lg:px-5">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-caption font-medium text-text-secondary">{formatTimestamp(entry.timestamp)}</p>
+                      <h3 className="mt-1 text-subheading text-text-primary">{formatActionLabel(entry.actionType)}</h3>
+                      <p className="text-caption text-text-secondary">
+                        {entry.entityType} - {entry.entityId}
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-border bg-muted/45 px-3 py-1 text-caption text-text-secondary">
+                      Preserved
+                    </span>
+                  </div>
                 </div>
               </div>
-              {entry.note ? (
-                <p className="mt-3 text-body text-text-primary">{entry.note}</p>
-              ) : null}
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <AuditValuePanel title="Old Value" value={entry.oldValue} />
-                <AuditValuePanel title="New Value" value={entry.newValue} />
+
+              <div className="p-4 lg:p-5">
+                {entry.note ? (
+                  <p className="text-body text-text-primary">{entry.note}</p>
+                ) : null}
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  <AuditValuePanel title="Old Value" value={entry.oldValue} />
+                  <AuditValuePanel title="New Value" value={entry.newValue} />
+                </div>
               </div>
             </article>
           ))}
@@ -297,20 +475,26 @@ function AuditHistorySection({ entries }: { entries: AuditLogEntry[] }) {
 
 interface ArchivedItemsSectionProps {
   items: ArchivedHistoryItem[];
+  activeTab: HistoryTab;
   onRestoreCategory: (categoryId: string) => void;
   onRestoreHabit: (categoryId: string, habitId: string) => void;
 }
 
 function ArchivedItemsSection({
   items,
+  activeTab,
   onRestoreCategory,
   onRestoreHabit,
 }: ArchivedItemsSectionProps) {
   return (
-    <section className="flex flex-col gap-3" aria-label="Archived Items">
-      <SectionHeader title="Archived Items" count={items.length} />
+    <section className="flex flex-col gap-4" aria-label="Archived Items">
+      <PremiumSectionHeader tab={activeTab} count={items.length} />
       {items.length === 0 ? (
-        <EmptyState message="No archived categories or habits match these filters." />
+        <EmptyState
+          icon={ArchiveRestore}
+          title="No archived items found"
+          message="No archived categories or habits match these filters."
+        />
       ) : (
         <div className="grid gap-3 xl:grid-cols-2">
           {items.map((item) => (
@@ -335,7 +519,7 @@ function ArchivedItemsSection({
                   className="sadhana-button-primary"
                   aria-label={`Restore ${item.type} ${item.name}`}
                 >
-                  <ArchiveRestore size={18} />
+                  <ArchiveRestore size={18} aria-hidden="true" />
                   Restore
                 </button>
               </div>
@@ -347,19 +531,69 @@ function ArchivedItemsSection({
   );
 }
 
-function SectionHeader({ title, count }: { title: string; count: number }) {
+function PremiumSectionHeader({ tab, count }: { tab: HistoryTab; count: number }) {
+  const Icon = tab.icon;
+
   return (
-    <div className="flex items-center justify-between gap-3">
-      <h2 className="text-heading text-text-primary">{title}</h2>
-      <span className="text-caption text-text-secondary tabular-nums">{count}</span>
+    <div className="sadhana-surface flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between lg:p-5">
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-accent-primary/10 text-accent-primary shadow-sm">
+          <Icon size={21} aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-heading text-text-primary">{tab.label}</h2>
+          <p className="text-caption text-text-secondary">{tab.description}</p>
+        </div>
+      </div>
+      <span className="w-fit rounded-full border border-border bg-muted/45 px-3 py-1 text-caption text-text-secondary tabular-nums">
+        {count} {count === 1 ? 'record' : 'records'}
+      </span>
     </div>
   );
 }
 
-function EmptyState({ message }: { message: string }) {
+function EmptyState({
+  icon: Icon,
+  title,
+  message,
+}: {
+  icon: ComponentType<LucideProps>;
+  title: string;
+  message: string;
+}) {
   return (
-    <div className="sadhana-surface px-4 py-5 text-body text-text-secondary">
-      {message}
+    <div className="sadhana-surface flex flex-col items-center justify-center px-4 py-8 text-center">
+      <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-accent-primary/10 text-accent-primary">
+        <Icon size={24} aria-hidden="true" />
+      </span>
+      <h3 className="text-subheading text-text-primary">{title}</h3>
+      <p className="mt-1 max-w-md text-body text-text-secondary">
+        {message}
+      </p>
+    </div>
+  );
+}
+
+interface HistoryHeroMetricProps {
+  icon: ComponentType<LucideProps>;
+  label: string;
+  value: string;
+}
+
+function HistoryHeroMetric({ icon: Icon, label, value }: HistoryHeroMetricProps) {
+  return (
+    <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-border/70 bg-white/60 px-2.5 py-2.5 shadow-sm sm:flex-row sm:items-center sm:gap-3 sm:px-3">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent-success/10 text-accent-success sm:h-8 sm:w-8">
+        <Icon size={16} aria-hidden="true" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-[0.64rem] font-semibold uppercase tracking-[0.1em] text-text-secondary sm:text-[0.72rem] sm:tracking-[0.12em]">
+          {label}
+        </p>
+        <p className="text-[1.15rem] font-semibold leading-tight text-text-primary sm:text-subheading">
+          {value}
+        </p>
+      </div>
     </div>
   );
 }
@@ -387,7 +621,7 @@ function AuditValuePanel({ title, value }: { title: string; value: unknown }) {
   }
 
   const entries = Object.entries(value as Record<string, unknown>).filter(
-    ([k]) => !['id', 'categoryId', 'createdAt', 'updatedAt', 'subComponents'].includes(k)
+    ([k]) => !['id', 'categoryId', 'createdAt', 'updatedAt', 'subComponents'].includes(k),
   );
 
   if (entries.length === 0) return null;
@@ -401,7 +635,7 @@ function AuditValuePanel({ title, value }: { title: string; value: unknown }) {
             <dt className="text-text-secondary capitalize">
               {k.replace(/([A-Z])/g, ' $1').trim()}
             </dt>
-            <dd className="font-medium text-text-primary break-words">
+            <dd className="break-words font-medium text-text-primary">
               {typeof v === 'boolean' ? (v ? 'Yes' : 'No') : String(v)}
             </dd>
           </div>
@@ -440,6 +674,13 @@ function filterAuditLogs(
 
     return false;
   });
+}
+
+function getJournalTitle(entry: JournalEntry): string {
+  return entry.mood?.trim()
+    || entry.gratitude?.trim()
+    || entry.spiritualInsight?.trim()
+    || 'Saved reflection';
 }
 
 function formatScore(score: number | null): string {
