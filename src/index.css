@@ -98,7 +98,22 @@ textarea:focus-visible {
   border-radius: 9999px;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @layer components {
+  .sadhana-skip-link {
+    @apply fixed left-3 top-3 z-[100] -translate-y-16 rounded-md bg-text-primary px-4 py-2 text-body font-medium text-white shadow-lifted transition-transform duration-150 focus:translate-y-0;
+  }
+
   .sadhana-surface {
     @apply rounded-md border border-border bg-surface;
     box-shadow: var(--shadow-card);

@@ -39,6 +39,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
           return (
             <button
               key={id}
+              type="button"
               id={`sidebar-${id}`}
               onClick={() => onTabChange(id)}
               aria-label={label}
@@ -50,7 +51,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
                           }`}
               aria-current={isActive ? 'page' : undefined}
             >
-              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} aria-hidden="true" />
               <span className="text-body">{label}</span>
             </button>
           );

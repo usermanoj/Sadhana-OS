@@ -15,10 +15,15 @@ interface AppShellProps {
 export default function AppShell({ activeTab, onTabChange, children }: AppShellProps) {
   return (
     <div className="min-h-screen min-h-dvh overflow-x-hidden bg-ivory text-text-primary">
+      <a href="#main-content" className="sadhana-skip-link">
+        Skip to main content
+      </a>
+
       <Sidebar activeTab={activeTab} onTabChange={onTabChange} />
 
       <main
         id="main-content"
+        tabIndex={-1}
         className="flex min-h-screen min-h-dvh justify-center pb-[calc(5rem+env(safe-area-inset-bottom))] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] pt-[env(safe-area-inset-top)] lg:justify-start lg:pb-0 lg:pl-72 lg:pr-0 lg:pt-0"
       >
         <div

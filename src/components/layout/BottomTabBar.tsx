@@ -33,6 +33,7 @@ export default function BottomTabBar({ activeTab, onTabChange }: BottomTabBarPro
         return (
           <button
             key={id}
+            type="button"
             id={`tab-${id}`}
             onClick={() => onTabChange(id)}
             className={`flex min-h-[48px] min-w-[44px] flex-1 flex-col items-center justify-center gap-0.5
@@ -45,8 +46,8 @@ export default function BottomTabBar({ activeTab, onTabChange }: BottomTabBarPro
             aria-current={isActive ? 'page' : undefined}
             aria-label={label}
           >
-            <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-            <span className="text-[10px] font-medium leading-none">{label}</span>
+            <Icon size={20} strokeWidth={isActive ? 2.5 : 2} aria-hidden="true" />
+            <span className="text-[0.68rem] font-medium leading-none">{label}</span>
           </button>
         );
       })}
