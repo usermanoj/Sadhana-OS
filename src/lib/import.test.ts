@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { AuditLogEntry, Category, DailyEntry, ExportPayload, JournalEntry } from '../types';
+import type {
+  AuditLogEntry,
+  Category,
+  DailyEntry,
+  DailySadhanaPlan,
+  ExportPayload,
+  JournalEntry,
+} from '../types';
 import { getItem, setItem } from './storage';
 import { applyImport, detectConflicts, parseImport } from './import';
 
@@ -79,6 +86,21 @@ const importedAudit: AuditLogEntry = {
   note: 'Incoming category created',
 };
 
+const incomingPlan: DailySadhanaPlan = {
+  date: '2026-05-14',
+  mode: 'balanced',
+  status: 'confirmed',
+  availableMinutes: 15,
+  energyLevel: 3,
+  focusCategoryIds: ['cat-incoming'],
+  intention: 'Protect a steady day',
+  items: [],
+  excludedHabitIds: [],
+  engineVersion: '1.0',
+  createdAt: '2026-05-14T00:00:00.000Z',
+  updatedAt: '2026-05-14T00:00:00.000Z',
+};
+
 const makePayload = (): ExportPayload => ({
   version: '1.1',
   exportedAt: '2026-05-14T01:00:00.000Z',
@@ -87,6 +109,7 @@ const makePayload = (): ExportPayload => ({
   dailyEntries: { [incomingEntry.date]: incomingEntry },
   journalEntries: { [incomingJournal.date]: incomingJournal },
   auditLogs: [importedAudit],
+  dailyPlans: { [incomingPlan.date]: incomingPlan },
   settings: { schemaVersion: '1.1' },
   entries: { [incomingEntry.date]: incomingEntry },
   journal: { [incomingJournal.date]: incomingJournal },
@@ -109,6 +132,15 @@ describe('import utilities', () => {
     expect(payload.categories[0]?.name).toBe('Incoming');
     expect(payload.dailyEntries[incomingEntry.date]).toEqual(incomingEntry);
     expect(payload.auditLogs[0]?.id).toBe('audit-incoming');
+    expect(payload.dailyPlans?.[incomingPlan.date]).toEqual(incomingPlan);
+  });
+
+  it('keeps backups created before adaptive plans backward compatible', async () => {
+    const legacyPayload = { ...makePayload() };
+    delete legacyPayload.dailyPlans;
+    const payload = await parseImport(JSON.stringify(legacyPayload));
+
+    expect(payload.dailyPlans).toEqual({});
   });
 
   it('rejects invalid JSON without modifying existing data', async () => {
@@ -124,6 +156,9 @@ describe('import utilities', () => {
     expect(getItem<Category[]>('categories', [])).toEqual([incomingCategory]);
     expect(getItem<Record<string, DailyEntry>>('entries', {})).toEqual({ [incomingEntry.date]: incomingEntry });
     expect(getItem<Record<string, JournalEntry>>('journal', {})).toEqual({ [incomingJournal.date]: incomingJournal });
+    expect(getItem<Record<string, DailySadhanaPlan>>('daily-plans', {})).toEqual({
+      [incomingPlan.date]: incomingPlan,
+    });
 
     const audit = getItem<AuditLogEntry[]>('audit', []);
     expect(audit.map((entry) => entry.id)).toContain('audit-incoming');

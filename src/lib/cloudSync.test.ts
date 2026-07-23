@@ -5,7 +5,13 @@ import {
   hydrateLocalCacheOrCreateStarterTemplate,
 } from './cloudSync';
 import type { CloudDataGateway } from './cloudRepository';
-import type { Category, DailyEntry, DateKey, JournalEntry } from '../types';
+import type {
+  Category,
+  DailyEntry,
+  DailySadhanaPlan,
+  DateKey,
+  JournalEntry,
+} from '../types';
 
 function createMemoryRepository(): AppRepository {
   let snapshot: AppStateSnapshot = {
@@ -36,6 +42,10 @@ function createMemoryRepository(): AppRepository {
     getAuditLogs: () => snapshot.auditLogs,
     setAuditLogs: (auditLogs: StoredAuditLogEntry[]) => {
       snapshot = { ...snapshot, auditLogs };
+    },
+    getDailyPlans: () => snapshot.dailyPlans ?? {},
+    setDailyPlans: (dailyPlans: Record<DateKey, DailySadhanaPlan>) => {
+      snapshot = { ...snapshot, dailyPlans };
     },
     getSnapshot: () => snapshot,
     replaceSnapshot: (nextSnapshot: AppStateSnapshot) => {
@@ -122,6 +132,42 @@ describe('createCloudBackedRepository', () => {
 
     expect(repository.getCategories()).toEqual(categories);
     expect(onSyncError).toHaveBeenCalledWith(error, { operation: 'categories' });
+  });
+
+  it('writes adaptive plans locally and forwards them to the cloud gateway', async () => {
+    const localRepository = createMemoryRepository();
+    const saveDailyPlans = vi.fn<NonNullable<CloudDataGateway['saveDailyPlans']>>()
+      .mockResolvedValue(undefined);
+    const gateway: CloudDataGateway = {
+      loadSnapshot: vi.fn(),
+      saveCategories: vi.fn(),
+      saveDailyEntries: vi.fn(),
+      saveJournalEntries: vi.fn(),
+      saveAuditLogs: vi.fn(),
+      saveDailyPlans,
+      replaceSnapshot: vi.fn(),
+      recordMutationStatus: vi.fn(),
+    };
+    const repository = createCloudBackedRepository({ localRepository, cloudGateway: gateway });
+    const plan: DailySadhanaPlan = {
+      date: '2026-07-23',
+      mode: 'balanced',
+      status: 'confirmed',
+      availableMinutes: 15,
+      energyLevel: 3,
+      focusCategoryIds: [],
+      items: [],
+      excludedHabitIds: [],
+      engineVersion: '1.0',
+      createdAt: '2026-07-23T00:00:00.000Z',
+      updatedAt: '2026-07-23T00:00:00.000Z',
+    };
+
+    repository.setDailyPlans({ [plan.date]: plan });
+    await Promise.resolve();
+
+    expect(repository.getDailyPlans()).toEqual({ [plan.date]: plan });
+    expect(saveDailyPlans).toHaveBeenCalledWith({ [plan.date]: plan });
   });
 
   it('hydrates the local cache from the cloud gateway', async () => {

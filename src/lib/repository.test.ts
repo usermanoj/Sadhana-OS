@@ -1,4 +1,10 @@
-import type { AuditLogEntry, Category, DailyEntry, JournalEntry } from '../types';
+import type {
+  AuditLogEntry,
+  Category,
+  DailyEntry,
+  DailySadhanaPlan,
+  JournalEntry,
+} from '../types';
 import {
   createLocalStorageRepository,
   createUserScopedLocalStorageRepository,
@@ -41,6 +47,20 @@ const auditEntry: AuditLogEntry = {
   oldValue: null,
   newValue: category,
   note: 'Created category "Yoga"',
+};
+
+const dailyPlan: DailySadhanaPlan = {
+  date: '2026-01-01',
+  mode: 'minimum',
+  status: 'confirmed',
+  availableMinutes: 5,
+  energyLevel: 3,
+  focusCategoryIds: ['category-1'],
+  items: [],
+  excludedHabitIds: [],
+  engineVersion: '1.0',
+  createdAt: '2026-01-01T01:00:00.000Z',
+  updatedAt: '2026-01-01T01:00:00.000Z',
 };
 
 describe('createLocalStorageRepository', () => {
@@ -99,6 +119,17 @@ describe('createLocalStorageRepository', () => {
     expect(JSON.parse(localStorage.getItem('sadhana:audit') ?? '[]')).toEqual([auditEntry]);
   });
 
+  it('reads and writes adaptive daily plans', () => {
+    const repository = createLocalStorageRepository();
+
+    repository.setDailyPlans({ [dailyPlan.date]: dailyPlan });
+
+    expect(repository.getDailyPlans()).toEqual({ [dailyPlan.date]: dailyPlan });
+    expect(JSON.parse(localStorage.getItem('sadhana:daily-plans') ?? '{}')).toEqual({
+      [dailyPlan.date]: dailyPlan,
+    });
+  });
+
   it('reads and replaces the full app snapshot', () => {
     const repository = createLocalStorageRepository();
     const snapshot: AppStateSnapshot = {
@@ -107,6 +138,7 @@ describe('createLocalStorageRepository', () => {
       dailyEntries: { [dailyEntry.date]: dailyEntry },
       journalEntries: { [journalEntry.date]: journalEntry },
       auditLogs: [auditEntry],
+      dailyPlans: { [dailyPlan.date]: dailyPlan },
     };
 
     repository.replaceSnapshot(snapshot);

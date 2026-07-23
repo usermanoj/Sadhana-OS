@@ -1,6 +1,6 @@
 import type { AppRepository, AppStateSnapshot, StoredAuditLogEntry } from './repository';
 import type { CloudDataGateway } from './cloudRepository';
-import type { Category, DailyEntry, DateKey, JournalEntry } from '../types';
+import type { Category, DailyEntry, DailySadhanaPlan, DateKey, JournalEntry } from '../types';
 import { createStarterTemplateSnapshot, shouldApplyStarterTemplate } from './seed';
 
 export interface CloudBackedRepositoryOptions {
@@ -16,6 +16,7 @@ export type CloudSyncOperation =
   | 'dailyEntries'
   | 'journalEntries'
   | 'auditLogs'
+  | 'dailyPlans'
   | 'snapshot';
 
 export interface CloudSyncOperationEvent {
@@ -84,6 +85,16 @@ export function createCloudBackedRepository({
     setAuditLogs(auditLogs: StoredAuditLogEntry[]) {
       localRepository.setAuditLogs(auditLogs);
       sync('auditLogs', cloudGateway.saveAuditLogs(auditLogs));
+    },
+    getDailyPlans() {
+      return localRepository.getDailyPlans();
+    },
+    setDailyPlans(plans: Record<DateKey, DailySadhanaPlan>) {
+      localRepository.setDailyPlans(plans);
+      const operation = cloudGateway.saveDailyPlans
+        ? cloudGateway.saveDailyPlans(plans)
+        : cloudGateway.replaceSnapshot(localRepository.getSnapshot({ versionFallback: '0.2' }));
+      sync('dailyPlans', operation);
     },
     getSnapshot(options) {
       return localRepository.getSnapshot(options);

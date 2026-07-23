@@ -6,7 +6,18 @@ export function hasCloudSnapshotChangedSinceBase(
 ): boolean {
   if (!baseSnapshot) return false;
 
-  return stableStringify(baseSnapshot) !== stableStringify(currentCloudSnapshot);
+  return stableStringify(normalizeSnapshot(baseSnapshot))
+    !== stableStringify(normalizeSnapshot(currentCloudSnapshot));
+}
+
+function normalizeSnapshot(snapshot: AppStateSnapshot): AppStateSnapshot | Omit<AppStateSnapshot, 'dailyPlans'> {
+  if (snapshot.dailyPlans && Object.keys(snapshot.dailyPlans).length > 0) {
+    return snapshot;
+  }
+
+  const snapshotWithoutEmptyPlans = { ...snapshot };
+  delete snapshotWithoutEmptyPlans.dailyPlans;
+  return snapshotWithoutEmptyPlans;
 }
 
 function stableStringify(value: unknown): string {

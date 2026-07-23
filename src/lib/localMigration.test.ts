@@ -314,6 +314,50 @@ describe('local migration planning', () => {
     });
   });
 
+  it('remaps and includes saved adaptive plans in a local-to-cloud migration', () => {
+    const category = snapshot.categories[0]!;
+    const habit = category.subComponents[0]!;
+    const plan = createLocalMigrationPlan({
+      ...snapshot,
+      dailyPlans: {
+        '2026-01-02': {
+          date: '2026-01-02',
+          mode: 'minimum',
+          status: 'confirmed',
+          availableMinutes: 5,
+          energyLevel: 3,
+          focusCategoryIds: [category.id],
+          items: [{
+            habitId: habit.id,
+            categoryId: category.id,
+            rank: 1,
+            plannedMinutes: 3,
+            recommendationScore: 100,
+            reasons: ['focus_area'],
+          }],
+          excludedHabitIds: [],
+          engineVersion: '1.0',
+          createdAt: '2026-01-02T00:00:00.000Z',
+          updatedAt: '2026-01-02T00:00:00.000Z',
+        },
+      },
+    }, 'user-1');
+
+    expect(plan.summary.dailyPlans).toBe(1);
+    expect(plan.summary.totalRows).toBe(7);
+    expect(plan.rows.dailyPlans?.[0]).toMatchObject({
+      user_id: 'user-1',
+      plan_date: '2026-01-02',
+      focus_category_ids: [plan.rows.categories[0]!.id],
+      items: [
+        expect.objectContaining({
+          categoryId: plan.rows.categories[0]!.id,
+          habitId: plan.rows.habits[0]!.id,
+        }),
+      ],
+    });
+  });
+
   it('remaps category and habit ids while preserving cloud relationships', () => {
     const plan = createLocalMigrationPlan(snapshot, 'user-1');
     const migratedCategory = plan.rows.categories[0]!;
@@ -542,6 +586,7 @@ describe('local migration planning', () => {
         onConflict: 'user_id,id',
         ignoreDuplicates: true,
       });
+    expect(upsertCalls.some((call) => call.table === 'daily_sadhana_plans')).toBe(false);
   });
 
   it('extracts readable messages from plain Supabase error objects', () => {

@@ -2,6 +2,7 @@ import type {
   AuditActionType,
   Category,
   DailyEntry,
+  DailySadhanaPlan,
   DateKey,
   JournalEntry,
 } from '../types';
@@ -12,7 +13,7 @@ export interface StoredAuditLogEntry {
   timestamp: string;
   action?: string;
   actionType?: AuditActionType;
-  entityType: 'category' | 'subComponent' | 'habit' | 'system';
+  entityType: 'category' | 'subComponent' | 'habit' | 'daily_plan' | 'system';
   entityId: string;
   before?: unknown | null;
   after?: unknown | null;
@@ -28,6 +29,7 @@ export interface AppStateSnapshot {
   dailyEntries: Record<DateKey, DailyEntry>;
   journalEntries: Record<DateKey, JournalEntry>;
   auditLogs: StoredAuditLogEntry[];
+  dailyPlans?: Record<DateKey, DailySadhanaPlan>;
 }
 
 export interface AppRepository {
@@ -42,6 +44,8 @@ export interface AppRepository {
   setJournalEntries(entries: Record<DateKey, JournalEntry>): void;
   getAuditLogs(): StoredAuditLogEntry[];
   setAuditLogs(auditLogs: StoredAuditLogEntry[]): void;
+  getDailyPlans(): Record<DateKey, DailySadhanaPlan>;
+  setDailyPlans(plans: Record<DateKey, DailySadhanaPlan>): void;
   getSnapshot(options?: { versionFallback?: string }): AppStateSnapshot;
   replaceSnapshot(snapshot: AppStateSnapshot): void;
 }
@@ -92,6 +96,12 @@ export function createLocalStorageRepository(options: LocalStorageRepositoryOpti
     setAuditLogs(auditLogs) {
       setItem(storageKey('audit'), auditLogs);
     },
+    getDailyPlans() {
+      return getItem<Record<DateKey, DailySadhanaPlan>>(storageKey('daily-plans'), {});
+    },
+    setDailyPlans(plans) {
+      setItem(storageKey('daily-plans'), plans);
+    },
     getSnapshot(options) {
       return {
         version: readVersion(options?.versionFallback ?? '1.1'),
@@ -99,6 +109,7 @@ export function createLocalStorageRepository(options: LocalStorageRepositoryOpti
         dailyEntries: getItem<Record<DateKey, DailyEntry>>(storageKey('entries'), {}),
         journalEntries: getItem<Record<DateKey, JournalEntry>>(storageKey('journal'), {}),
         auditLogs: getItem<StoredAuditLogEntry[]>(storageKey('audit'), []),
+        dailyPlans: getItem<Record<DateKey, DailySadhanaPlan>>(storageKey('daily-plans'), {}),
       };
     },
     replaceSnapshot(snapshot) {
@@ -107,6 +118,7 @@ export function createLocalStorageRepository(options: LocalStorageRepositoryOpti
       setItem(storageKey('entries'), snapshot.dailyEntries);
       setItem(storageKey('journal'), snapshot.journalEntries);
       setItem(storageKey('audit'), snapshot.auditLogs);
+      setItem(storageKey('daily-plans'), snapshot.dailyPlans ?? {});
     },
   };
 }
@@ -156,6 +168,12 @@ export const appRepository: AppRepository = {
   },
   setAuditLogs(auditLogs) {
     activeRepository.setAuditLogs(auditLogs);
+  },
+  getDailyPlans() {
+    return activeRepository.getDailyPlans();
+  },
+  setDailyPlans(plans) {
+    activeRepository.setDailyPlans(plans);
   },
   getSnapshot(options) {
     return activeRepository.getSnapshot(options);

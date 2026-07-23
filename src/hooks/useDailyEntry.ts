@@ -186,6 +186,7 @@ export function useDailyEntry() {
     selectedDate,
     dateKey,
     entry,
+    entries,
     categories: activeCategories,
     categoryStats,
     totalCompleted,

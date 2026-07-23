@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AuditLogEntry, Category, DailyEntry, JournalEntry } from '../types';
+import type {
+  AuditLogEntry,
+  Category,
+  DailyEntry,
+  DailySadhanaPlan,
+  JournalEntry,
+} from '../types';
 import { getItem, setItem } from './storage';
 import { exportCSV, exportJSON } from './export';
 
@@ -54,6 +60,20 @@ const journalEntry: JournalEntry = {
   updatedAt: '2026-05-14T07:30:00.000Z',
 };
 
+const dailyPlan: DailySadhanaPlan = {
+  date: '2026-05-14',
+  mode: 'balanced',
+  status: 'confirmed',
+  availableMinutes: 15,
+  energyLevel: 3,
+  focusCategoryIds: ['cat-yoga'],
+  items: [],
+  excludedHabitIds: [],
+  engineVersion: '1.0',
+  createdAt: '2026-05-14T06:00:00.000Z',
+  updatedAt: '2026-05-14T06:00:00.000Z',
+};
+
 describe('export utilities', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -63,6 +83,7 @@ describe('export utilities', () => {
     setItem('entries', { [dailyEntry.date]: dailyEntry });
     setItem('journal', { [journalEntry.date]: journalEntry });
     setItem('audit', []);
+    setItem('daily-plans', { [dailyPlan.date]: dailyPlan });
   });
 
   it('exports complete app state as JSON backup and records export audit', () => {
@@ -73,6 +94,7 @@ describe('export utilities', () => {
     expect(payload.dailyEntries).toEqual({ [dailyEntry.date]: dailyEntry });
     expect(payload.journalEntries).toEqual({ [journalEntry.date]: journalEntry });
     expect(payload.settings).toEqual({ schemaVersion: '1.1' });
+    expect(payload.dailyPlans).toEqual({ [dailyPlan.date]: dailyPlan });
     expect(payload.auditLogs[payload.auditLogs.length - 1]?.actionType).toBe('data_exported');
 
     const audit = getItem<AuditLogEntry[]>('audit', []);

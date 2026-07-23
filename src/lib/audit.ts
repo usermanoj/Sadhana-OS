@@ -28,15 +28,18 @@ const legacyActionMap: Record<LegacyAuditAction, AuditActionType> = {
   weight_changed: 'weight_changed',
   data_imported: 'data_imported',
   data_exported: 'data_exported',
+  daily_plan_generated: 'daily_plan_generated',
+  daily_plan_adjusted: 'daily_plan_adjusted',
+  daily_plan_confirmed: 'daily_plan_confirmed',
 };
 
 const normalizeEntityType = (
-  entityType: 'category' | 'subComponent' | 'habit' | 'system',
+  entityType: 'category' | 'subComponent' | 'habit' | 'daily_plan' | 'system',
 ): AuditEntityType => (entityType === 'subComponent' ? 'habit' : entityType);
 
 export function addAuditEntry(
   action: LegacyAuditAction,
-  entityType: 'category' | 'subComponent' | 'habit' | 'system',
+  entityType: 'category' | 'subComponent' | 'habit' | 'daily_plan' | 'system',
   entityId: string,
   before: unknown | null,
   after: unknown | null,

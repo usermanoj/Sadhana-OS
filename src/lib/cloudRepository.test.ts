@@ -56,6 +56,27 @@ describe('mapCloudRowsToSnapshot', () => {
         new_value: { name: 'Yoga' },
         note: 'Created Yoga',
       }],
+      dailyPlans: [{
+        plan_date: '2026-01-02',
+        mode: 'balanced',
+        status: 'confirmed',
+        available_minutes: 15,
+        energy_level: 3,
+        focus_category_ids: ['category-1'],
+        intention: 'Begin steadily',
+        items: [{
+          habitId: 'habit-1',
+          categoryId: 'category-1',
+          rank: 1,
+          plannedMinutes: 3,
+          recommendationScore: 155,
+          reasons: ['focus_area'],
+        }],
+        excluded_habit_ids: [],
+        engine_version: '1.0',
+        created_at: '2026-01-02T00:00:00.000Z',
+        updated_at: '2026-01-02T00:00:00.000Z',
+      }],
     });
 
     expect(snapshot.version).toBe('0.2');
@@ -63,6 +84,8 @@ describe('mapCloudRowsToSnapshot', () => {
     expect(snapshot.dailyEntries['2026-01-02']?.completions).toEqual({ 'habit-1': true });
     expect(snapshot.journalEntries['2026-01-02']?.mood).toBe('steady');
     expect(snapshot.auditLogs[0]?.actionType).toBe('category_created');
+    expect(snapshot.dailyPlans?.['2026-01-02']?.status).toBe('confirmed');
+    expect(snapshot.dailyPlans?.['2026-01-02']?.items[0]?.habitId).toBe('habit-1');
   });
 });
 

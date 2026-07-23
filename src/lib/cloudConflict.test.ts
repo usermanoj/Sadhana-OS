@@ -52,6 +52,13 @@ describe('hasCloudSnapshotChangedSinceBase', () => {
     expect(hasCloudSnapshotChangedSinceBase(baseSnapshot, equivalentSnapshot)).toBe(false);
   });
 
+  it('keeps pre-plan queued snapshots compatible with an empty plan collection', () => {
+    expect(hasCloudSnapshotChangedSinceBase(baseSnapshot, {
+      ...baseSnapshot,
+      dailyPlans: {},
+    })).toBe(false);
+  });
+
   it('reports a conflict when cloud data changed after the queued write base', () => {
     const changedSnapshot: AppStateSnapshot = {
       ...baseSnapshot,
