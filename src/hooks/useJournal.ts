@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import type { JournalEntry, DateKey } from '../types';
 import { appRepository } from '../lib/repository';
 import { formatDateKey } from './useDailyEntry';
@@ -35,6 +35,7 @@ function hasJournalContent(entry: JournalEntry): boolean {
 
 export function useJournal() {
   const [entries, setEntries] = useState<Record<DateKey, JournalEntry>>(() => loadJournalEntries());
+  const entriesRef = useRef(entries);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const dateKey = formatDateKey(selectedDate);
@@ -61,34 +62,33 @@ export function useJournal() {
   }, []);
 
   const saveEntry = useCallback((entryOrDate: JournalEntry | DateKey, content?: string) => {
-    setEntries((currentEntries) => {
-      const savedAt = new Date().toISOString();
-      const date = typeof entryOrDate === 'string' ? entryOrDate : entryOrDate.date;
-      const existingEntry = currentEntries[date];
-      const updatedEntry: JournalEntry = typeof entryOrDate === 'string'
-        ? {
-            ...existingEntry,
-            date,
-            content: content ?? existingEntry?.content ?? '',
-            createdAt: existingEntry?.createdAt ?? savedAt,
-            updatedAt: savedAt,
-          }
-        : entryOrDate;
+    const currentEntries = entriesRef.current;
+    const savedAt = new Date().toISOString();
+    const date = typeof entryOrDate === 'string' ? entryOrDate : entryOrDate.date;
+    const existingEntry = currentEntries[date];
+    const updatedEntry: JournalEntry = typeof entryOrDate === 'string'
+      ? {
+          ...existingEntry,
+          date,
+          content: content ?? existingEntry?.content ?? '',
+          createdAt: existingEntry?.createdAt ?? savedAt,
+          updatedAt: savedAt,
+        }
+      : entryOrDate;
 
-      const nextEntry: JournalEntry = {
-        ...updatedEntry,
-        createdAt: existingEntry?.createdAt ?? updatedEntry.createdAt ?? savedAt,
-        updatedAt: savedAt,
-      };
-      const nextEntries = {
-        ...currentEntries,
-        [nextEntry.date]: nextEntry,
-      };
+    const nextEntry: JournalEntry = {
+      ...updatedEntry,
+      createdAt: existingEntry?.createdAt ?? updatedEntry.createdAt ?? savedAt,
+      updatedAt: savedAt,
+    };
+    const nextEntries = {
+      ...currentEntries,
+      [nextEntry.date]: nextEntry,
+    };
 
-      saveJournalEntries(nextEntries);
-
-      return nextEntries;
-    });
+    entriesRef.current = nextEntries;
+    saveJournalEntries(nextEntries);
+    setEntries(nextEntries);
   }, []);
 
   return {

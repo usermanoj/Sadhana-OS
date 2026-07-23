@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { User } from '@supabase/supabase-js';
+import { StrictMode } from 'react';
 import { AuthContext, defaultAuthContext, type AuthContextValue } from '../auth/AuthProvider';
 import {
   appRepository,
@@ -8,6 +9,7 @@ import {
   type AppStateSnapshot,
 } from '../lib/repository';
 import { createCloudMutationQueue } from '../lib/cloudMutationQueue';
+import { useJournal } from '../hooks/useJournal';
 import type { Category } from '../types';
 import CloudSyncProvider, { useCloudSync } from './CloudSyncProvider';
 
@@ -159,6 +161,19 @@ function CategoryWriter() {
       }}
     >
       Save category locally
+    </button>
+  );
+}
+
+function JournalWriter() {
+  const { dateKey, saveEntry } = useJournal();
+
+  return (
+    <button
+      type="button"
+      onClick={() => saveEntry(dateKey, 'Task 055 reflection')}
+    >
+      Save journal entry
     </button>
   );
 }
@@ -326,6 +341,36 @@ describe('CloudSyncProvider', () => {
       completedAt: expect.any(String),
     }));
     expect(createCloudMutationQueue('user-a').get()).toBeNull();
+  });
+
+  it('does not update cloud sync state while React calculates a journal state update', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    mocks.loadSnapshot.mockResolvedValue(existingCloudSnapshot);
+
+    render(
+      <StrictMode>
+        <AuthContext.Provider value={signedInContext('user-a')}>
+          <CloudSyncProvider>
+            <SyncProbe />
+            <JournalWriter />
+          </CloudSyncProvider>
+        </AuthContext.Provider>
+      </StrictMode>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sync-status')).toHaveTextContent('synced');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save journal entry' }));
+
+    await waitFor(() => {
+      expect(mocks.saveJournalEntries).toHaveBeenCalled();
+    });
+
+    expect(consoleError.mock.calls.flat().join(' ')).not.toContain(
+      'Cannot update a component',
+    );
   });
 
   it('loads a durable queued snapshot on the next signed-in mount', async () => {
