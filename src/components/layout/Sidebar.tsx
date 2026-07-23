@@ -1,4 +1,5 @@
 import type { TabId } from '../../types';
+import packageMetadata from '../../../package.json';
 import {
   CheckCircle,
   BarChart3,
@@ -59,7 +60,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       </nav>
 
       <div className="border-t border-border px-5 py-4">
-        <p className="text-caption text-text-secondary">v0.1.0</p>
+        <p className="text-caption text-text-secondary">v{packageMetadata.version}</p>
       </div>
     </aside>
   );
