@@ -31,6 +31,7 @@ import MetricCard from '../dashboard/MetricCard';
 import StreakCard from '../dashboard/StreakCard';
 import TrendChart from '../dashboard/TrendChart';
 import ScreenHeader from '../ui/ScreenHeader';
+import { EmptyDataPanel } from '../ui/StateFeedback';
 
 const ranges = [7, 30, 90] as const;
 
@@ -349,9 +350,13 @@ export default function DashboardScreen() {
             })}
           </div>
         ) : (
-          <div className="rounded-md border border-border bg-muted/50 p-4 text-body text-text-secondary">
+          <EmptyDataPanel
+            icon={CircleDashed}
+            title="Category averages are waiting"
+            className="py-7"
+          >
             Add daily entries to see category averages.
-          </div>
+          </EmptyDataPanel>
         )}
       </section>
     </div>

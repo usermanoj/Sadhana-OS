@@ -10,6 +10,7 @@ import {
 } from '../../lib/privacy';
 import { reportError, trackEvent } from '../../lib/observability';
 import { getSupabaseClient } from '../../lib/supabaseClient';
+import { StateBanner } from '../ui/StateFeedback';
 
 type StatusMessage = {
   tone: 'success' | 'error';
@@ -103,22 +104,31 @@ export default function PrivacyScreen() {
       <div className="sadhana-surface max-w-4xl p-4 lg:p-5">
         <h3 className="text-subheading text-text-primary">Account Deletion</h3>
         {!auth.isCloudConfigured ? (
-          <p className="mt-1 text-body text-text-secondary">
+          <StateBanner
+            tone="warning"
+            icon={AlertTriangle}
+            title="Cloud deletion unavailable"
+            className="mt-3"
+          >
             Cloud accounts are not configured in this environment.
-          </p>
+          </StateBanner>
         ) : auth.status !== 'signedIn' ? (
-          <p className="mt-1 text-body text-text-secondary">
+          <StateBanner
+            tone="neutral"
+            icon={ShieldCheck}
+            title="Sign in required"
+            className="mt-3"
+          >
             Sign in before requesting account deletion.
-          </p>
+          </StateBanner>
         ) : (
           <div className="mt-3 flex flex-col gap-3">
             <p className="text-body text-text-secondary">
               This requests deletion of your cloud account and cloud data. Your local browser data is not cleared automatically.
             </p>
-            <div className="flex items-start gap-3 rounded-md border border-accent-warning/30 bg-accent-warning/10 p-3 text-body text-amber-800">
-              <AlertTriangle size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
-              <p>{accountDeletionSafetyNotice}</p>
-            </div>
+            <StateBanner tone="warning" icon={AlertTriangle} title="Deletion is not immediate">
+              {accountDeletionSafetyNotice}
+            </StateBanner>
             <label className="flex items-start gap-3 text-body text-text-primary">
               <input
                 type="checkbox"
@@ -154,16 +164,13 @@ export default function PrivacyScreen() {
       </div>
 
       {status ? (
-        <p
+        <StateBanner
           role="status"
-          className={`rounded-md border px-4 py-3 text-body shadow-card ${
-            status.tone === 'success'
-              ? 'border-accent-success/20 bg-accent-success/10 text-green-700'
-              : 'border-accent-danger/20 bg-accent-danger/10 text-red-700'
-          }`}
+          tone={status.tone}
+          title={status.tone === 'success' ? 'Privacy action complete' : 'Privacy action needs attention'}
         >
           {status.text}
-        </p>
+        </StateBanner>
       ) : null}
     </section>
   );

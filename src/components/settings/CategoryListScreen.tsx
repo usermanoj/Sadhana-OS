@@ -1,6 +1,7 @@
 import { Archive, CheckCircle2, Layers3, Plus, RotateCcw, Sparkles } from 'lucide-react';
 import type { Category } from '../../types';
 import { DynamicCategoryIcon } from '../today/CategoryIcon';
+import { EmptyDataPanel } from '../ui/StateFeedback';
 
 interface CategoryListScreenProps {
   activeCategories: Category[];
@@ -138,9 +139,14 @@ function CategorySection({
       </div>
 
       {categories.length === 0 ? (
-        <div className="sadhana-surface px-4 py-5 text-body text-text-secondary">
-          No {title.toLowerCase()} categories
-        </div>
+        <EmptyDataPanel
+          icon={archived ? Archive : Layers3}
+          title={archived ? 'Nothing archived' : 'No active categories'}
+        >
+          {archived
+            ? 'Archived groups will appear here when you quiet a category without deleting history.'
+            : 'Add a category to begin shaping the practice groups that appear on Today.'}
+        </EmptyDataPanel>
       ) : (
         <div className="grid gap-3 xl:grid-cols-2 2xl:gap-4">
           {categories.map((category) => (

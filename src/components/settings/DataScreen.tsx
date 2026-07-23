@@ -15,6 +15,7 @@ import {
 } from '../../lib/import';
 import { reportError, trackEvent } from '../../lib/observability';
 import type { ExportPayload } from '../../types';
+import { StateBanner } from '../ui/StateFeedback';
 import ConflictDialog from './ConflictDialog';
 
 type StatusMessage = {
@@ -126,18 +127,13 @@ export default function DataScreen() {
       </div>
 
       {status ? (
-        <div
-          role="status"
-          className={`rounded-md border px-4 py-3 text-body shadow-card ${
-            status.tone === 'success'
-              ? 'border-accent-success/20 bg-accent-success/10 text-green-700'
-              : status.tone === 'warning'
-                ? 'border-accent-warning/30 bg-accent-warning/10 text-amber-700'
-                : 'border-accent-danger/20 bg-accent-danger/10 text-red-700'
-          }`}
+        <StateBanner
+          tone={status.tone}
+          title={getStatusTitle(status.tone)}
+          role={status.tone === 'error' ? 'alert' : 'status'}
         >
           {status.text}
-        </div>
+        </StateBanner>
       ) : null}
 
       <BackupTrustPanel
@@ -395,6 +391,12 @@ function getImportSuccessMessage(kind: ExportTrustKind): string {
   if (kind === 'cloudConfirmed') return 'JSON backup imported. Cloud sync will confirm the changes shortly.';
   if (kind === 'cloudPending') return 'JSON backup imported into local cache. Cloud confirmation is pending.';
   return 'JSON backup imported on this device.';
+}
+
+function getStatusTitle(tone: NonNullable<StatusMessage>['tone']): string {
+  if (tone === 'success') return 'Data action complete';
+  if (tone === 'warning') return 'Check cloud confirmation';
+  return 'Data action needs attention';
 }
 
 function formatSyncTimestamp(value: string): string {

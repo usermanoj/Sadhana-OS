@@ -7,7 +7,9 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts';
+import { CircleDot } from 'lucide-react';
 import type { BalanceWheelPoint } from '../../lib/chartData';
+import { EmptyDataPanel } from '../ui/StateFeedback';
 
 interface BalanceWheelChartProps {
   data: BalanceWheelPoint[];
@@ -17,14 +19,13 @@ interface BalanceWheelChartProps {
 export default function BalanceWheelChart({ data, hasScores }: BalanceWheelChartProps) {
   if (!hasScores) {
     return (
-      <div className="flex h-80 items-center justify-center rounded-lg border border-border bg-muted/45 px-4 text-center lg:h-[380px] 2xl:h-[440px]">
-        <div>
-          <p className="text-subheading text-text-primary">Balance wheel is waiting</p>
-          <p className="mt-1 max-w-sm text-caption text-text-secondary">
-            Complete a few daily entries to reveal category balance.
-          </p>
-        </div>
-      </div>
+      <EmptyDataPanel
+        icon={CircleDot}
+        title="Balance wheel is waiting"
+        className="flex h-80 flex-col justify-center lg:h-[380px] 2xl:h-[440px]"
+      >
+        Complete a few daily entries to reveal category balance.
+      </EmptyDataPanel>
     );
   }
 

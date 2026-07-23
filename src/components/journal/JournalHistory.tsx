@@ -1,5 +1,6 @@
 import type { JournalEntry } from '../../types';
 import { Calendar, ChevronRight, ScrollText } from 'lucide-react';
+import { EmptyDataPanel } from '../ui/StateFeedback';
 
 interface JournalHistoryProps {
   history: JournalEntry[];
@@ -20,15 +21,13 @@ function dateKeyToLocalDate(dateKey: string): Date {
 export default function JournalHistory({ history, onSelectDate, currentDateKey }: JournalHistoryProps) {
   if (history.length === 0) {
     return (
-      <div className="sadhana-surface p-5 text-center lg:sticky lg:top-6">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-accent-primary/10">
-          <Calendar className="text-accent-primary" size={24} aria-hidden="true" />
-        </div>
-        <h3 className="mb-1 text-subheading text-text-primary">No History Yet</h3>
-        <p className="text-caption text-text-secondary">
-          Your past reflections will appear here once you save a journal entry.
-        </p>
-      </div>
+      <EmptyDataPanel
+        icon={Calendar}
+        title="No History Yet"
+        className="lg:sticky lg:top-6"
+      >
+        Your past reflections will appear here once you save a journal entry.
+      </EmptyDataPanel>
     );
   }
 
