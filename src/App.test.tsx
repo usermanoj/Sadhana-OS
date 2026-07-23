@@ -36,15 +36,23 @@ describe('App', () => {
   it('renders all 9 default categories', () => {
     render(<App />);
 
-    expect(screen.getByText('8 Limbs of Yoga')).toBeInTheDocument();
-    expect(screen.getByText('Speech / Vaani Control')).toBeInTheDocument();
-    expect(screen.getByText('Six Senses Control')).toBeInTheDocument();
-    expect(screen.getByText('Spiritual')).toBeInTheDocument();
-    expect(screen.getByText('Physical')).toBeInTheDocument();
-    expect(screen.getByText('Mental')).toBeInTheDocument();
-    expect(screen.getByText('Society')).toBeInTheDocument();
-    expect(screen.getByText('Professional')).toBeInTheDocument();
-    expect(screen.getByText('Family')).toBeInTheDocument();
+    const categories = [
+      '8 Limbs of Yoga',
+      'Speech / Vaani Control',
+      'Six Senses Control',
+      'Spiritual',
+      'Physical',
+      'Mental',
+      'Society',
+      'Professional',
+      'Family',
+    ];
+
+    categories.forEach((category) => {
+      expect(
+        screen.getByRole('button', { name: `Expand ${category}` }),
+      ).toBeInTheDocument();
+    });
   });
 
   it('switches to Journal tab', () => {

@@ -30,7 +30,7 @@ describe('TodayScreen', () => {
     ];
 
     for (const name of categoryNames) {
-      expect(screen.getByText(name)).toBeInTheDocument();
+      expect(screen.getAllByText(name).length).toBeGreaterThan(0);
     }
   });
 
@@ -41,6 +41,42 @@ describe('TodayScreen', () => {
     // Multiple progressbars: overall + one per category
     const bars = screen.getAllByRole('progressbar');
     expect(bars.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('opens with one clear next practice and a balanced three-practice plan', () => {
+    render(<TodayScreen />);
+
+    expect(screen.getByRole('heading', { name: 'Your next practice' })).toBeInTheDocument();
+    expect(screen.getByText('Yama')).toBeInTheDocument();
+    expect(screen.getByText('Based on your current practice order')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Balanced plan' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByText('3 practices in focus')).toBeInTheDocument();
+  });
+
+  it('changes plan depth without changing practice configuration', () => {
+    render(<TodayScreen />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Minimum plan' }));
+
+    expect(screen.getByRole('button', { name: 'Minimum plan' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByText('1 practice in focus')).toBeInTheDocument();
+    expect(getItem<Category[]>('categories', [])).toHaveLength(9);
+  });
+
+  it('advances the focused practice immediately after recording it', () => {
+    render(<TodayScreen />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Complete Yama' }));
+
+    expect(screen.getByRole('heading', { name: 'Your next practice' })).toBeInTheDocument();
+    expect(screen.getByText('Niyama')).toBeInTheDocument();
+    expect(screen.getByText('1/42 practices')).toBeInTheDocument();
   });
 
   it('shows date navigator with prev/next buttons', () => {
@@ -54,7 +90,7 @@ describe('TodayScreen', () => {
     render(<TodayScreen />);
 
     expect(screen.getByRole('button', { name: 'Expand 8 Limbs of Yoga' })).toBeInTheDocument();
-    expect(screen.queryByText('Yama')).not.toBeInTheDocument();
+    expect(document.getElementById('toggle-00000000-0000-4000-8000-000000000101')).not.toBeInTheDocument();
   });
 
   it('next day button is disabled when viewing today', () => {
@@ -212,6 +248,6 @@ describe('TodayScreen', () => {
 
     // Total sub-components: 8+4+6+4+4+4+4+4+4 = 42
     // After Task 004 seed, there should be a "practices" label
-    expect(screen.getByText(/practices/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/practices/i).length).toBeGreaterThan(0);
   });
 });

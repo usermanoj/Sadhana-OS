@@ -15,7 +15,8 @@ for (const viewport of qaViewports) {
     await page.reload();
 
     await expect(page.locator('#main-content')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Today' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Today', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your next practice' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Today' })).toHaveCount(1);
 
     if (viewport.expectsMobileNav) {

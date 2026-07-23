@@ -7,6 +7,8 @@ test('happy path works on an iPhone-sized viewport', async ({ page }) => {
   await page.reload();
 
   await expect(page.locator('#page-today')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your next practice' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Balanced plan' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('div[id^="category-"]')).toHaveCount(9);
   await page.getByRole('button', { name: 'Expand 8 Limbs of Yoga' }).click();
 

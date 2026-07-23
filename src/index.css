@@ -132,6 +132,11 @@ textarea:focus-visible {
     box-shadow: var(--shadow-lifted);
   }
 
+  .sadhana-focus-surface {
+    @apply rounded-md border border-border bg-surface;
+    box-shadow: var(--shadow-lifted);
+  }
+
   .sadhana-icon-tile {
     @apply flex shrink-0 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary;
   }
