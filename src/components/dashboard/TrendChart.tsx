@@ -1,5 +1,7 @@
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Activity } from 'lucide-react';
 import { hasChartScores, type ChartPoint } from '../../lib/chartData';
+import { EmptyDataPanel } from '../ui/StateFeedback';
 
 interface TrendChartProps {
   data: ChartPoint[];
@@ -9,14 +11,13 @@ interface TrendChartProps {
 export default function TrendChart({ data, color = '#7C3AED' }: TrendChartProps) {
   if (!data || data.length === 0 || !hasChartScores(data)) {
     return (
-      <div className="flex h-80 items-center justify-center rounded-lg border border-border bg-muted/45 px-4 text-center lg:h-[360px] 2xl:h-[420px]">
-        <div>
-          <p className="text-subheading text-text-primary">No entries in this range</p>
-          <p className="mt-1 max-w-sm text-caption text-text-secondary">
-            Track a few days to reveal the score trend.
-          </p>
-        </div>
-      </div>
+      <EmptyDataPanel
+        icon={Activity}
+        title="No entries in this range"
+        className="flex h-80 flex-col justify-center lg:h-[360px] 2xl:h-[420px]"
+      >
+        Track a few days to reveal the score trend.
+      </EmptyDataPanel>
     );
   }
 

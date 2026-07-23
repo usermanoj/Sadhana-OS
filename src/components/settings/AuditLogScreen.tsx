@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, FileClock } from 'lucide-react';
 import type { AuditActionType, AuditLogEntry } from '../../types';
 import { getAuditLogs } from '../../lib/auditService';
+import { EmptyDataPanel } from '../ui/StateFeedback';
 
 const actionToneMap: Record<string, string> = {
   created: 'created',
@@ -35,9 +36,9 @@ export default function AuditLogScreen() {
       </div>
 
       {entries.length === 0 ? (
-        <div className="sadhana-surface px-4 py-5 text-body text-text-secondary">
-          No audit entries yet
-        </div>
+        <EmptyDataPanel icon={FileClock} title="No audit entries yet">
+          Configuration changes will appear here with before-and-after details once you edit your practice setup.
+        </EmptyDataPanel>
       ) : (
         <div className="flex flex-col gap-3">
           {entries.map((entry) => (

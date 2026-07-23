@@ -19,6 +19,7 @@ import {
   getCloudSyncStatusLabel,
   isCloudSyncProblemStatus,
 } from '../../lib/cloudSyncStatusCopy';
+import { StateBanner, StatePanel } from '../ui/StateFeedback';
 import LocalMigrationPanel from './LocalMigrationPanel';
 
 type StatusMessage = {
@@ -84,12 +85,21 @@ export default function AccountScreen() {
           title="Account"
           subtitle="Local-only mode"
         />
-        <div className="sadhana-surface max-w-3xl p-4 text-body text-text-secondary lg:p-5">
+        <StatePanel
+          icon={CloudOff}
+          title="Local-only mode is active"
+          className="max-w-3xl text-left"
+        >
           Cloud accounts are not configured in this environment. Your MVP data remains on this device and export/import stays available.
-        </div>
-        <div className="sadhana-surface-soft max-w-3xl p-4 text-caption text-text-secondary">
+        </StatePanel>
+        <StateBanner
+          tone="warning"
+          icon={AlertTriangle}
+          title="Cloud configuration missing"
+          className="max-w-3xl"
+        >
           Missing: {auth.missingConfigKeys.join(', ')}
-        </div>
+        </StateBanner>
       </section>
     );
   }
@@ -304,16 +314,13 @@ function CloudSyncAccountPanel() {
 
 function StatusBanner({ status }: { status: NonNullable<StatusMessage> }) {
   return (
-    <p
+    <StateBanner
       role="status"
-      className={`rounded-md border px-4 py-3 text-body shadow-card ${
-        status.tone === 'success'
-          ? 'border-accent-success/20 bg-accent-success/10 text-green-700'
-          : 'border-accent-danger/20 bg-accent-danger/10 text-red-700'
-      }`}
+      tone={status.tone}
+      title={status.tone === 'success' ? 'Account email sent' : 'Account action needs attention'}
     >
       {status.text}
-    </p>
+    </StateBanner>
   );
 }
 

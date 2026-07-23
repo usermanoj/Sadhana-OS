@@ -8,7 +8,9 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { BarChart3 } from 'lucide-react';
 import type { CategoryBarPoint } from '../../lib/chartData';
+import { EmptyDataPanel } from '../ui/StateFeedback';
 
 interface CategoryBarChartProps {
   data: CategoryBarPoint[];
@@ -17,14 +19,13 @@ interface CategoryBarChartProps {
 export default function CategoryBarChart({ data }: CategoryBarChartProps) {
   if (data.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-lg border border-border bg-muted/45 px-4 text-center">
-        <div>
-          <p className="text-subheading text-text-primary">No category comparison yet</p>
-          <p className="mt-1 max-w-sm text-caption text-text-secondary">
-            Add daily entries to compare category scores.
-          </p>
-        </div>
-      </div>
+      <EmptyDataPanel
+        icon={BarChart3}
+        title="No category comparison yet"
+        className="flex h-64 flex-col justify-center"
+      >
+        Add daily entries to compare category scores.
+      </EmptyDataPanel>
     );
   }
 
