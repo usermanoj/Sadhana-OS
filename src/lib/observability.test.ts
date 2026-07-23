@@ -16,6 +16,7 @@ describe('observability', () => {
 
   it('allows only approved analytics events', () => {
     expect(isAllowedAnalyticsEvent('local_migration_started')).toBe(true);
+    expect(isAllowedAnalyticsEvent('auth_bootstrap_retry_requested')).toBe(true);
     expect(isAllowedAnalyticsEvent('journal_content_saved')).toBe(false);
   });
 

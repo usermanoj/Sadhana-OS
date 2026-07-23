@@ -18,9 +18,14 @@ import {
   type SupportedOAuthProvider,
 } from '../lib/auth';
 import AuthScreen from '../components/auth/AuthScreen';
+import AuthBootstrapScreen from '../components/auth/AuthBootstrapScreen';
 import OnboardingScreen from '../components/onboarding/OnboardingScreen';
 import ResetPasswordScreen from '../components/auth/ResetPasswordScreen';
 import { reportError, trackEvent } from '../lib/observability';
+import {
+  AUTH_BOOTSTRAP_TIMEOUT_MS,
+  withAuthBootstrapTimeout,
+} from '../lib/authBootstrap';
 
 export type AuthStatus = 'unconfigured' | 'loading' | 'signedOut' | 'signedIn' | 'passwordRecovery' | 'error';
 
@@ -39,6 +44,7 @@ export interface AuthContextValue {
   updatePassword: (password: string) => Promise<void>;
   signInWithProvider: (provider: SupportedOAuthProvider) => Promise<void>;
   signOut: () => Promise<void>;
+  retryBootstrap: () => void;
   refreshProfile: () => Promise<void>;
   completeOnboarding: (input: CompleteOnboardingInput) => Promise<void>;
 }
@@ -62,6 +68,7 @@ export const defaultAuthContext: AuthContextValue = {
   updatePassword: unavailable,
   signInWithProvider: unavailable,
   signOut: unavailable,
+  retryBootstrap: () => undefined,
   refreshProfile: unavailable,
   completeOnboarding: unavailable,
 };
@@ -72,9 +79,13 @@ export const useAuth = (): AuthContextValue => useContext(AuthContext);
 
 interface AuthProviderProps {
   children: ReactNode;
+  bootstrapTimeoutMs?: number;
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
+export function AuthProvider({
+  children,
+  bootstrapTimeoutMs = AUTH_BOOTSTRAP_TIMEOUT_MS,
+}: AuthProviderProps) {
   const environment = useMemo(() => getSupabaseEnvironment(), []);
   const supabase = useMemo(() => getSupabaseClient(), []);
   const [status, setStatus] = useState<AuthStatus>(
@@ -83,17 +94,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<AuthProfile | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [bootstrapAttempt, setBootstrapAttempt] = useState(0);
   const pendingSignInMethodRef = useRef<string | null>(null);
 
-  const loadProfile = useCallback(async (nextUser: User | null): Promise<void> => {
+  const fetchProfileForUser = useCallback(async (
+    nextUser: User | null,
+  ): Promise<AuthProfile | null> => {
     if (!supabase || !nextUser) {
-      setProfile(null);
-      return;
+      return null;
     }
 
-    const nextProfile = await fetchAuthProfile(supabase, nextUser);
-    setProfile(nextProfile);
-  }, [supabase]);
+    return withAuthBootstrapTimeout(
+      fetchAuthProfile(supabase, nextUser),
+      bootstrapTimeoutMs,
+    );
+  }, [bootstrapTimeoutMs, supabase]);
+
+  const loadProfile = useCallback(async (nextUser: User | null): Promise<void> => {
+    setProfile(await fetchProfileForUser(nextUser));
+  }, [fetchProfileForUser]);
 
   useEffect(() => {
     if (!environment.isConfigured || !supabase) {
@@ -105,32 +124,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const loadSession = async () => {
       setStatus('loading');
-      const { data, error } = await supabase.auth.getSession();
-
-      if (!isMounted) return;
-
-      if (error) {
-        setErrorMessage(error.message);
-        setStatus('error');
-        return;
-      }
-
-      const nextUser = mapSessionUser(data.session);
-      setUser(nextUser);
-
-      if (!nextUser) {
-        setProfile(null);
-        setStatus('signedOut');
-        return;
-      }
-
+      setErrorMessage(null);
       try {
-        await loadProfile(nextUser);
-        if (isMounted) setStatus('signedIn');
+        const { data, error } = await withAuthBootstrapTimeout(
+          supabase.auth.getSession(),
+          bootstrapTimeoutMs,
+        );
+
+        if (!isMounted) return;
+        if (error) throw error;
+
+        const nextUser = mapSessionUser(data.session);
+        setUser(nextUser);
+
+        if (!nextUser) {
+          setProfile(null);
+          setStatus('signedOut');
+          return;
+        }
+
+        const nextProfile = await fetchProfileForUser(nextUser);
+        if (!isMounted) return;
+
+        setProfile(nextProfile);
+        setStatus('signedIn');
       } catch (error) {
         if (!isMounted) return;
-        reportError(error, 'auth_profile_load_failed');
-        setErrorMessage(error instanceof Error ? error.message : 'Profile sync failed.');
+        reportError(error, 'auth_bootstrap_failed');
+        setErrorMessage('Cloud account verification is temporarily unavailable.');
         setStatus('error');
       }
     };
@@ -154,8 +175,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       setStatus('loading');
-      void loadProfile(nextUser)
-        .then(() => {
+      setErrorMessage(null);
+      void fetchProfileForUser(nextUser)
+        .then((nextProfile) => {
+          if (!isMounted) return;
+          setProfile(nextProfile);
           if (event === 'SIGNED_IN') {
             trackEvent('sign_in_succeeded', {
               method: pendingSignInMethodRef.current ?? 'session',
@@ -165,8 +189,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setStatus('signedIn');
         })
         .catch((error: unknown) => {
+          if (!isMounted) return;
           reportError(error, 'auth_profile_refresh_failed');
-          setErrorMessage(error instanceof Error ? error.message : 'Profile sync failed.');
+          setErrorMessage('Cloud account verification is temporarily unavailable.');
           setStatus('error');
         });
     });
@@ -175,7 +200,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isMounted = false;
       authListener.subscription.unsubscribe();
     };
-  }, [environment.isConfigured, loadProfile, supabase]);
+  }, [
+    bootstrapAttempt,
+    bootstrapTimeoutMs,
+    environment.isConfigured,
+    fetchProfileForUser,
+    supabase,
+  ]);
 
   const value: AuthContextValue = {
     isCloudConfigured: environment.isConfigured,
@@ -243,6 +274,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setProfile(null);
       setStatus('signedOut');
     },
+    retryBootstrap: () => {
+      setErrorMessage(null);
+      setStatus('loading');
+      trackEvent('auth_bootstrap_retry_requested');
+      setBootstrapAttempt((attempt) => attempt + 1);
+    },
     refreshProfile: async () => {
       if (!supabase || !user) return;
       await loadProfile(user);
@@ -272,12 +309,16 @@ export function AuthGate({ children }: AuthProviderProps) {
   }
 
   if (auth.status === 'loading') {
+    return <AuthBootstrapScreen mode="loading" />;
+  }
+
+  if (auth.status === 'error') {
     return (
-      <div className="flex min-h-screen min-h-dvh items-center justify-center bg-ivory px-6">
-        <div className="rounded-md border border-border bg-surface px-5 py-4 text-body text-text-secondary shadow-sm">
-          Opening your practice space...
-        </div>
-      </div>
+      <AuthBootstrapScreen
+        mode="error"
+        hasKnownSession={Boolean(auth.user)}
+        onRetry={auth.retryBootstrap}
+      />
     );
   }
 
@@ -291,10 +332,6 @@ export function AuthGate({ children }: AuthProviderProps) {
 
   if (auth.status === 'signedIn' && auth.profile && !auth.profile.onboardingCompletedAt) {
     return <OnboardingScreen />;
-  }
-
-  if (auth.status === 'error' && !auth.user) {
-    return <AuthScreen />;
   }
 
   return <>{children}</>;

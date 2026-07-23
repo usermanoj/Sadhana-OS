@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { User } from '@supabase/supabase-js';
 import { vi } from 'vitest';
 import { AuthContext, AuthGate, defaultAuthContext } from './AuthProvider';
@@ -33,6 +33,59 @@ describe('AuthGate', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'Set New Password' })).toBeInTheDocument();
+    expect(screen.queryByText('Signed-in app content')).not.toBeInTheDocument();
+  });
+
+  it('shows a recoverable error instead of signed-in content when cloud confirmation fails', () => {
+    const retryBootstrap = vi.fn();
+
+    render(
+      <AuthContext.Provider
+        value={{
+          ...defaultAuthContext,
+          isCloudConfigured: true,
+          missingConfigKeys: [],
+          status: 'error',
+          user: {
+            id: 'user-1',
+            email: 'active@example.com',
+          } as User,
+          retryBootstrap,
+        }}
+      >
+        <AuthGate>
+          <div>Signed-in app content</div>
+        </AuthGate>
+      </AuthContext.Provider>,
+    );
+
+    expect(screen.getByRole('heading', {
+      name: "We couldn't open your practice space.",
+    })).toBeInTheDocument();
+    expect(screen.getByText(/app remains locked/i)).toBeInTheDocument();
+    expect(screen.queryByText('Signed-in app content')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Retry connection' }));
+    expect(retryBootstrap).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a calm progress state while the cloud session is being confirmed', () => {
+    render(
+      <AuthContext.Provider
+        value={{
+          ...defaultAuthContext,
+          isCloudConfigured: true,
+          missingConfigKeys: [],
+          status: 'loading',
+        }}
+      >
+        <AuthGate>
+          <div>Signed-in app content</div>
+        </AuthGate>
+      </AuthContext.Provider>,
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('Opening your practice space');
     expect(screen.queryByText('Signed-in app content')).not.toBeInTheDocument();
   });
 
