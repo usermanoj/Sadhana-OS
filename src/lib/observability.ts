@@ -1,5 +1,6 @@
 export type AnalyticsEventName =
   | 'sign_in_succeeded'
+  | 'auth_bootstrap_retry_requested'
   | 'onboarding_completed'
   | 'local_migration_started'
   | 'local_migration_succeeded'
@@ -37,6 +38,7 @@ export interface ReportErrorOptions {
 
 const allowedEvents: AnalyticsEventName[] = [
   'sign_in_succeeded',
+  'auth_bootstrap_retry_requested',
   'onboarding_completed',
   'local_migration_started',
   'local_migration_succeeded',
