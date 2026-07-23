@@ -10,19 +10,19 @@ const modeOptions = [
   {
     value: 'minimum',
     label: 'Minimum',
-    detail: 'One practice',
+    detail: 'One gentle step',
     icon: Minus,
   },
   {
     value: 'balanced',
     label: 'Balanced',
-    detail: 'Next three',
+    detail: 'Up to three',
     icon: ListChecks,
   },
   {
     value: 'full',
     label: 'Full',
-    detail: 'All remaining',
+    detail: 'Deepest time fit',
     icon: Layers3,
   },
 ] satisfies Array<{

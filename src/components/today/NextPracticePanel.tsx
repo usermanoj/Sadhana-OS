@@ -1,21 +1,33 @@
-import { Check, Compass, Sparkles } from 'lucide-react';
-import type { TrackingValue } from '../../types';
-import type { PlannedPractice } from '../../lib/todayPlan';
+import { Check, Clock3, Compass, RefreshCw, Scissors, Sparkles } from 'lucide-react';
+import type { DailyPlanStatus, TrackingValue } from '../../types';
+import type { ResolvedDailyPlanItem } from '../../lib/adaptiveDailyPlan';
 import { DynamicCategoryIcon } from './CategoryIcon';
 import SubComponentToggle from './SubComponentToggle';
 
 interface NextPracticePanelProps {
-  focus: PlannedPractice | null;
+  focus: ResolvedDailyPlanItem | null;
   value: TrackingValue | undefined;
+  reason: string | null;
+  planStatus: DailyPlanStatus;
+  allActiveComplete: boolean;
   onToggle: (habitId: string) => void;
   onValueChange: (habitId: string, value: TrackingValue) => void;
+  onShorten: (habitId: string) => void;
+  onReplace: (habitId: string) => void;
+  onConfirm: () => void;
 }
 
 export default function NextPracticePanel({
   focus,
   value,
+  reason,
+  planStatus,
+  allActiveComplete,
   onToggle,
   onValueChange,
+  onShorten,
+  onReplace,
+  onConfirm,
 }: NextPracticePanelProps) {
   if (!focus) {
     return (
@@ -28,10 +40,12 @@ export default function NextPracticePanel({
           <Sparkles size={27} aria-hidden="true" />
         </span>
         <h2 id="next-practice-heading" className="mt-5 text-heading text-text-primary">
-          Your practice is complete
+          {allActiveComplete ? 'Your practice is complete' : 'Today\'s plan is complete'}
         </h2>
         <p className="mt-2 max-w-md text-body text-text-secondary">
-          Every active practice has been recorded. Let the rest of the day stay spacious.
+          {allActiveComplete
+            ? 'Every active practice has been recorded. Let the rest of the day stay spacious.'
+            : 'You completed the practices in this plan. Tune it only if another step would genuinely help.'}
         </p>
       </section>
     );
@@ -56,14 +70,14 @@ export default function NextPracticePanel({
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-caption font-medium text-text-secondary">
             <Compass size={16} className="text-accent-primary" aria-hidden="true" />
-            <span>Based on your current practice order</span>
+            <span>{reason ?? 'Based on your current plan context'}</span>
           </div>
           <span className="rounded-full border border-border bg-surface/80 px-2.5 py-1 text-[0.72rem] font-semibold uppercase text-text-secondary">
-            Next
+            {planStatus === 'confirmed' ? 'Confirmed' : 'Suggested'}
           </span>
         </div>
 
-        <div className="mt-8 flex items-start gap-4 lg:mt-10">
+        <div className="mt-5 flex items-start gap-4 sm:mt-7 lg:mt-10">
           <span
             className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg shadow-sm lg:h-16 lg:w-16"
             style={{ backgroundColor: categoryTint }}
@@ -87,10 +101,14 @@ export default function NextPracticePanel({
             <p className="mt-2 break-words text-[1.35rem] font-medium leading-snug text-text-primary sm:text-[1.55rem]">
               {habit.name}
             </p>
+            <p className="mt-3 inline-flex items-center gap-1.5 text-caption text-text-secondary">
+              <Clock3 size={15} aria-hidden="true" />
+              About {focus.item.plannedMinutes} minutes
+            </p>
           </div>
         </div>
 
-        <div className="mt-auto pt-8">
+        <div className="mt-auto pt-5 sm:pt-7 lg:pt-8">
           {habit.trackingType === 'boolean' ? (
             <button
               type="button"
@@ -111,6 +129,36 @@ export default function NextPracticePanel({
               />
             </div>
           )}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {planStatus === 'suggested' ? (
+              <button
+                type="button"
+                className="sadhana-button-secondary"
+                onClick={onConfirm}
+              >
+                <Check size={17} aria-hidden="true" />
+                Use this plan
+              </button>
+            ) : null}
+            {focus.item.plannedMinutes > 1 ? (
+              <button
+                type="button"
+                className="sadhana-button-secondary"
+                onClick={() => onShorten(habit.id)}
+              >
+                <Scissors size={17} aria-hidden="true" />
+                Shorten
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="sadhana-button-secondary"
+              onClick={() => onReplace(habit.id)}
+            >
+              <RefreshCw size={17} aria-hidden="true" />
+              Replace
+            </button>
+          </div>
         </div>
       </div>
     </section>

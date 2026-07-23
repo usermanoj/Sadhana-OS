@@ -1,4 +1,13 @@
-import type { AuditLogEntry, Category, DailyEntry, DateKey, ExportPayload, Habit, JournalEntry } from '../types';
+import type {
+  AuditLogEntry,
+  Category,
+  DailyEntry,
+  DailySadhanaPlan,
+  DateKey,
+  ExportPayload,
+  Habit,
+  JournalEntry,
+} from '../types';
 import { recordAuditEntry } from './auditService';
 import { appRepository } from './repository';
 
@@ -13,6 +22,8 @@ const loadJournalEntries = (): Record<DateKey, JournalEntry> =>
   appRepository.getJournalEntries();
 const loadAuditLogs = (): AuditLogEntry[] =>
   appRepository.getAuditLogs().map((entry) => entry as AuditLogEntry);
+const loadDailyPlans = (): Record<DateKey, DailySadhanaPlan> =>
+  appRepository.getDailyPlans();
 
 const flattenHabits = (categories: Category[]): Habit[] =>
   categories.flatMap((category) => category.subComponents);
@@ -31,6 +42,7 @@ export function exportJSON(): ExportPayload {
   const dailyEntries = loadDailyEntries();
   const journalEntries = loadJournalEntries();
   const auditLogs = loadAuditLogs();
+  const dailyPlans = loadDailyPlans();
   const settings = { schemaVersion: getSchemaVersion() };
 
   return {
@@ -41,6 +53,7 @@ export function exportJSON(): ExportPayload {
     dailyEntries,
     journalEntries,
     auditLogs,
+    dailyPlans,
     settings,
     entries: dailyEntries,
     journal: journalEntries,

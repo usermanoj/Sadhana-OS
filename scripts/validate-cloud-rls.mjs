@@ -222,6 +222,7 @@ async function run() {
   const journalEntryId = crypto.randomUUID();
   const auditEntryId = crypto.randomUUID();
   const syncMutationId = crypto.randomUUID();
+  const dailyPlanId = crypto.randomUUID();
   const categoryName = `RLS Test ${runId}`;
 
   await insertAndReturnId(userAClient, 'categories', {
@@ -309,6 +310,30 @@ async function run() {
     },
   }, 'User A can insert own sync mutation');
 
+  await insertAndReturnId(userAClient, 'daily_sadhana_plans', {
+    id: dailyPlanId,
+    user_id: userA.id,
+    plan_date: entryDate,
+    mode: 'balanced',
+    status: 'suggested',
+    available_minutes: 15,
+    energy_level: 3,
+    focus_category_ids: [categoryId],
+    intention: 'RLS validation',
+    items: [{
+      habitId,
+      categoryId,
+      rank: 1,
+      plannedMinutes: 3,
+      recommendationScore: 100,
+      reasons: ['focus_area'],
+    }],
+    excluded_habit_ids: [],
+    engine_version: '1.0',
+    created_at: timestamp,
+    updated_at: timestamp,
+  }, 'User A can insert own daily plan');
+
   await expectNoVisibleRows(userBClient, 'profiles', 'id', userA.id, 'User B cannot select User A profile');
   await expectNoVisibleRows(userBClient, 'user_settings', 'user_id', userA.id, 'User B cannot select User A settings');
   await expectNoVisibleRows(userBClient, 'categories', 'id', categoryId, 'User B cannot select User A category');
@@ -320,6 +345,13 @@ async function run() {
     'id',
     dailyHabitEntryId,
     'User B cannot select User A daily habit entry',
+  );
+  await expectNoVisibleRows(
+    userBClient,
+    'daily_sadhana_plans',
+    'id',
+    dailyPlanId,
+    'User B cannot select User A daily plan',
   );
   await expectNoVisibleRows(userBClient, 'journal_entries', 'id', journalEntryId, 'User B cannot select User A journal');
   await expectNoVisibleRows(userBClient, 'audit_log_entries', 'id', auditEntryId, 'User B cannot select User A audit log');
@@ -389,6 +421,19 @@ async function run() {
   );
 
   await expectRejectedOrNoop(
+    () => userBClient.from('daily_sadhana_plans').update({ status: 'confirmed' }).eq('id', dailyPlanId),
+    () => expectRowValue(
+      userAClient,
+      'daily_sadhana_plans',
+      dailyPlanId,
+      'status',
+      { status: 'suggested' },
+      'User A daily plan stayed unchanged after User B update attempt',
+    ),
+    'User B cannot update User A daily plan',
+  );
+
+  await expectRejectedOrNoop(
     () => userBClient.from('categories').delete().eq('id', categoryId),
     () => expectRowValue(
       userAClient,
@@ -425,6 +470,19 @@ async function run() {
       'Sync mutation stayed present after own delete attempt',
     ),
     'Normal user cannot hard-delete own sync mutation',
+  );
+
+  await expectRejectedOrNoop(
+    () => userAClient.from('daily_sadhana_plans').delete().eq('id', dailyPlanId),
+    () => expectRowValue(
+      userAClient,
+      'daily_sadhana_plans',
+      dailyPlanId,
+      'status',
+      { status: 'suggested' },
+      'Daily plan stayed present after own delete attempt',
+    ),
+    'Normal user cannot hard-delete own daily plan',
   );
 
   await expectRejectedOrNoop(

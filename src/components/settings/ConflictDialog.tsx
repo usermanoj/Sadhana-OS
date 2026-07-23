@@ -41,6 +41,7 @@ export default function ConflictDialog({ summary, onApply, onCancel }: ConflictD
           <ConflictCount label="Daily entries" value={summary.dailyEntries} />
           <ConflictCount label="Journal entries" value={summary.journalEntries} />
           <ConflictCount label="Audit logs" value={summary.auditLogs} />
+          <ConflictCount label="Daily plans" value={summary.dailyPlans} />
         </dl>
 
         {summary.settings ? (

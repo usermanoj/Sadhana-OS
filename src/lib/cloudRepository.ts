@@ -4,6 +4,7 @@ import type {
   AuditEntityType,
   Category,
   DailyEntry,
+  DailySadhanaPlan,
   DateKey,
   JournalEntry,
   TrackingType,
@@ -73,6 +74,21 @@ interface CloudSettingsRow {
   schema_version: string;
 }
 
+interface CloudDailySadhanaPlanRow {
+  plan_date: string;
+  mode: DailySadhanaPlan['mode'];
+  status: DailySadhanaPlan['status'];
+  available_minutes: number;
+  energy_level: DailySadhanaPlan['energyLevel'];
+  focus_category_ids: string[];
+  intention: string | null;
+  items: DailySadhanaPlan['items'];
+  excluded_habit_ids: string[];
+  engine_version: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export type CloudMutationType = 'replaceSnapshot';
 export type CloudMutationStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'conflict';
 
@@ -105,6 +121,7 @@ export interface CloudSnapshotRows {
   dailyHabitEntries: CloudDailyHabitEntryRow[];
   journalEntries: CloudJournalEntryRow[];
   auditLogs: CloudAuditLogEntryRow[];
+  dailyPlans?: CloudDailySadhanaPlanRow[];
 }
 
 export interface CloudDataGateway {
@@ -113,6 +130,7 @@ export interface CloudDataGateway {
   saveDailyEntries(entries: Record<DateKey, DailyEntry>): Promise<void>;
   saveJournalEntries(entries: Record<DateKey, JournalEntry>): Promise<void>;
   saveAuditLogs(auditLogs: StoredAuditLogEntry[]): Promise<void>;
+  saveDailyPlans?(plans: Record<DateKey, DailySadhanaPlan>): Promise<void>;
   replaceSnapshot(snapshot: AppStateSnapshot): Promise<void>;
   recordMutationStatus(input: CloudMutationStatusInput): Promise<void>;
 }
@@ -201,6 +219,25 @@ export function mapCloudRowsToSnapshot(rows: CloudSnapshotRows): AppStateSnapsho
     newValue: entry.new_value,
     note: entry.note ?? undefined,
   }));
+  const dailyPlans = Object.fromEntries(
+    (rows.dailyPlans ?? []).map((plan) => [
+      plan.plan_date,
+      {
+        date: plan.plan_date,
+        mode: plan.mode,
+        status: plan.status,
+        availableMinutes: plan.available_minutes,
+        energyLevel: plan.energy_level,
+        focusCategoryIds: plan.focus_category_ids ?? [],
+        intention: plan.intention ?? undefined,
+        items: plan.items ?? [],
+        excludedHabitIds: plan.excluded_habit_ids ?? [],
+        engineVersion: plan.engine_version,
+        createdAt: plan.created_at,
+        updatedAt: plan.updated_at,
+      } satisfies DailySadhanaPlan,
+    ]),
+  );
 
   return {
     version: rows.settings?.schema_version ?? '0.2',
@@ -208,6 +245,7 @@ export function mapCloudRowsToSnapshot(rows: CloudSnapshotRows): AppStateSnapsho
     dailyEntries,
     journalEntries,
     auditLogs,
+    dailyPlans,
   };
 }
 
@@ -225,6 +263,7 @@ export function createSupabaseCloudGateway(
         dailyHabitEntries,
         journalEntries,
         auditLogs,
+        dailyPlans,
       ] = await Promise.all([
         selectMaybeSingle<CloudSettingsRow>(client, 'user_settings', 'schema_version', 'user_id', userId),
         selectRows<CloudCategoryRow>(client, 'categories', '*', userId),
@@ -233,6 +272,7 @@ export function createSupabaseCloudGateway(
         selectRows<CloudDailyHabitEntryRow>(client, 'daily_habit_entries', '*', userId),
         selectRows<CloudJournalEntryRow>(client, 'journal_entries', '*', userId),
         selectRows<CloudAuditLogEntryRow>(client, 'audit_log_entries', '*', userId),
+        selectRows<CloudDailySadhanaPlanRow>(client, 'daily_sadhana_plans', '*', userId),
       ]);
 
       return mapCloudRowsToSnapshot({
@@ -243,6 +283,7 @@ export function createSupabaseCloudGateway(
         dailyHabitEntries,
         journalEntries,
         auditLogs,
+        dailyPlans,
       });
     },
     async saveCategories(categories) {
@@ -266,11 +307,20 @@ export function createSupabaseCloudGateway(
         ignoreDuplicates: true,
       });
     },
+    async saveDailyPlans(plans) {
+      await upsertRows(
+        client,
+        'daily_sadhana_plans',
+        mapDailyPlanRows(plans, userId),
+        'user_id,plan_date',
+      );
+    },
     async replaceSnapshot(snapshot) {
       await this.saveCategories(snapshot.categories);
       await this.saveDailyEntries(snapshot.dailyEntries);
       await this.saveJournalEntries(snapshot.journalEntries);
       await this.saveAuditLogs(snapshot.auditLogs);
+      await this.saveDailyPlans?.(snapshot.dailyPlans ?? {});
     },
     async recordMutationStatus(input) {
       await upsertRows(
@@ -417,5 +467,26 @@ function mapAuditRows(auditLogs: StoredAuditLogEntry[], userId: string) {
     new_value: 'newValue' in entry ? entry.newValue ?? null : entry.after ?? null,
     note: entry.note ?? entry.description ?? null,
     source: 'client',
+  }));
+}
+
+function mapDailyPlanRows(
+  plans: Record<DateKey, DailySadhanaPlan>,
+  userId: string,
+) {
+  return Object.values(plans).map((plan) => ({
+    user_id: userId,
+    plan_date: plan.date,
+    mode: plan.mode,
+    status: plan.status,
+    available_minutes: plan.availableMinutes,
+    energy_level: plan.energyLevel,
+    focus_category_ids: plan.focusCategoryIds,
+    intention: plan.intention ?? null,
+    items: plan.items,
+    excluded_habit_ids: plan.excludedHabitIds,
+    engine_version: plan.engineVersion,
+    created_at: plan.createdAt,
+    updated_at: plan.updatedAt,
   }));
 }

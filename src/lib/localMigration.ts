@@ -1,5 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { AuditActionType, AuditEntityType, Category, DailyEntry, TrackingValue } from '../types';
+import type {
+  AuditActionType,
+  AuditEntityType,
+  Category,
+  DailyEntry,
+  DailySadhanaPlan,
+  TrackingValue,
+} from '../types';
 import { createSeedCategories, STARTER_TEMPLATE_VERSION } from './seed';
 import type { AppStateSnapshot, StoredAuditLogEntry } from './repository';
 import { getItem, setItem } from './storage';
@@ -11,6 +18,7 @@ export interface LocalMigrationSummary {
   dailyHabitEntries: number;
   journalEntries: number;
   auditLogs: number;
+  dailyPlans?: number;
   totalRows: number;
 }
 
@@ -85,6 +93,23 @@ export interface CloudAuditLogEntryRow {
   source: 'migration';
 }
 
+export interface CloudDailySadhanaPlanRow {
+  id: string;
+  user_id: string;
+  plan_date: string;
+  mode: DailySadhanaPlan['mode'];
+  status: DailySadhanaPlan['status'];
+  available_minutes: number;
+  energy_level: DailySadhanaPlan['energyLevel'];
+  focus_category_ids: string[];
+  intention: string | null;
+  items: DailySadhanaPlan['items'];
+  excluded_habit_ids: string[];
+  engine_version: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface LocalMigrationPlan {
   userId: string;
   sourceSchemaVersion: string;
@@ -97,6 +122,7 @@ export interface LocalMigrationPlan {
     dailyHabitEntries: CloudDailyHabitEntryRow[];
     journalEntries: CloudJournalEntryRow[];
     auditLogs: CloudAuditLogEntryRow[];
+    dailyPlans?: CloudDailySadhanaPlanRow[];
   };
 }
 
@@ -164,6 +190,9 @@ const actionTypeMap: Record<string, AuditActionType> = {
   weight_changed: 'weight_changed',
   data_imported: 'data_imported',
   data_exported: 'data_exported',
+  daily_plan_generated: 'daily_plan_generated',
+  daily_plan_adjusted: 'daily_plan_adjusted',
+  daily_plan_confirmed: 'daily_plan_confirmed',
 };
 
 const createId = (): string => crypto.randomUUID();
@@ -238,7 +267,11 @@ const stableStringify = (value: unknown): string => {
 };
 
 export const checksumSnapshot = (snapshot: AppStateSnapshot): string => {
-  const source = stableStringify(snapshot);
+  const { dailyPlans, ...legacySnapshot } = snapshot;
+  const checksumValue = dailyPlans && Object.keys(dailyPlans).length > 0
+    ? snapshot
+    : legacySnapshot;
+  const source = stableStringify(checksumValue);
   let hash = 0;
 
   for (let index = 0; index < source.length; index += 1) {
@@ -252,7 +285,8 @@ export const hasMigratableLocalData = (snapshot: AppStateSnapshot): boolean =>
   snapshot.categories.length > 0
   || Object.keys(snapshot.dailyEntries).length > 0
   || Object.keys(snapshot.journalEntries).length > 0
-  || snapshot.auditLogs.length > 0;
+  || snapshot.auditLogs.length > 0
+  || Object.keys(snapshot.dailyPlans ?? {}).length > 0;
 
 export function hasMeaningfulLocalMigrationData(snapshot: AppStateSnapshot): boolean {
   const hasCustomCategories = snapshot.categories.some((category) => !isStarterTemplateCategory(category));
@@ -262,6 +296,7 @@ export function hasMeaningfulLocalMigrationData(snapshot: AppStateSnapshot): boo
     || dailyEntries.length > 0
     || dailyEntries.some((entry) => Object.keys(entry.completions).length > 0)
     || Object.keys(snapshot.journalEntries).length > 0
+    || Object.keys(snapshot.dailyPlans ?? {}).length > 0
     || snapshot.auditLogs.some((entry) => !isStarterOnlyAuditLog(entry));
 }
 
@@ -280,12 +315,15 @@ export function createLocalMigrationPreview(snapshot: AppStateSnapshot): LocalMi
     auditLogs: snapshot.auditLogs.length,
     totalRows: 0,
   };
+  const dailyPlanCount = Object.keys(snapshot.dailyPlans ?? {}).length;
+  if (dailyPlanCount > 0) summary.dailyPlans = dailyPlanCount;
   summary.totalRows = summary.categories
     + summary.habits
     + summary.dailyEntries
     + summary.dailyHabitEntries
     + summary.journalEntries
     + summary.auditLogs;
+  summary.totalRows += summary.dailyPlans ?? 0;
 
   return {
     checksum: checksumSnapshot(snapshot),
@@ -300,7 +338,8 @@ export function createLocalMigrationPreview(snapshot: AppStateSnapshot): LocalMi
 export function hasCloudUserContent(snapshot: AppStateSnapshot): boolean {
   return snapshot.categories.some((category) => !category.isArchived && !isStarterTemplateCategory(category))
     || Object.keys(snapshot.dailyEntries).length > 0
-    || Object.keys(snapshot.journalEntries).length > 0;
+    || Object.keys(snapshot.journalEntries).length > 0
+    || Object.keys(snapshot.dailyPlans ?? {}).length > 0;
 }
 
 export function findCopiedLocalCustomCategories(
@@ -572,6 +611,33 @@ export function createLocalMigrationPlan(
     source: 'migration',
   }));
 
+  const dailyPlans = Object.values(snapshot.dailyPlans ?? {}).map(
+    (plan): CloudDailySadhanaPlanRow => ({
+      id: createDeterministicMigrationId(userId, 'daily-plan', plan.date),
+      user_id: userId,
+      plan_date: plan.date,
+      mode: plan.mode,
+      status: plan.status,
+      available_minutes: plan.availableMinutes,
+      energy_level: plan.energyLevel,
+      focus_category_ids: plan.focusCategoryIds.map(
+        (categoryId) => idMap.categoryIds.get(categoryId) ?? categoryId,
+      ),
+      intention: plan.intention ?? null,
+      items: plan.items.map((item) => ({
+        ...item,
+        habitId: idMap.habitIds.get(item.habitId) ?? item.habitId,
+        categoryId: idMap.categoryIds.get(item.categoryId) ?? item.categoryId,
+      })),
+      excluded_habit_ids: plan.excludedHabitIds.map(
+        (habitId) => idMap.habitIds.get(habitId) ?? habitId,
+      ),
+      engine_version: plan.engineVersion,
+      created_at: plan.createdAt,
+      updated_at: plan.updatedAt,
+    }),
+  );
+
   const rows = normalizeMigrationRows({
     categories,
     habits,
@@ -579,6 +645,7 @@ export function createLocalMigrationPlan(
     dailyHabitEntries,
     journalEntries,
     auditLogs,
+    dailyPlans,
   });
   const summary = summarizeRows(rows);
 
@@ -611,6 +678,11 @@ function normalizeMigrationRows(rows: LocalMigrationPlan['rows']): LocalMigratio
       chooseLatestTimestampedRow,
     ),
     auditLogs: uniqueRowsByKey(rows.auditLogs, (row) => `${row.user_id}:${row.id}`, chooseLatestAuditRow),
+    dailyPlans: uniqueRowsByKey(
+      rows.dailyPlans ?? [],
+      (row) => `${row.user_id}:${row.plan_date}`,
+      chooseLatestTimestampedRow,
+    ),
   };
 }
 
@@ -928,7 +1000,7 @@ function isStarterOnlyAuditLog(entry: StoredAuditLogEntry): boolean {
 }
 
 function summarizeRows(rows: LocalMigrationPlan['rows']): LocalMigrationSummary {
-  const summary = {
+  const summary: LocalMigrationSummary = {
     categories: rows.categories.length,
     habits: rows.habits.length,
     dailyEntries: rows.dailyEntries.length,
@@ -937,6 +1009,8 @@ function summarizeRows(rows: LocalMigrationPlan['rows']): LocalMigrationSummary 
     auditLogs: rows.auditLogs.length,
     totalRows: 0,
   };
+  const dailyPlanCount = rows.dailyPlans?.length ?? 0;
+  if (dailyPlanCount > 0) summary.dailyPlans = dailyPlanCount;
 
   summary.totalRows = summary.categories
     + summary.habits
@@ -944,6 +1018,7 @@ function summarizeRows(rows: LocalMigrationPlan['rows']): LocalMigrationSummary 
     + summary.dailyHabitEntries
     + summary.journalEntries
     + summary.auditLogs;
+  summary.totalRows += summary.dailyPlans ?? 0;
 
   return summary;
 }
@@ -986,6 +1061,12 @@ export async function uploadLocalMigrationPlan(
     await upsertRows(client, 'audit_log_entries', plan.rows.auditLogs, 'user_id,id', {
       ignoreDuplicates: true,
     });
+    await upsertRows(
+      client,
+      'daily_sadhana_plans',
+      plan.rows.dailyPlans ?? [],
+      'user_id,plan_date',
+    );
 
     const completedAt = new Date().toISOString();
     const { error: updateError } = await client

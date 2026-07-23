@@ -48,12 +48,12 @@ describe('TodayScreen', () => {
 
     expect(screen.getByRole('heading', { name: 'Your next practice' })).toBeInTheDocument();
     expect(screen.getByText('Yama')).toBeInTheDocument();
-    expect(screen.getByText('Based on your current practice order')).toBeInTheDocument();
+    expect(screen.getByText('This practice fits the time you set aside.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Balanced plan' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
-    expect(screen.getByText('3 practices in focus')).toBeInTheDocument();
+    expect(screen.getByText(/3 practices - \d+ min/)).toBeInTheDocument();
   });
 
   it('changes plan depth without changing practice configuration', () => {
@@ -65,8 +65,49 @@ describe('TodayScreen', () => {
       'aria-pressed',
       'true',
     );
-    expect(screen.getByText('1 practice in focus')).toBeInTheDocument();
+    expect(screen.getByText(/1 practice - \d+ min/)).toBeInTheDocument();
     expect(getItem<Category[]>('categories', [])).toHaveLength(9);
+  });
+
+  it('uses the daily check-in to prepare and persist an explainable plan', () => {
+    render(<TodayScreen />);
+    const categories = appRepository.getCategories();
+    const physical = categories.find((category) => category.name === 'Physical');
+    if (!physical) throw new Error('Physical category missing');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tune plan' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Very low energy, 1 of 5' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Physical' }));
+    fireEvent.change(screen.getByPlaceholderText('What should this practice protect today?'), {
+      target: { value: 'Protect steady energy' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Prepare my plan' }));
+
+    const saved = appRepository.getDailyPlans()[formatDateKey(new Date())];
+    expect(saved?.energyLevel).toBe(1);
+    expect(saved?.focusCategoryIds).toEqual([physical.id]);
+    expect(saved?.intention).toBe('Protect steady energy');
+    expect(saved?.items[0]?.categoryId).toBe(physical.id);
+    expect(screen.getByText(/chosen focus areas today/)).toBeInTheDocument();
+  });
+
+  it('confirms, shortens, and replaces recommendations without recording completion', () => {
+    render(<TodayScreen />);
+    const date = formatDateKey(new Date());
+
+    fireEvent.click(screen.getByRole('button', { name: 'Shorten' }));
+    expect(appRepository.getDailyPlans()[date]?.items[0]?.plannedMinutes).toBe(2);
+    expect(appRepository.getDailyEntries()[date]).toBeUndefined();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Replace' }));
+    expect(screen.queryByText('Yama')).not.toBeInTheDocument();
+    expect(appRepository.getDailyPlans()[date]?.excludedHabitIds).toContain(
+      '00000000-0000-4000-8000-000000000101',
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Use this plan' }));
+    expect(appRepository.getDailyPlans()[date]?.status).toBe('confirmed');
+    expect(screen.getByText('confirmed')).toBeInTheDocument();
   });
 
   it('advances the focused practice immediately after recording it', () => {

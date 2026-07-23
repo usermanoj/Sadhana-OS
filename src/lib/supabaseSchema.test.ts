@@ -20,6 +20,7 @@ const userOwnedTables = [
   'import_jobs',
   'sync_devices',
   'sync_mutations',
+  'daily_sadhana_plans',
 ];
 
 describe('Supabase initial schema migration', () => {
@@ -46,6 +47,7 @@ describe('Supabase initial schema migration', () => {
       'sync_devices',
       'sync_mutations',
       'user_settings',
+      'daily_sadhana_plans',
     ].forEach((table) => {
       expect(migrationSql).toContain(`create policy ${table}_select_own on public.${table}`);
       expect(migrationSql).toContain(`create policy ${table}_insert_own on public.${table}`);
@@ -74,6 +76,17 @@ describe('Supabase initial schema migration', () => {
     expect(migrationSql).toContain("status text not null default 'pending'");
     expect(migrationSql).toContain('unique (user_id, client_mutation_id)');
     expect(migrationSql).toContain('create index if not exists sync_mutations_user_updated_idx');
+  });
+
+  it('stores one owner-scoped adaptive plan per day without a client delete policy', () => {
+    expect(migrationSql).toContain('create table if not exists public.daily_sadhana_plans');
+    expect(migrationSql).toContain("mode text not null check (mode in ('minimum', 'balanced', 'full'))");
+    expect(migrationSql).toContain("status text not null default 'suggested'");
+    expect(migrationSql).toContain('unique (user_id, plan_date)');
+    expect(migrationSql).toContain('create policy daily_sadhana_plans_select_own');
+    expect(migrationSql).toContain('create policy daily_sadhana_plans_insert_own');
+    expect(migrationSql).toContain('create policy daily_sadhana_plans_update_own');
+    expect(migrationSql).not.toContain('daily_sadhana_plans_delete_own');
   });
 
   it('bootstraps profile and settings rows when an auth user is created', () => {

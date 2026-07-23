@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   CalendarDays,
   CheckCircle2,
@@ -8,19 +8,27 @@ import {
   Sunrise,
 } from 'lucide-react';
 import { useDailyEntry } from '../../hooks/useDailyEntry';
-import { buildTodayPlan, type DailyPlanMode } from '../../lib/todayPlan';
+import { useAdaptiveDailyPlan } from '../../hooks/useAdaptiveDailyPlan';
+import { buildTodayPlan } from '../../lib/todayPlan';
+import {
+  getPlanReasonText,
+  resolveDailyPlanItems,
+  type ResolvedDailyPlanItem,
+} from '../../lib/adaptiveDailyPlan';
+import type { DailyPlanMode, DailySadhanaPlan } from '../../types';
 import DateNavigator from '../today/DateNavigator';
 import ScoreBar from '../today/ScoreBar';
 import CategoryAccordion from '../today/CategoryAccordion';
 import NextPracticePanel from '../today/NextPracticePanel';
 import PlanModeSelector from '../today/PlanModeSelector';
+import AdaptivePlanTuner from '../today/AdaptivePlanTuner';
 import { DynamicCategoryIcon } from '../today/CategoryIcon';
 
 export default function TodayScreen() {
-  const [planMode, setPlanMode] = useState<DailyPlanMode>('balanced');
   const {
     selectedDate,
     entry,
+    entries,
     categories,
     categoryStats,
     totalCompleted,
@@ -32,10 +40,21 @@ export default function TodayScreen() {
     setTrackingValue,
   } = useDailyEntry();
 
-  const plan = useMemo(
-    () => buildTodayPlan(categories, entry.completions, planMode),
-    [categories, entry.completions, planMode],
+  const adaptive = useAdaptiveDailyPlan({
+    date: entry.date,
+    categories,
+    entries,
+    currentCompletions: entry.completions,
+  });
+  const resolvedPlanItems = useMemo(
+    () => resolveDailyPlanItems(adaptive.plan, categories, entry.completions),
+    [adaptive.plan, categories, entry.completions],
   );
+  const libraryPlan = useMemo(
+    () => buildTodayPlan(categories, entry.completions, 'full'),
+    [categories, entry.completions],
+  );
+  const focus = resolvedPlanItems[0] ?? null;
   const completedGroups = categories.filter((category) => {
     const stats = categoryStats[category.id];
     return stats && stats.total > 0 && stats.completed === stats.total;
@@ -75,28 +94,47 @@ export default function TodayScreen() {
         </div>
       </header>
 
-      <section className="border-y border-border py-4 sm:py-5" aria-labelledby="plan-depth-heading">
-        <div className="grid gap-4 lg:grid-cols-[minmax(220px,0.55fr)_minmax(0,1fr)] lg:items-center lg:gap-8">
+      <section className="border-y border-border py-3 sm:py-5" aria-labelledby="plan-depth-heading">
+        <div className="grid gap-2.5 sm:gap-4 lg:grid-cols-[minmax(220px,0.55fr)_minmax(0,1fr)] lg:items-center lg:gap-8">
           <div>
-            <h2 id="plan-depth-heading" className="text-subheading text-text-primary">
+            <h2
+              id="plan-depth-heading"
+              className="sr-only text-subheading text-text-primary sm:not-sr-only"
+            >
               Choose today&apos;s depth
             </h2>
-            <p className="mt-1 text-caption text-text-secondary">
+            <p className="mt-1 hidden text-caption text-text-secondary sm:block">
               Keep the plan realistic for the day you have.
             </p>
           </div>
-          <PlanModeSelector value={planMode} onChange={setPlanMode} />
+          <PlanModeSelector value={adaptive.plan.mode} onChange={adaptive.setMode} />
         </div>
+        <AdaptivePlanTuner
+          plan={adaptive.plan}
+          categories={categories}
+          onGenerate={adaptive.generate}
+        />
       </section>
 
       <div className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.75fr)] lg:gap-5">
         <NextPracticePanel
-          focus={plan.focus}
-          value={plan.focus ? entry.completions[plan.focus.habit.id] : undefined}
+          focus={focus}
+          value={focus ? entry.completions[focus.habit.id] : undefined}
+          reason={focus ? getPlanReasonText(focus.item, focus.category.name) : null}
+          planStatus={adaptive.plan.status}
+          allActiveComplete={libraryPlan.totalRemaining === 0}
           onToggle={toggleSubComponent}
           onValueChange={setTrackingValue}
+          onShorten={adaptive.shorten}
+          onReplace={adaptive.replace}
+          onConfirm={adaptive.confirm}
         />
-        <PlanOverview mode={planMode} plan={plan} />
+        <PlanOverview
+          plan={adaptive.plan}
+          items={resolvedPlanItems}
+          totalActive={libraryPlan.totalActive}
+          totalRemaining={libraryPlan.totalRemaining}
+        />
       </div>
 
       {isFullDayComplete ? (
@@ -137,7 +175,7 @@ export default function TodayScreen() {
 
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <RhythmMetric label="Done" value={String(totalCompleted)} />
-            <RhythmMetric label="Open" value={String(plan.totalRemaining)} />
+            <RhythmMetric label="Open" value={String(libraryPlan.totalRemaining)} />
             <RhythmMetric label="Groups" value={`${completedGroups}/${categories.length}`} />
           </div>
         </div>
@@ -180,14 +218,17 @@ export default function TodayScreen() {
 }
 
 interface PlanOverviewProps {
-  mode: DailyPlanMode;
-  plan: ReturnType<typeof buildTodayPlan>;
+  plan: DailySadhanaPlan;
+  items: ResolvedDailyPlanItem[];
+  totalActive: number;
+  totalRemaining: number;
 }
 
-function PlanOverview({ mode, plan }: PlanOverviewProps) {
-  const planCount = plan.items.length;
-  const upcoming = plan.items.slice(1, 4);
+function PlanOverview({ plan, items, totalActive, totalRemaining }: PlanOverviewProps) {
+  const planCount = items.length;
+  const upcoming = items.slice(1, 4);
   const hiddenCount = Math.max(planCount - 4, 0);
+  const plannedMinutes = items.reduce((total, item) => total + item.item.plannedMinutes, 0);
 
   return (
     <section
@@ -197,23 +238,31 @@ function PlanOverview({ mode, plan }: PlanOverviewProps) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-caption font-semibold uppercase text-text-secondary">
-            {getModeLabel(mode)} plan
+            {getModeLabel(plan.mode)} plan
           </p>
           <h2 id="today-focus-heading" className="mt-1 text-subheading text-text-primary">
             Today&apos;s focus
           </h2>
         </div>
-        <CircleDot size={20} className="text-accent-primary" aria-hidden="true" />
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[0.7rem] font-semibold uppercase text-text-secondary">
+          <CircleDot size={13} className="text-accent-primary" aria-hidden="true" />
+          {plan.status}
+        </span>
       </div>
 
       <p className="mt-3 text-body font-medium text-text-primary">
-        {planCount} {planCount === 1 ? 'practice' : 'practices'} in focus
+        {planCount} {planCount === 1 ? 'practice' : 'practices'} - {plannedMinutes} min
       </p>
       <p className="mt-1 text-caption text-text-secondary">
-        {plan.totalRemaining === 0
+        {totalRemaining === 0
           ? 'Nothing remains to record.'
-          : `${plan.totalRemaining} of ${plan.totalActive} active practices remain today.`}
+          : `${totalRemaining} of ${totalActive} active practices remain today.`}
       </p>
+      {plan.intention ? (
+        <p className="mt-3 border-l-2 border-accent-primary/40 pl-3 text-caption text-text-secondary">
+          Intention: {plan.intention}
+        </p>
+      ) : null}
 
       <div className="mt-5 flex flex-1 flex-col">
         {upcoming.length > 0 ? (
@@ -237,7 +286,7 @@ function PlanOverview({ mode, plan }: PlanOverviewProps) {
                       {item.habit.name}
                     </p>
                     <p className="truncate text-caption text-text-secondary">
-                      {item.category.name}
+                      {item.category.name} - {item.item.plannedMinutes} min
                     </p>
                   </div>
                   <ChevronRight size={16} className="shrink-0 text-text-secondary" aria-hidden="true" />
@@ -250,13 +299,15 @@ function PlanOverview({ mode, plan }: PlanOverviewProps) {
             <div className="flex items-center gap-3 text-caption text-text-secondary">
               <CheckCircle2
                 size={18}
-                className={plan.totalRemaining === 0 ? 'text-accent-success' : 'text-accent-primary'}
+                className={totalRemaining === 0 ? 'text-accent-success' : 'text-accent-primary'}
                 aria-hidden="true"
               />
               <span>
-                {plan.totalRemaining === 0
+                {totalRemaining === 0
                   ? 'All groups complete'
-                  : 'One clear practice is enough for this plan.'}
+                  : planCount === 0
+                    ? 'This saved plan is complete. Tune it to add another practice.'
+                    : 'One clear practice is enough for this plan.'}
               </span>
             </div>
           </div>

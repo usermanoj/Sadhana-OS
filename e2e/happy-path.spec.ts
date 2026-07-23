@@ -9,6 +9,18 @@ test('happy path works on an iPhone-sized viewport', async ({ page }) => {
   await expect(page.locator('#page-today')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Your next practice' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Balanced plan' })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Tune plan' }).click();
+  await page.getByRole('button', { name: 'Very low energy, 1 of 5' }).click();
+  await page.getByRole('button', { name: 'Physical', exact: true }).click();
+  await page.getByPlaceholder('What should this practice protect today?').fill('Protect steady energy');
+  await page.getByRole('button', { name: 'Prepare my plan' }).click();
+  await expect(page.locator('#next-practice-heading + p')).toHaveText('Diet');
+  await expect(page.getByText(/chosen focus areas today/)).toBeVisible();
+  await page.getByRole('button', { name: 'Use this plan' }).click();
+  await expect(page.getByText('confirmed', { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('Intention: Protect steady energy')).toBeVisible();
+  await expect(page.getByText('confirmed', { exact: true })).toBeVisible();
   await expect(page.locator('div[id^="category-"]')).toHaveCount(9);
   await page.getByRole('button', { name: 'Expand 8 Limbs of Yoga' }).click();
 

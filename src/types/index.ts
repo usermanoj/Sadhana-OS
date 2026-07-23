@@ -65,6 +65,46 @@ export interface DailyEntry {
 }
 
 // ---------------------------------------------------------------------------
+// Adaptive Daily Sadhana Plan
+// ---------------------------------------------------------------------------
+
+export type DailyPlanMode = 'minimum' | 'balanced' | 'full';
+export type DailyPlanStatus = 'suggested' | 'confirmed';
+export type DailyEnergyLevel = 1 | 2 | 3 | 4 | 5;
+
+export type DailyPlanReason =
+  | 'focus_area'
+  | 'gentle_energy'
+  | 'growth_edge'
+  | 'recent_rhythm'
+  | 'time_fit'
+  | 'steady_foundation';
+
+export interface DailySadhanaPlanItem {
+  habitId: string;
+  categoryId: string;
+  rank: number;
+  plannedMinutes: number;
+  recommendationScore: number;
+  reasons: DailyPlanReason[];
+}
+
+export interface DailySadhanaPlan {
+  date: DateKey;
+  mode: DailyPlanMode;
+  status: DailyPlanStatus;
+  availableMinutes: number;
+  energyLevel: DailyEnergyLevel;
+  focusCategoryIds: string[];
+  intention?: string;
+  items: DailySadhanaPlanItem[];
+  excludedHabitIds: string[];
+  engineVersion: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ---------------------------------------------------------------------------
 // Journal
 // ---------------------------------------------------------------------------
 
@@ -99,11 +139,14 @@ export type AuditActionType =
   | 'frequency_changed'
   | 'weight_changed'
   | 'data_imported'
-  | 'data_exported';
+  | 'data_exported'
+  | 'daily_plan_generated'
+  | 'daily_plan_adjusted'
+  | 'daily_plan_confirmed';
 
 export type AuditAction = AuditActionType;
 
-export type AuditEntityType = 'category' | 'habit' | 'system';
+export type AuditEntityType = 'category' | 'habit' | 'daily_plan' | 'system';
 
 export interface AuditLogEntry {
   id: string;               // UUID v4
@@ -134,6 +177,7 @@ export interface ExportPayload {
   dailyEntries: Record<DateKey, DailyEntry>;
   journalEntries: Record<DateKey, JournalEntry>;
   auditLogs: AuditLogEntry[];
+  dailyPlans?: Record<DateKey, DailySadhanaPlan>;
   settings: AppSettings;
   // Legacy aliases kept for compatibility with earlier docs/tasks.
   entries: Record<DateKey, DailyEntry>;

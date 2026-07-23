@@ -1,4 +1,12 @@
-import type { AuditLogEntry, Category, DailyEntry, DateKey, ExportPayload, JournalEntry } from '../types';
+import type {
+  AuditLogEntry,
+  Category,
+  DailyEntry,
+  DailySadhanaPlan,
+  DateKey,
+  ExportPayload,
+  JournalEntry,
+} from '../types';
 import { recordAuditEntry } from './auditService';
 import { appRepository } from './repository';
 
@@ -9,6 +17,7 @@ export interface ConflictSummary {
   dailyEntries: number;
   journalEntries: number;
   auditLogs: number;
+  dailyPlans: number;
   settings: boolean;
   total: number;
 }
@@ -19,6 +28,7 @@ interface ExistingState {
   dailyEntries: Record<DateKey, DailyEntry>;
   journalEntries: Record<DateKey, JournalEntry>;
   auditLogs: AuditLogEntry[];
+  dailyPlans: Record<DateKey, DailySadhanaPlan>;
 }
 
 export async function parseImport(source: string | Blob): Promise<ExportPayload> {
@@ -57,12 +67,14 @@ export function detectConflicts(payload: ExportPayload, existingState = loadExis
   const existingEntryDates = new Set(Object.keys(existingState.dailyEntries));
   const existingJournalDates = new Set(Object.keys(existingState.journalEntries));
   const existingAuditIds = new Set(existingState.auditLogs.map((entry) => entry.id));
+  const existingPlanDates = new Set(Object.keys(existingState.dailyPlans));
 
   const summary = {
     categories: payload.categories.filter((category) => existingCategoryIds.has(category.id)).length,
     dailyEntries: Object.keys(payload.dailyEntries).filter((date) => existingEntryDates.has(date)).length,
     journalEntries: Object.keys(payload.journalEntries).filter((date) => existingJournalDates.has(date)).length,
     auditLogs: payload.auditLogs.filter((entry) => existingAuditIds.has(entry.id)).length,
+    dailyPlans: Object.keys(payload.dailyPlans ?? {}).filter((date) => existingPlanDates.has(date)).length,
     settings: payload.settings.schemaVersion !== existingState.version,
     total: 0,
   };
@@ -71,6 +83,7 @@ export function detectConflicts(payload: ExportPayload, existingState = loadExis
     + summary.dailyEntries
     + summary.journalEntries
     + summary.auditLogs
+    + summary.dailyPlans
     + (summary.settings ? 1 : 0);
 
   return summary;
@@ -88,12 +101,14 @@ export function applyImport(payload: ExportPayload, mode: ImportMode): void {
       dailyEntries: validated.dailyEntries,
       journalEntries: validated.journalEntries,
       auditLogs: validated.auditLogs,
+      dailyPlans: validated.dailyPlans ?? {},
     });
   } else {
     const nextCategories = mergeCategories(existingState.categories, validated.categories);
     const nextDailyEntries = mergeRecords(existingState.dailyEntries, validated.dailyEntries);
     const nextJournalEntries = mergeRecords(existingState.journalEntries, validated.journalEntries);
     const nextAuditLogs = mergeAuditLogs(existingState.auditLogs, validated.auditLogs);
+    const nextDailyPlans = mergeRecords(existingState.dailyPlans, validated.dailyPlans ?? {});
 
     appRepository.replaceSnapshot({
       version: existingState.version || validated.settings.schemaVersion,
@@ -101,6 +116,7 @@ export function applyImport(payload: ExportPayload, mode: ImportMode): void {
       dailyEntries: nextDailyEntries,
       journalEntries: nextJournalEntries,
       auditLogs: nextAuditLogs,
+      dailyPlans: nextDailyPlans,
     });
   }
 
@@ -123,12 +139,14 @@ function validateExportPayload(value: unknown): ExportPayload {
   const dailyEntries = value.dailyEntries ?? value.entries;
   const journalEntries = value.journalEntries ?? value.journal;
   const auditLogs = value.auditLogs ?? value.audit;
+  const dailyPlans = value.dailyPlans ?? {};
   const settings = value.settings;
 
   if (!Array.isArray(categories)
     || !isRecord(dailyEntries)
     || !isRecord(journalEntries)
     || !Array.isArray(auditLogs)
+    || !isRecord(dailyPlans)
     || !isRecord(settings)
     || typeof settings.schemaVersion !== 'string'
   ) {
@@ -139,6 +157,7 @@ function validateExportPayload(value: unknown): ExportPayload {
   const normalizedDailyEntries = validateDailyEntries(dailyEntries);
   const normalizedJournalEntries = validateJournalEntries(journalEntries);
   const normalizedAuditLogs = auditLogs.map(validateAuditEntry);
+  const normalizedDailyPlans = validateDailyPlans(dailyPlans);
   const habits = normalizedCategories.flatMap((category) => category.subComponents);
   const version = typeof value.version === 'string' ? value.version : settings.schemaVersion;
   const exportedAt = typeof value.exportedAt === 'string'
@@ -153,6 +172,7 @@ function validateExportPayload(value: unknown): ExportPayload {
     dailyEntries: normalizedDailyEntries,
     journalEntries: normalizedJournalEntries,
     auditLogs: normalizedAuditLogs,
+    dailyPlans: normalizedDailyPlans,
     settings: { schemaVersion: settings.schemaVersion },
     entries: normalizedDailyEntries,
     journal: normalizedJournalEntries,
@@ -286,6 +306,83 @@ function validateAuditEntry(value: unknown): AuditLogEntry {
   };
 }
 
+function validateDailyPlans(value: Record<string, unknown>): Record<DateKey, DailySadhanaPlan> {
+  const validModes = new Set(['minimum', 'balanced', 'full']);
+  const validStatuses = new Set(['suggested', 'confirmed']);
+  const validReasons = new Set([
+    'focus_area',
+    'gentle_energy',
+    'growth_edge',
+    'recent_rhythm',
+    'time_fit',
+    'steady_foundation',
+  ]);
+
+  return Object.fromEntries(
+    Object.entries(value).map(([date, plan]) => {
+      if (!isRecord(plan)
+        || plan.date !== date
+        || !validModes.has(String(plan.mode))
+        || !validStatuses.has(String(plan.status))
+        || typeof plan.availableMinutes !== 'number'
+        || !Number.isInteger(plan.availableMinutes)
+        || plan.availableMinutes < 1
+        || plan.availableMinutes > 180
+        || typeof plan.energyLevel !== 'number'
+        || !Number.isInteger(plan.energyLevel)
+        || plan.energyLevel < 1
+        || plan.energyLevel > 5
+        || !isStringArray(plan.focusCategoryIds)
+        || plan.focusCategoryIds.length > 2
+        || !Array.isArray(plan.items)
+        || !isStringArray(plan.excludedHabitIds)
+        || typeof plan.engineVersion !== 'string'
+        || typeof plan.createdAt !== 'string'
+        || typeof plan.updatedAt !== 'string'
+        || (plan.intention !== undefined
+          && (typeof plan.intention !== 'string' || plan.intention.length > 80))
+      ) {
+        throw new Error('Invalid JSON backup.');
+      }
+
+      const items = plan.items.map((item) => {
+        if (!isRecord(item)
+          || typeof item.habitId !== 'string'
+          || typeof item.categoryId !== 'string'
+          || typeof item.rank !== 'number'
+          || !Number.isInteger(item.rank)
+          || item.rank < 1
+          || typeof item.plannedMinutes !== 'number'
+          || !Number.isInteger(item.plannedMinutes)
+          || item.plannedMinutes < 1
+          || typeof item.recommendationScore !== 'number'
+          || !isStringArray(item.reasons)
+          || item.reasons.some((reason) => !validReasons.has(reason))
+        ) {
+          throw new Error('Invalid JSON backup.');
+        }
+
+        return item as unknown as DailySadhanaPlan['items'][number];
+      });
+
+      return [date, {
+        date,
+        mode: plan.mode as DailySadhanaPlan['mode'],
+        status: plan.status as DailySadhanaPlan['status'],
+        availableMinutes: plan.availableMinutes,
+        energyLevel: plan.energyLevel as DailySadhanaPlan['energyLevel'],
+        focusCategoryIds: plan.focusCategoryIds,
+        intention: typeof plan.intention === 'string' ? plan.intention : undefined,
+        items,
+        excludedHabitIds: plan.excludedHabitIds,
+        engineVersion: plan.engineVersion,
+        createdAt: plan.createdAt,
+        updatedAt: plan.updatedAt,
+      } satisfies DailySadhanaPlan];
+    }),
+  );
+}
+
 function loadExistingState(): ExistingState {
   return {
     version: appRepository.getVersion('1.1'),
@@ -293,6 +390,7 @@ function loadExistingState(): ExistingState {
     dailyEntries: appRepository.getDailyEntries(),
     journalEntries: appRepository.getJournalEntries(),
     auditLogs: appRepository.getAuditLogs().map((entry) => entry as AuditLogEntry),
+    dailyPlans: appRepository.getDailyPlans(),
   };
 }
 
@@ -322,10 +420,15 @@ function summarizeState(state: ExistingState) {
     dailyEntries: Object.keys(state.dailyEntries).length,
     journalEntries: Object.keys(state.journalEntries).length,
     auditLogs: state.auditLogs.length,
+    dailyPlans: Object.keys(state.dailyPlans).length,
     schemaVersion: state.version,
   };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string');
 }
